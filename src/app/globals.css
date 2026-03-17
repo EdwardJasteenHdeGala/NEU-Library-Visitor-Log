@@ -23,7 +23,7 @@
     --border: 210 20% 90%;
     --input: 210 20% 90%;
     --ring: 153 100% 15%;
-    --radius: 1.5rem;
+    --radius: 1.25rem;
     --chart-1: 153 100% 15%;
     --chart-2: 45 100% 48%;
     --chart-3: 197 37% 24%;
@@ -69,10 +69,10 @@
 .neu-mesh-gradient {
   background-color: hsl(var(--background));
   background-image: 
-    radial-gradient(at 0% 0%, hsla(153, 100%, 15%, 0.12) 0px, transparent 50%),
-    radial-gradient(at 100% 0%, hsla(45, 100%, 48%, 0.08) 0px, transparent 50%),
-    radial-gradient(at 100% 100%, hsla(153, 100%, 10%, 0.05) 0px, transparent 50%),
-    radial-gradient(at 0% 100%, hsla(45, 100%, 48%, 0.05) 0px, transparent 50%);
+    radial-gradient(at 0% 0%, hsla(153, 100%, 15%, 0.08) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, hsla(45, 100%, 48%, 0.05) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, hsla(153, 100%, 10%, 0.03) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, hsla(45, 100%, 48%, 0.03) 0px, transparent 50%);
 }
 
 .neu-bg-overlay {
@@ -83,52 +83,51 @@
   background-image: url('https://neu.edu.ph/main/img/mains.jfif');
   background-size: cover;
   background-position: center;
-  opacity: 0.06;
+  opacity: 0.05;
   mix-blend-mode: multiply;
-  filter: grayscale(100%) contrast(110%);
-  will-change: opacity;
+  filter: grayscale(100%) contrast(105%);
 }
 
 .bg-dot-pattern {
-  background-image: radial-gradient(circle, hsl(var(--muted-foreground) / 0.1) 1px, transparent 1px);
-  background-size: 24px 24px;
+  background-image: radial-gradient(circle, hsl(var(--muted-foreground) / 0.05) 1px, transparent 1px);
+  background-size: 32px 32px;
 }
 
 .neu-card-shadow {
-  box-shadow: 0 20px 50px -12px rgba(0, 77, 38, 0.08), 0 4px 12px -2px rgba(0, 0, 0, 0.02);
+  box-shadow: 0 12px 40px -12px rgba(0, 77, 38, 0.05), 0 4px 12px -2px rgba(0, 0, 0, 0.02);
 }
 
 @keyframes blob {
   0% { transform: translate3d(0, 0, 0) scale(1); }
-  33% { transform: translate3d(30px, -50px, 0) scale(1.1); }
-  66% { transform: translate3d(-20px, 20px, 0) scale(0.95); }
+  33% { transform: translate3d(20px, -30px, 0) scale(1.05); }
+  66% { transform: translate3d(-15px, 15px, 0) scale(0.98); }
   100% { transform: translate3d(0, 0, 0) scale(1); }
 }
 
 .animate-blob {
-  animation: blob 15s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
+  animation: blob 20s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
   will-change: transform;
 }
 
 .glass-panel {
-  @apply bg-white/70 backdrop-blur-2xl border border-white/40 shadow-xl;
+  @apply bg-white/70 backdrop-blur-xl border border-white/40 shadow-xl;
 }
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
 ::-webkit-scrollbar-track {
   @apply bg-transparent;
 }
 ::-webkit-scrollbar-thumb {
-  @apply bg-primary/10 rounded-full hover:bg-primary/30 transition-colors;
+  @apply bg-primary/10 rounded-full hover:bg-primary/20 transition-colors;
 }
 
 .neu-button-shadow {
-  box-shadow: 0 10px 25px -5px rgba(0, 77, 38, 0.2), 0 8px 10px -6px rgba(0, 77, 38, 0.1);
+  box-shadow: 0 8px 20px -5px rgba(0, 77, 38, 0.15);
 }
 
 .neu-button-shadow-secondary {
-  box-shadow: 0 10px 25px -5px rgba(251, 191, 36, 0.3), 0 8px 10px -6px rgba(251, 191, 36, 0.2);
+  box-shadow: 0 8px 20px -5px rgba(251, 191, 36, 0.2);
 }
