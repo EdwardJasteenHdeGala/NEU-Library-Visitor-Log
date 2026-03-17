@@ -24,7 +24,7 @@ interface AuthContextType {
   user: any;
   profile: UserProfile | null;
   loading: boolean;
-  login: () => Promise<void>;
+  login: (requestedRole?: 'user' | 'admin') => Promise<void>;
   logout: () => Promise<void>;
   verifyStudentId: (studentId: string) => Promise<boolean>;
   switchRole: (newRole: 'user' | 'admin') => Promise<void>;
@@ -45,6 +45,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { user, isUserLoading } = useUser();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [intendedRole, setIntendedRole] = useState<'user' | 'admin' | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -80,14 +81,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const docSnap = await getDoc(docRef);
       
       const isAuthorized = user.email && AUTHORIZED_ADMIN_EMAILS.includes(user.email);
-      // Both Edward and Prof. Esperanza are from CICS
       const isCICS = user.email === 'edwardjasteen.degala@neu.edu.ph' || user.email === 'jcesperanza@neu.edu.ph';
       const defaultCollege = isCICS ? 'CICS' : 'General Education';
 
       if (docSnap.exists()) {
         const data = docSnap.data() as UserProfile;
         
-        // Check for required updates (authorization, special department, or photo)
         let needsUpdate = false;
         const updates: any = {};
 
@@ -101,7 +100,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           needsUpdate = true;
         }
 
-        // Keep photo URL in sync with Google
+        // If an intended role was selected during login, update it for authorized admins
+        if (isAuthorized && intendedRole && data.role !== intendedRole) {
+          updates.role = intendedRole;
+          needsUpdate = true;
+        }
+
         if (user.photoURL && data.photoURL !== user.photoURL) {
           updates.photoURL = user.photoURL;
           needsUpdate = true;
@@ -114,12 +118,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setProfile(data);
         }
       } else {
-        // Create new profile for first-time sign-in
+        // For new users, role is always 'user' unless they are authorized and picked 'admin'
+        const initialRole = (isAuthorized && intendedRole === 'admin') ? 'admin' : 'user';
+        
         const profileData = {
           id: user.uid,
           email: user.email!,
           studentId: 'G-AUTH',
-          role: 'user' as const, 
+          role: initialRole, 
           isAuthorizedAdmin: !!isAuthorized,
           displayName: user.displayName || 'Visitor',
           photoURL: user.photoURL || '',
@@ -135,11 +141,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error("Error fetching/creating profile:", error);
     } finally {
       setLoading(false);
+      setIntendedRole(null); // Reset after processing
     }
   };
 
-  const login = async () => {
+  const login = async (requestedRole?: 'user' | 'admin') => {
     try {
+      if (requestedRole) {
+        setIntendedRole(requestedRole);
+      }
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({ 
         hd: 'neu.edu.ph',

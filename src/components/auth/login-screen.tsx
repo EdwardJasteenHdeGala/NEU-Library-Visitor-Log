@@ -30,9 +30,8 @@ export function LoginScreen({ onBack }: LoginScreenProps) {
   const logoImage = PlaceHolderImages.find(img => img.id === 'neu-logo');
 
   const handleLogin = async () => {
-    // Both tabs currently use the same institutional Google sign-in
-    // the system determines role post-authentication
-    await login();
+    // Pass the active tab as the intended role
+    await login(activeTab as 'user' | 'admin');
   };
 
   return (
