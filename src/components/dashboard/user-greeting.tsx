@@ -31,6 +31,7 @@ import {
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { useFirebase } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export function UserGreeting() {
   const { logout, profile, switchRole } = useAuth();
@@ -69,6 +70,13 @@ export function UserGreeting() {
     }
   };
 
+  const userInitials = profile?.displayName
+    ?.split(' ')
+    .map(n => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2) || 'ST';
+
   return (
     <div className="min-h-screen bg-[#f8f9fa] flex flex-col">
       <header className="p-4 bg-primary text-white sticky top-0 z-50 shadow-xl">
@@ -83,6 +91,12 @@ export function UserGreeting() {
             </div>
           </div>
           <div className="flex items-center gap-3">
+            <Avatar className="h-8 w-8 border-2 border-secondary shadow-md hidden sm:block">
+              <AvatarImage src={profile?.photoURL} alt={profile?.displayName} />
+              <AvatarFallback className="bg-secondary text-primary font-black text-xs">
+                {userInitials}
+              </AvatarFallback>
+            </Avatar>
             {profile?.isAuthorizedAdmin && (
               <Button variant="secondary" size="sm" onClick={() => switchRole('admin')} className="hidden sm:flex gap-2 font-bold text-xs uppercase bg-secondary text-primary hover:bg-white">
                 <ShieldCheck className="h-3.5 w-3.5" />
@@ -105,15 +119,26 @@ export function UserGreeting() {
       <main className="flex-1 max-w-6xl mx-auto w-full p-6 md:p-10 grid grid-cols-1 lg:grid-cols-3 gap-10 items-start">
         <div className="lg:col-span-2 space-y-10">
           <div className="space-y-3 animate-in fade-in slide-in-from-left-6 duration-700">
-            <div className="inline-flex items-center gap-2 bg-primary/10 text-primary border border-primary/20 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest">
-               <GraduationCap className="h-3 w-3" />
-               Academic Year 2024-2025
+            <div className="flex items-center gap-4">
+              <Avatar className="h-20 w-20 border-4 border-white shadow-xl">
+                <AvatarImage src={profile?.photoURL} alt={profile?.displayName} />
+                <AvatarFallback className="bg-secondary text-primary font-black text-2xl">
+                  {userInitials}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <div className="inline-flex items-center gap-2 bg-primary/10 text-primary border border-primary/20 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest mb-1">
+                   <GraduationCap className="h-3 w-3" />
+                   Academic Year 2024-2025
+                </div>
+                <h1 className="text-4xl md:text-6xl font-black text-primary tracking-tight">
+                  Mabuhay, <br />
+                  <span className="text-secondary italic">{profile?.displayName?.split(' ')[0]}!</span>
+                </h1>
+              </div>
             </div>
-            <h1 className="text-4xl md:text-6xl font-black text-primary tracking-tight">
-              Mabuhay, <br />
-              <span className="text-secondary italic">{profile?.displayName?.split(' ')[0]}!</span>
-            </h1>
-            <div className="flex flex-wrap gap-4 pt-2">
+            
+            <div className="flex flex-wrap gap-4 pt-4">
                 <div className="bg-white border p-3 rounded-2xl flex items-center gap-3 shadow-sm">
                     <div className="bg-muted p-2 rounded-lg"><User className="h-4 w-4 text-primary" /></div>
                     <div>

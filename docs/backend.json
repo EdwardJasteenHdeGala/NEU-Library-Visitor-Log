@@ -37,6 +37,10 @@
           "type": "string",
           "description": "The full name of the user."
         },
+        "photoURL": {
+          "type": "string",
+          "description": "The URL of the user's profile picture from Google Auth."
+        },
         "createdAt": {
           "type": "string",
           "description": "Timestamp indicating when the user profile was created.",

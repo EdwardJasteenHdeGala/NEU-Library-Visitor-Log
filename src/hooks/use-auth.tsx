@@ -14,6 +14,7 @@ export interface UserProfile {
   role: 'user' | 'admin';
   isAuthorizedAdmin: boolean;
   displayName: string;
+  photoURL?: string;
   college?: string;
   createdAt: any;
   updatedAt: any;
@@ -86,7 +87,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (docSnap.exists()) {
         const data = docSnap.data() as UserProfile;
         
-        // Check for required updates (authorization or special department)
+        // Check for required updates (authorization, special department, or photo)
         let needsUpdate = false;
         const updates: any = {};
 
@@ -97,6 +98,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (isCICS && data.college !== 'CICS') {
           updates.college = 'CICS';
+          needsUpdate = true;
+        }
+
+        // Keep photo URL in sync with Google
+        if (user.photoURL && data.photoURL !== user.photoURL) {
+          updates.photoURL = user.photoURL;
           needsUpdate = true;
         }
 
@@ -115,6 +122,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           role: 'user' as const, 
           isAuthorizedAdmin: !!isAuthorized,
           displayName: user.displayName || 'Visitor',
+          photoURL: user.photoURL || '',
           college: defaultCollege,
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp()
@@ -133,11 +141,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async () => {
     try {
       const provider = new GoogleAuthProvider();
-      /**
-       * hd: 'neu.edu.ph' - Restricts the account picker to institutional accounts.
-       * prompt: 'select_account' - Forces the Google account selector to appear every time,
-       * preventing the browser from automatically logging into the previous session.
-       */
       provider.setCustomParameters({ 
         hd: 'neu.edu.ph',
         prompt: 'select_account'
@@ -159,7 +162,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const verifyStudentId = async (studentId: string) => {
     if (!user || !firestore) return false;
     
-    // Check if the student ID matches the test account requirement
     const isTestId = studentId === '24-13347-177';
     const isAuthorized = user.email && AUTHORIZED_ADMIN_EMAILS.includes(user.email);
     const isCICS = user.email === 'edwardjasteen.degala@neu.edu.ph' || user.email === 'jcesperanza@neu.edu.ph';
@@ -173,6 +175,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         role: 'user' as const, 
         isAuthorizedAdmin: !!(isAuthorized || isTestId),
         displayName: user.displayName || 'Visitor',
+        photoURL: user.photoURL || '',
         college: defaultCollege,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()

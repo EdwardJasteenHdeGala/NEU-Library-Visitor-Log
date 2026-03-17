@@ -6,17 +6,38 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { User, Shield, Lock, ShieldAlert, ShieldCheck, RefreshCcw, LogOut } from "lucide-react";
+import { User, Shield, Lock, ShieldAlert, ShieldCheck, RefreshCcw, LogOut, Camera } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export function ProfileView() {
   const { profile, switchRole, logout } = useAuth();
 
+  const userInitials = profile?.displayName
+    ?.split(' ')
+    .map(n => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2) || 'ST';
+
   return (
     <div className="max-w-2xl mx-auto space-y-8 animate-in fade-in duration-500">
-      <div className="text-center">
-        <h2 className="text-3xl font-black text-primary mb-2">Account Settings</h2>
-        <p className="text-muted-foreground font-medium">Manage your profile, security, and access roles.</p>
+      <div className="text-center space-y-4">
+        <div className="relative inline-block">
+          <Avatar className="h-32 w-32 border-4 border-white shadow-2xl">
+            <AvatarImage src={profile?.photoURL} alt={profile?.displayName} />
+            <AvatarFallback className="bg-secondary text-primary font-black text-4xl">
+              {userInitials}
+            </AvatarFallback>
+          </Avatar>
+          <div className="absolute bottom-1 right-1 bg-primary text-white p-2 rounded-full shadow-lg border-2 border-white">
+            <Camera className="h-4 w-4" />
+          </div>
+        </div>
+        <div>
+          <h2 className="text-3xl font-black text-primary mb-1">{profile?.displayName}</h2>
+          <p className="text-muted-foreground font-medium">Manage your NEU Hub identity and access.</p>
+        </div>
       </div>
 
       {profile?.isAuthorizedAdmin && (
@@ -50,17 +71,17 @@ export function ProfileView() {
             <div className="flex items-center justify-between">
               <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                      <Label className="text-muted-foreground">Email:</Label>
-                      <span className="font-bold text-primary">{profile?.email}</span>
+                      <Label className="text-muted-foreground text-[10px] font-black uppercase">Email:</Label>
+                      <span className="font-bold text-primary text-sm">{profile?.email}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                      <Label className="text-muted-foreground">Student ID:</Label>
-                      <span className="font-bold text-primary">{profile?.studentId}</span>
+                      <Label className="text-muted-foreground text-[10px] font-black uppercase">Student ID:</Label>
+                      <span className="font-bold text-primary text-sm">{profile?.studentId}</span>
                   </div>
               </div>
               <div className="text-right">
                 <span className="font-bold text-secondary uppercase tracking-widest text-[10px] px-3 py-1 bg-secondary/10 rounded-full border border-secondary/20">
-                  Current Role: {profile?.role}
+                  {profile?.role} Access
                 </span>
               </div>
             </div>
@@ -68,8 +89,9 @@ export function ProfileView() {
         <CardContent className="p-8 space-y-6">
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label className="font-bold text-muted-foreground uppercase text-xs tracking-wider">Full Name</Label>
-              <Input defaultValue={profile?.displayName} className="h-12 bg-muted/20 border-muted" />
+              <Label className="font-bold text-muted-foreground uppercase text-xs tracking-wider">Display Name</Label>
+              <Input defaultValue={profile?.displayName} className="h-12 bg-muted/20 border-muted" readOnly />
+              <p className="text-[10px] text-muted-foreground italic">Profile information is synchronized from your institutional Google account.</p>
             </div>
             
             <div className="relative py-4">
@@ -78,26 +100,26 @@ export function ProfileView() {
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
                     <span className="bg-card px-2 text-muted-foreground flex items-center gap-1 font-bold">
-                        <Lock className="h-3 w-3" /> Security
+                        <Shield className="h-3 w-3" /> Institutional Verification
                     </span>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="font-bold text-muted-foreground uppercase text-xs tracking-wider">New Password</Label>
-                <Input type="password" placeholder="••••••••" className="h-12 bg-muted/20 border-muted" />
-              </div>
-              <div className="space-y-2">
-                <Label className="font-bold text-muted-foreground uppercase text-xs tracking-wider">Confirm Password</Label>
-                <Input type="password" placeholder="••••••••" className="h-12 bg-muted/20 border-muted" />
-              </div>
+            <div className="p-4 bg-muted/50 rounded-xl space-y-2">
+               <div className="flex justify-between items-center">
+                 <span className="text-xs font-bold text-primary uppercase">College / Dept</span>
+                 <span className="text-xs font-black text-secondary">{profile?.college || 'N/A'}</span>
+               </div>
+               <div className="flex justify-between items-center">
+                 <span className="text-xs font-bold text-primary uppercase">Profile Status</span>
+                 <span className="text-xs font-black text-green-600">VERIFIED</span>
+               </div>
             </div>
           </div>
 
           <div className="flex flex-col gap-4">
             <Button className="w-full h-14 bg-primary hover:bg-primary/90 text-white font-black text-xl neu-card-shadow">
-              Update Profile
+              Sync Google Profile
             </Button>
             
             <div className="grid grid-cols-2 gap-4 pt-4">

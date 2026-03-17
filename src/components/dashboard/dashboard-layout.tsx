@@ -35,6 +35,7 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 type View = 'dashboard' | 'visitor-log' | 'users' | 'reports' | 'feedback' | 'profile' | 'help';
 
@@ -64,6 +65,13 @@ export function DashboardLayout() {
       default: return <AdminOverview />;
     }
   };
+
+  const userInitials = profile?.displayName
+    ?.split(' ')
+    .map(n => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2) || 'AD';
 
   return (
     <div className="min-h-screen bg-muted/30 flex flex-col">
@@ -98,7 +106,12 @@ export function DashboardLayout() {
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <button className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-                      <UserCircle className="h-6 w-6 text-secondary" />
+                      <Avatar className="h-8 w-8 border-2 border-secondary shadow-sm">
+                        <AvatarImage src={profile?.photoURL} alt={profile?.displayName} />
+                        <AvatarFallback className="bg-secondary text-primary font-black text-xs">
+                          {userInitials}
+                        </AvatarFallback>
+                      </Avatar>
                       <span className="text-sm font-bold hidden md:inline">{profile?.displayName}</span>
                     </button>
                   </DropdownMenuTrigger>
