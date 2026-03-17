@@ -23,7 +23,7 @@
     --border: 210 20% 90%;
     --input: 210 20% 90%;
     --ring: 153 100% 15%;
-    --radius: 1.25rem;
+    --radius: 1.5rem;
     --chart-1: 153 100% 15%;
     --chart-2: 45 100% 48%;
     --chart-3: 197 37% 24%;
@@ -74,6 +74,19 @@
     radial-gradient(at 0% 100%, hsla(45, 100%, 48%, 0.05) 0px, transparent 50%);
 }
 
+.neu-bg-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: url('https://neu.edu.ph/main/img/mains.jfif');
+  background-size: cover;
+  background-position: center;
+  opacity: 0.07;
+  mix-blend-mode: multiply;
+  filter: grayscale(100%) contrast(120%);
+}
+
 .bg-dot-pattern {
   background-image: radial-gradient(circle, hsl(var(--muted-foreground) / 0.1) 1px, transparent 1px);
   background-size: 24px 24px;
@@ -84,26 +97,26 @@
 }
 
 .neu-card-shadow {
-  box-shadow: 0 10px 40px -10px rgba(0, 77, 38, 0.08), 0 2px 10px -2px rgba(0, 0, 0, 0.02);
+  box-shadow: 0 20px 60px -10px rgba(0, 77, 38, 0.08), 0 4px 20px -2px rgba(0, 0, 0, 0.03);
 }
 
 .neu-button-shadow {
-  box-shadow: 0 10px 20px -5px rgba(0, 77, 38, 0.15);
+  box-shadow: 0 10px 20px -5px rgba(0, 77, 38, 0.2);
 }
 
 .neu-button-shadow-secondary {
-  box-shadow: 0 10px 20px -5px rgba(184, 134, 11, 0.15);
+  box-shadow: 0 10px 20px -5px rgba(184, 134, 11, 0.2);
 }
 
 @keyframes blob {
   0% { transform: translate(0px, 0px) scale(1); }
-  33% { transform: translate(30px, -50px) scale(1.1); }
-  66% { transform: translate(-20px, 20px) scale(0.9); }
+  33% { transform: translate(40px, -60px) scale(1.15); }
+  66% { transform: translate(-30px, 30px) scale(0.9); }
   100% { transform: translate(0px, 0px) scale(1); }
 }
 
 .animate-blob {
-  animation: blob 7s infinite alternate;
+  animation: blob 10s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @keyframes shimmer {
@@ -116,16 +129,16 @@
 }
 
 .glass-panel {
-  @apply bg-white/70 backdrop-blur-xl border border-white/20;
+  @apply bg-white/70 backdrop-blur-2xl border border-white/30 shadow-2xl;
 }
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 10px;
 }
 ::-webkit-scrollbar-track {
   @apply bg-transparent;
 }
 ::-webkit-scrollbar-thumb {
-  @apply bg-muted-foreground/20 rounded-full hover:bg-muted-foreground/30 transition-colors;
+  @apply bg-primary/20 rounded-full hover:bg-primary/40 transition-colors border-2 border-transparent bg-clip-padding;
 }
