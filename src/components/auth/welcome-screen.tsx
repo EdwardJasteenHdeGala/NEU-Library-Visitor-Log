@@ -26,7 +26,7 @@ export function WelcomeScreen({ onLogin, onGuest }: WelcomeScreenProps) {
     <div className="min-h-screen flex flex-col relative bg-background overflow-hidden neu-mesh-gradient">
       <div className="neu-bg-overlay" />
       
-      {/* Animated Blobs - Toned down for balance */}
+      {/* Animated Blobs */}
       <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-primary/5 rounded-full blur-[100px] animate-blob" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-secondary/8 rounded-full blur-[100px] animate-blob delay-2000" />
 
@@ -45,7 +45,7 @@ export function WelcomeScreen({ onLogin, onGuest }: WelcomeScreenProps) {
             />
           </div>
           <div className="flex flex-col -space-y-0.5">
-            <span className="font-black text-xl md:text-2xl tracking-tighter uppercase italic leading-none">NEU</span>
+            <span className="font-black text-xl md:text-2xl tracking-tighter uppercase italic leading-none text-primary">NEU</span>
             <span className="text-[8px] md:text-[9px] font-black text-secondary uppercase tracking-[0.3em] opacity-90">Access Hub</span>
           </div>
         </div>
@@ -76,7 +76,7 @@ export function WelcomeScreen({ onLogin, onGuest }: WelcomeScreenProps) {
                     <span className="h-6 w-6 rounded-full bg-secondary text-primary flex items-center justify-center text-[9px] font-bold">2</span>
                     Identification
                   </h4>
-                  <p className="text-xs text-muted-foreground font-medium leading-relaxed">Students and faculty must present their valid physical RFID ID upon request. External guests must be pre-authorized.</p>
+                  <p className="text-xs text-muted-foreground font-medium leading-relaxed">Students and faculty must present their valid physical ID card upon request. External guests must be pre-authorized.</p>
                 </div>
               </div>
             </DialogContent>
@@ -99,7 +99,7 @@ export function WelcomeScreen({ onLogin, onGuest }: WelcomeScreenProps) {
               ADVANCING <br className="hidden sm:block" />
               <span className="text-secondary italic">EXCELLENCE.</span>
             </h1>
-            <p className="text-lg md:text-2xl text-muted-foreground font-medium max-w-2xl mx-auto leading-relaxed italic opacity-80 px-4">
+            <p className="text-lg md:text-2xl text-muted-foreground font-medium max-w-2xl mx-auto leading-relaxed opacity-80 px-4">
               Welcome to the New Era University Library Portal. Streamline your academic journey with automated access and real-time research synchronization.
             </p>
           </div>
