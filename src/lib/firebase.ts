@@ -17,7 +17,8 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({
-  hd: 'neu.edu.ph'
+  hd: 'neu.edu.ph',
+  prompt: 'select_account'
 });
 
 export { auth, db, googleProvider };

@@ -133,8 +133,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async () => {
     try {
       const provider = new GoogleAuthProvider();
-      // Enforce institutional domain selection
-      provider.setCustomParameters({ hd: 'neu.edu.ph' });
+      /**
+       * hd: 'neu.edu.ph' - Restricts the account picker to institutional accounts.
+       * prompt: 'select_account' - Forces the Google account selector to appear every time,
+       * preventing the browser from automatically logging into the previous session.
+       */
+      provider.setCustomParameters({ 
+        hd: 'neu.edu.ph',
+        prompt: 'select_account'
+      });
       await signInWithPopup(auth, provider);
     } catch (error: any) {
       toast({
