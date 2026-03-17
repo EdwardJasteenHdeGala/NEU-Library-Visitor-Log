@@ -15,7 +15,8 @@ import {
   Library,
   HelpCircle,
   ShieldCheck,
-  User
+  User,
+  UserCog
 } from "lucide-react";
 import { AdminOverview } from "./admin-overview";
 import { VisitorLog } from "./visitor-log";
@@ -23,6 +24,7 @@ import { ReportsView } from "./reports-view";
 import { FeedbackView } from "./feedback-view";
 import { ProfileView } from "./profile-view";
 import { HelpView } from "./help-view";
+import { UserManagement } from "./user-management";
 import { cn } from "@/lib/utils";
 import { 
   DropdownMenu, 
@@ -33,7 +35,7 @@ import {
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 
-type View = 'dashboard' | 'visitor-log' | 'reports' | 'feedback' | 'profile' | 'help';
+type View = 'dashboard' | 'visitor-log' | 'users' | 'reports' | 'feedback' | 'profile' | 'help';
 
 export function DashboardLayout() {
   const { logout, profile, switchRole } = useAuth();
@@ -42,9 +44,10 @@ export function DashboardLayout() {
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'visitor-log', label: 'Visitor Log', icon: Users },
+    { id: 'users', label: 'User Mgmt', icon: UserCog },
     { id: 'reports', label: 'Reports', icon: FileText },
     { id: 'feedback', label: 'Feedback', icon: MessageSquare },
-    { id: 'help', label: 'Help & Support', icon: HelpCircle },
+    { id: 'help', label: 'Help', icon: HelpCircle },
     { id: 'profile', label: 'Settings', icon: Settings },
   ];
 
@@ -52,6 +55,7 @@ export function DashboardLayout() {
     switch (currentView) {
       case 'dashboard': return <AdminOverview />;
       case 'visitor-log': return <VisitorLog />;
+      case 'users': return <UserManagement />;
       case 'reports': return <ReportsView />;
       case 'feedback': return <FeedbackView />;
       case 'help': return <HelpView />;
@@ -105,13 +109,13 @@ export function DashboardLayout() {
                       Settings
                     </DropdownMenuItem>
                     {profile?.isAuthorizedAdmin && (
-                      <DropdownMenuItem onClick={() => switchRole('user')} className="text-blue-600">
-                        <User className="mr-2 h-4 w-4" />
-                        Switch to User Role
+                      <DropdownMenuItem onClick={() => switchRole(profile.role === 'admin' ? 'user' : 'admin')} className="text-blue-600 font-bold">
+                        <ShieldCheck className="mr-2 h-4 w-4" />
+                        Switch to {profile.role === 'admin' ? 'User' : 'Admin'} Role
                       </DropdownMenuItem>
                     )}
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={logout} className="text-destructive">
+                    <DropdownMenuItem onClick={logout} className="text-destructive font-bold">
                       <LogOut className="mr-2 h-4 w-4" />
                       Logout
                     </DropdownMenuItem>
@@ -126,7 +130,7 @@ export function DashboardLayout() {
         {renderView()}
       </main>
 
-      <footer className="p-6 text-center text-muted-foreground text-xs border-t">
+      <footer className="p-6 text-center text-muted-foreground text-xs border-t bg-white">
         <p>&copy; {new Date().getFullYear()} New Era University Library System. All rights reserved.</p>
       </footer>
     </div>

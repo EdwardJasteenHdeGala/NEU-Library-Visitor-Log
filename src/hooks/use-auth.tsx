@@ -15,6 +15,8 @@ export interface UserProfile {
   isAuthorizedAdmin: boolean;
   displayName: string;
   college?: string;
+  createdAt: any;
+  updatedAt: any;
 }
 
 interface AuthContextType {
@@ -29,6 +31,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Core list of authorized administrative accounts
 const AUTHORIZED_ADMIN_EMAILS = [
   'edwardjasteen.degala@neu.edu.ph',
   'jcesperanza@neu.edu.ph'
@@ -74,18 +77,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const docSnap = await getDoc(docRef);
       
       if (docSnap.exists()) {
-        setProfile(docSnap.data() as UserProfile);
+        const data = docSnap.data() as UserProfile;
+        // Re-check authorization in case the email was added to the list later
+        const isAuthorized = user.email && AUTHORIZED_ADMIN_EMAILS.includes(user.email);
+        if (isAuthorized && !data.isAuthorizedAdmin) {
+          await updateDoc(docRef, { isAuthorizedAdmin: true });
+          setProfile({ ...data, isAuthorizedAdmin: true });
+        } else {
+          setProfile(data);
+        }
       } else {
-        // Auto-create profile for Google users to bypass verification screen
-        const isSuperUser = user.email && AUTHORIZED_ADMIN_EMAILS.includes(user.email);
-        const isTestAccount = false; // Placeholder if needed for specific logic
-
+        const isAuthorized = user.email && AUTHORIZED_ADMIN_EMAILS.includes(user.email);
+        
         const profileData = {
           id: user.uid,
           email: user.email!,
-          studentId: 'G-AUTH', // Indicating Google Auth based profile
+          studentId: 'G-AUTH',
           role: 'user' as const, 
-          isAuthorizedAdmin: isSuperUser || isTestAccount,
+          isAuthorizedAdmin: !!isAuthorized,
           displayName: user.displayName || 'Visitor',
           college: 'General Education',
           createdAt: serverTimestamp(),
@@ -123,8 +132,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const verifyStudentId = async (studentId: string) => {
     if (!user || !firestore) return false;
     
-    const isTestAccount = studentId === '24-13347-177';
-    const isSuperUser = user.email && AUTHORIZED_ADMIN_EMAILS.includes(user.email);
+    const isTestId = studentId === '24-13347-177';
+    const isAuthorized = user.email && AUTHORIZED_ADMIN_EMAILS.includes(user.email);
 
     try {
       const profileData = {
@@ -132,7 +141,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         email: user.email!,
         studentId: studentId,
         role: 'user' as const, 
-        isAuthorizedAdmin: isSuperUser || isTestAccount,
+        isAuthorizedAdmin: !!(isAuthorized || isTestId),
         displayName: user.displayName || 'Visitor',
         college: 'General Education',
         createdAt: serverTimestamp(),
