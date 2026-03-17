@@ -11,7 +11,7 @@ export interface UserProfile {
   id: string;
   email: string;
   studentId: string;
-  role: 'user' | 'admin';
+  role: 'guest' | 'user' | 'admin';
   isAuthorizedAdmin: boolean;
   displayName: string;
   photoURL?: string;
@@ -32,9 +32,6 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-/**
- * List of institutional emails authorized to access administrative features.
- */
 const AUTHORIZED_ADMIN_EMAILS = [
   'edwardjasteen.degala@neu.edu.ph',
   'jcesperanza@neu.edu.ph'
@@ -53,17 +50,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const checkProfile = async () => {
       if (user) {
-        if (user.email && !user.email.endsWith('@neu.edu.ph')) {
-          toast({
-            title: "Invalid Domain",
-            description: "Access is restricted to @neu.edu.ph accounts.",
-            variant: "destructive"
-          });
-          await signOut(auth);
-          setProfile(null);
-          setLoading(false);
-          return;
-        }
         await fetchOrCreateProfile(user.uid);
       } else {
         setProfile(null);
@@ -80,34 +66,43 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const docRef = doc(firestore, 'user_profiles', uid);
       const docSnap = await getDoc(docRef);
       
+      const isInstitutional = user.email && user.email.endsWith('@neu.edu.ph');
       const isAuthorized = user.email && AUTHORIZED_ADMIN_EMAILS.includes(user.email);
       const isCICS = user.email === 'edwardjasteen.degala@neu.edu.ph' || user.email === 'jcesperanza@neu.edu.ph';
-      const defaultCollege = isCICS ? 'CICS' : 'General Education';
+      
+      // Determine base status
+      const defaultCollege = isInstitutional 
+        ? (isCICS ? 'CICS' : 'General Education') 
+        : 'External (Guest)';
+      
+      const defaultRole = isInstitutional ? 'user' : 'guest';
 
       if (docSnap.exists()) {
         const data = docSnap.data() as UserProfile;
-        
         let needsUpdate = false;
         const updates: any = {};
 
+        // Sync Google Photo
+        if (user.photoURL && data.photoURL !== user.photoURL) {
+          updates.photoURL = user.photoURL;
+          needsUpdate = true;
+        }
+
+        // Admin authorization check
         if (isAuthorized && !data.isAuthorizedAdmin) {
           updates.isAuthorizedAdmin = true;
           needsUpdate = true;
         }
 
+        // Department sync for CICS
         if (isCICS && data.college !== 'CICS') {
           updates.college = 'CICS';
           needsUpdate = true;
         }
 
-        // If an intended role was selected during login, update it for authorized admins
+        // Role switching for authorized admins
         if (isAuthorized && intendedRole && data.role !== intendedRole) {
           updates.role = intendedRole;
-          needsUpdate = true;
-        }
-
-        if (user.photoURL && data.photoURL !== user.photoURL) {
-          updates.photoURL = user.photoURL;
           needsUpdate = true;
         }
 
@@ -118,13 +113,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setProfile(data);
         }
       } else {
-        // For new users, role is always 'user' unless they are authorized and picked 'admin'
-        const initialRole = (isAuthorized && intendedRole === 'admin') ? 'admin' : 'user';
+        // Create new profile
+        const initialRole = (isAuthorized && intendedRole === 'admin') ? 'admin' : defaultRole;
         
         const profileData = {
           id: user.uid,
           email: user.email!,
-          studentId: 'G-AUTH',
+          studentId: isInstitutional ? 'G-AUTH' : 'GUEST-USER',
           role: initialRole, 
           isAuthorizedAdmin: !!isAuthorized,
           displayName: user.displayName || 'Visitor',
@@ -138,10 +133,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setProfile(profileData as any);
       }
     } catch (error) {
-      console.error("Error fetching/creating profile:", error);
+      console.error("Error managing profile:", error);
     } finally {
       setLoading(false);
-      setIntendedRole(null); // Reset after processing
+      setIntendedRole(null);
     }
   };
 
@@ -151,8 +146,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setIntendedRole(requestedRole);
       }
       const provider = new GoogleAuthProvider();
+      // Only force select account, don't restrict domain at the provider level 
+      // so Gmail users can sign in as guests.
       provider.setCustomParameters({ 
-        hd: 'neu.edu.ph',
         prompt: 'select_account'
       });
       await signInWithPopup(auth, provider);
@@ -170,29 +166,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const verifyStudentId = async (studentId: string) => {
-    if (!user || !firestore) return false;
+    if (!user || !firestore || !profile) return false;
     
-    const isTestId = studentId === '24-13347-177';
-    const isAuthorized = user.email && AUTHORIZED_ADMIN_EMAILS.includes(user.email);
-    const isCICS = user.email === 'edwardjasteen.degala@neu.edu.ph' || user.email === 'jcesperanza@neu.edu.ph';
-    const defaultCollege = isCICS ? 'CICS' : 'General Education';
+    // Non-institutional users cannot verify a student ID
+    if (!user.email?.endsWith('@neu.edu.ph')) {
+      toast({
+        title: "Restricted Action",
+        description: "Only institutional accounts can link a Student ID.",
+        variant: "destructive"
+      });
+      return false;
+    }
 
     try {
-      const profileData = {
-        id: user.uid,
-        email: user.email!,
+      await updateDoc(doc(firestore, 'user_profiles', user.uid), {
         studentId: studentId,
-        role: 'user' as const, 
-        isAuthorizedAdmin: !!(isAuthorized || isTestId),
-        displayName: user.displayName || 'Visitor',
-        photoURL: user.photoURL || '',
-        college: defaultCollege,
-        createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
-      };
-      
-      await setDoc(doc(firestore, 'user_profiles', user.uid), profileData);
-      setProfile(profileData as any);
+      });
+      setProfile({ ...profile, studentId });
       return true;
     } catch (error: any) {
         toast({

@@ -5,7 +5,7 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "UserProfile",
       "type": "object",
-      "description": "Represents a user's profile within the NEU Access Hub, including their institutional email, student ID, and assigned access role.",
+      "description": "Represents a user's profile within the NEU Access Hub, including their institutional status or guest access role.",
       "properties": {
         "id": {
           "type": "string",
@@ -13,25 +13,25 @@
         },
         "email": {
           "type": "string",
-          "description": "The institutional email address of the user.",
+          "description": "The email address of the user.",
           "format": "email"
         },
         "studentId": {
           "type": "string",
-          "description": "The student identification number associated with the user."
+          "description": "The student identification number or 'GUEST' for non-institutional users."
         },
         "role": {
           "type": "string",
-          "description": "The current active access role: 'user' or 'admin'.",
-          "enum": ["user", "admin"]
+          "description": "The current access role: 'guest', 'user', or 'admin'.",
+          "enum": ["guest", "user", "admin"]
         },
         "isAuthorizedAdmin": {
           "type": "boolean",
-          "description": "Flag indicating if the user is authorized to switch to admin role."
+          "description": "Flag indicating if the user is authorized for administrative features."
         },
         "college": {
           "type": "string",
-          "description": "The college or department the user belongs to."
+          "description": "The college, department, or 'External' for guests."
         },
         "displayName": {
           "type": "string",
@@ -39,16 +39,16 @@
         },
         "photoURL": {
           "type": "string",
-          "description": "The URL of the user's profile picture from Google Auth."
+          "description": "The URL of the user's profile picture."
         },
         "createdAt": {
           "type": "string",
-          "description": "Timestamp indicating when the user profile was created.",
+          "description": "Timestamp of profile creation.",
           "format": "date-time"
         },
         "updatedAt": {
           "type": "string",
-          "description": "Timestamp indicating when the user profile was last updated.",
+          "description": "Timestamp of last update.",
           "format": "date-time"
         }
       },
@@ -65,11 +65,11 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Visit",
       "type": "object",
-      "description": "Records details of a visitor's entry and exit.",
+      "description": "Records details of a visitor's entry.",
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the Visit entity."
+          "description": "Unique identifier for the Visit."
         },
         "userId": {
           "type": "string",
@@ -77,15 +77,16 @@
         },
         "userName": {
           "type": "string",
-          "description": "Name of the visitor at the time of log."
+          "description": "Name of the visitor."
         },
         "college": {
           "type": "string",
-          "description": "College of the visitor."
+          "description": "College or 'External'."
         },
         "roleAtTime": {
           "type": "string",
-          "description": "Role of the user at the time of visit (student/faculty/staff)."
+          "description": "Role at the time of visit.",
+          "enum": ["guest", "student", "faculty", "staff"]
         },
         "purpose": {
           "type": "string",
@@ -120,8 +121,7 @@
   },
   "auth": {
     "providers": [
-      "google.com",
-      "password"
+      "google.com"
     ]
   },
   "firestore": {
@@ -143,7 +143,7 @@
           "schema": {
             "$ref": "#/backend/entities/Visit"
           },
-          "description": "Root collection for all library visits to allow admin-wide queries."
+          "description": "Root collection for all library visits."
         }
       }
     ]

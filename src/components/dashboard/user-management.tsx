@@ -4,7 +4,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Search, UserCog, ShieldCheck, Mail, BookOpen } from "lucide-react";
+import { Search, UserCog, ShieldCheck, Mail, Globe } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { collection, query, orderBy } from "firebase/firestore";
 import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
@@ -24,20 +24,20 @@ export function UserManagement() {
   const filteredUsers = users?.filter(u => 
     u.displayName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     u.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    u.studentId.toLowerCase().includes(searchTerm.toLowerCase())
+    (u.studentId && u.studentId.toLowerCase().includes(searchTerm.toLowerCase()))
   ) || [];
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-black text-primary mb-2 italic">USER MANAGEMENT</h2>
-          <p className="text-muted-foreground font-medium">Audit and manage institutional access privileges.</p>
+          <h2 className="text-3xl font-black text-primary mb-2 italic uppercase">User Directory</h2>
+          <p className="text-muted-foreground font-medium">Audit institutional and guest access privileges.</p>
         </div>
         <div className="relative max-w-sm w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input 
-            placeholder="Search by name, email, or ID..." 
+            placeholder="Search users..." 
             className="pl-10 h-12 rounded-xl shadow-sm border-2"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -60,12 +60,12 @@ export function UserManagement() {
         <Card className="neu-card-shadow border-none rounded-2xl">
           <CardContent className="p-6 flex items-center gap-4">
             <div className="p-3 bg-accent/10 rounded-2xl">
-              <ShieldCheck className="h-6 w-6 text-accent" />
+              <Globe className="h-6 w-6 text-accent" />
             </div>
             <div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Active Admins</p>
+              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Guest Accounts</p>
               <p className="text-2xl font-black text-primary">
-                {users?.filter(u => u.role === 'admin').length || 0}
+                {users?.filter(u => u.role === 'guest').length || 0}
               </p>
             </div>
           </CardContent>
@@ -73,12 +73,12 @@ export function UserManagement() {
         <Card className="neu-card-shadow border-none rounded-2xl">
           <CardContent className="p-6 flex items-center gap-4">
             <div className="p-3 bg-blue-50 rounded-2xl">
-              <Mail className="h-6 w-6 text-blue-600" />
+              <ShieldCheck className="h-6 w-6 text-blue-600" />
             </div>
             <div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Authorized Admins</p>
+              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Admins</p>
               <p className="text-2xl font-black text-primary">
-                {users?.filter(u => u.isAuthorizedAdmin).length || 0}
+                {users?.filter(u => u.role === 'admin').length || 0}
               </p>
             </div>
           </CardContent>
@@ -90,23 +90,23 @@ export function UserManagement() {
           <TableHeader>
             <TableRow className="bg-muted/50 border-none">
               <TableHead className="font-black text-primary py-4 uppercase text-[10px] tracking-widest">User Details</TableHead>
-              <TableHead className="font-black text-primary py-4 uppercase text-[10px] tracking-widest">Student ID</TableHead>
-              <TableHead className="font-black text-primary py-4 uppercase text-[10px] tracking-widest">College</TableHead>
-              <TableHead className="font-black text-primary py-4 uppercase text-[10px] tracking-widest">Access Status</TableHead>
+              <TableHead className="font-black text-primary py-4 uppercase text-[10px] tracking-widest">ID / Status</TableHead>
+              <TableHead className="font-black text-primary py-4 uppercase text-[10px] tracking-widest">Origin</TableHead>
+              <TableHead className="font-black text-primary py-4 uppercase text-[10px] tracking-widest">Access Role</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              <TableRow><TableCell colSpan={4} className="text-center py-8">Loading users...</TableCell></TableRow>
+              <TableRow><TableCell colSpan={4} className="text-center py-8">Loading directory...</TableCell></TableRow>
             ) : filteredUsers.length === 0 ? (
-              <TableRow><TableCell colSpan={4} className="text-center py-8 text-muted-foreground italic">No users found.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={4} className="text-center py-8 text-muted-foreground italic">No users matching search criteria.</TableCell></TableRow>
             ) : filteredUsers.map((u, i) => {
               const userInitials = u.displayName
                 ?.split(' ')
                 .map((n: string) => n[0])
                 .join('')
                 .toUpperCase()
-                .slice(0, 2) || 'ST';
+                .slice(0, 2) || 'V';
 
               return (
                 <TableRow key={i} className="hover:bg-muted/30 border-b">
@@ -120,22 +120,22 @@ export function UserManagement() {
                       </Avatar>
                       <div className="flex flex-col">
                         <span className="font-bold text-primary">{u.displayName}</span>
-                        <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-tighter">{u.email}</span>
+                        <span className="text-[10px] text-muted-foreground font-medium truncate max-w-[150px]">{u.email}</span>
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className="font-mono text-sm font-bold text-muted-foreground">{u.studentId}</TableCell>
-                  <TableCell className="text-sm font-medium">{u.college || 'General'}</TableCell>
+                  <TableCell className="font-mono text-xs font-bold text-muted-foreground">{u.studentId}</TableCell>
+                  <TableCell className="text-sm font-medium">{u.college || 'External'}</TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-2">
                       {u.role === 'admin' && (
                         <Badge className="bg-primary text-white text-[9px] uppercase font-black px-2.5 py-1">Admin</Badge>
                       )}
                       {u.role === 'user' && (
-                        <Badge variant="outline" className="text-primary text-[9px] uppercase font-black px-2.5 py-1">User</Badge>
+                        <Badge variant="outline" className="text-primary text-[9px] uppercase font-black px-2.5 py-1">Institutional</Badge>
                       )}
-                      {u.isAuthorizedAdmin && (
-                        <Badge className="bg-secondary text-primary text-[9px] uppercase font-black px-2.5 py-1">Authorized</Badge>
+                      {u.role === 'guest' && (
+                        <Badge className="bg-secondary text-primary text-[9px] uppercase font-black px-2.5 py-1">Guest</Badge>
                       )}
                     </div>
                   </TableCell>

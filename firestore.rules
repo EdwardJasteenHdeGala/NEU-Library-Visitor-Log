@@ -1,73 +1,33 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    /**
-     * NEU Access Hub Security Rules
-     *
-     * CORE PHILOSOPHY:
-     * This ruleset implements a strict User-Ownership model supplemented by Role-Based Access Control (RBAC). 
-     * Access is primarily governed by the hierarchical path structure, ensuring users can only 
-     * access data nested under their own unique identifier, while authorized Administrators 
-     * maintain oversight across the entire dataset.
-     *
-     * DATA STRUCTURE:
-     * - /user_profiles/{userId}: Root collection for student/staff profiles.
-     * - /visits/{visitId}: Root collection for all library logs (Admin view).
-     *
-     * KEY SECURITY DECISIONS:
-     * 1. Authorization Independence: The user's 'role' is denormalized directly into the UserProfile 
-     *    document to allow for fast, reliable permission checks.
-     * 2. Admin Override: Users with the 'admin' role in their profile are granted broad read 
-     *    and management permissions.
-     */
-
-    // --- Helper Functions ---
-
-    /** @description Checks if the request is from a signed-in user. */
     function isSignedIn() {
       return request.auth != null;
     }
 
-    /** @description Checks if the authenticated user's UID matches the provided userId. */
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    /** @description Checks if the authenticated user has the 'admin' role. */
     function isAdmin() {
-      // Ensure the user is signed in and their profile exists before checking the role
       return isSignedIn() && exists(/databases/$(database)/documents/user_profiles/$(request.auth.uid)) && get(/databases/$(database)/documents/user_profiles/$(request.auth.uid)).data.role == 'admin';
     }
 
-    // --- Collection Rules ---
-
-    /**
-     * @description Rules for the UserProfile collection.
-     */
     match /user_profiles/{userId} {
       allow get: if isOwner(userId) || isAdmin();
       allow list: if isAdmin();
-      allow create: if isOwner(userId) && request.resource.data.id == userId;
-      allow update: if (isOwner(userId) || isAdmin()) && resource != null && request.resource.data.id == resource.data.id;
-      allow delete: if isAdmin() && resource != null;
+      allow create: if isOwner(userId);
+      allow update: if (isOwner(userId) || isAdmin());
+      allow delete: if isAdmin();
     }
 
-    /**
-     * @description Rules for the global visits collection.
-     * @path /visits/{visitId}
-     */
     match /visits/{visitId} {
-      // Admins can see everything. Users can only see their own logs.
       allow list: if isAdmin();
       allow get: if isSignedIn() && (isAdmin() || resource.data.userId == request.auth.uid);
-      
-      // Anyone signed in can create a log as long as they provide their own UID.
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      
-      // Only admins can modify or purge logs for audit integrity.
       allow update, delete: if isAdmin();
     }
-
   }
 }
