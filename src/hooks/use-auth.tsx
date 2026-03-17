@@ -78,22 +78,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const docRef = doc(firestore, 'user_profiles', uid);
       const docSnap = await getDoc(docRef);
       
+      const isAuthorized = user.email && AUTHORIZED_ADMIN_EMAILS.includes(user.email);
+      const isEdward = user.email === 'edwardjasteen.degala@neu.edu.ph';
+      const defaultCollege = isEdward ? 'CICS' : 'General Education';
+
       if (docSnap.exists()) {
         const data = docSnap.data() as UserProfile;
-        // Re-check authorization status based on the current list
-        const isAuthorized = user.email && AUTHORIZED_ADMIN_EMAILS.includes(user.email);
         
-        // Update authorization flag if it changed (e.g., email added to list)
+        // Check for required updates (authorization or special department)
+        let needsUpdate = false;
+        const updates: any = {};
+
         if (isAuthorized && !data.isAuthorizedAdmin) {
-          await updateDoc(docRef, { isAuthorizedAdmin: true });
-          setProfile({ ...data, isAuthorizedAdmin: true });
+          updates.isAuthorizedAdmin = true;
+          needsUpdate = true;
+        }
+
+        if (isEdward && data.college !== 'CICS') {
+          updates.college = 'CICS';
+          needsUpdate = true;
+        }
+
+        if (needsUpdate) {
+          await updateDoc(docRef, { ...updates, updatedAt: serverTimestamp() });
+          setProfile({ ...data, ...updates });
         } else {
           setProfile(data);
         }
       } else {
         // Create new profile for first-time sign-in
-        const isAuthorized = user.email && AUTHORIZED_ADMIN_EMAILS.includes(user.email);
-        
         const profileData = {
           id: user.uid,
           email: user.email!,
@@ -101,7 +114,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           role: 'user' as const, 
           isAuthorizedAdmin: !!isAuthorized,
           displayName: user.displayName || 'Visitor',
-          college: 'General Education',
+          college: defaultCollege,
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp()
         };
@@ -141,6 +154,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Check if the student ID matches the test account requirement
     const isTestId = studentId === '24-13347-177';
     const isAuthorized = user.email && AUTHORIZED_ADMIN_EMAILS.includes(user.email);
+    const isEdward = user.email === 'edwardjasteen.degala@neu.edu.ph';
+    const defaultCollege = isEdward ? 'CICS' : 'General Education';
 
     try {
       const profileData = {
@@ -150,7 +165,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         role: 'user' as const, 
         isAuthorizedAdmin: !!(isAuthorized || isTestId),
         displayName: user.displayName || 'Visitor',
-        college: 'General Education',
+        college: defaultCollege,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       };
