@@ -7,6 +7,7 @@ import { LoginScreen } from "@/components/auth/login-screen";
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
 import { UserGreeting } from "@/components/dashboard/user-greeting";
 import { GuestView } from "@/components/guest/guest-view";
+import { VerifyStudentId } from "@/components/auth/verify-student-id";
 import { Loader2 } from "lucide-react";
 
 type AuthViewState = 'welcome' | 'login' | 'guest';
@@ -52,6 +53,11 @@ function AppContent() {
           <p className="text-muted-foreground font-medium">Setting up your profile...</p>
         </div>
       );
+  }
+
+  // MANDATORY SETUP: If ID is pending, force profile update
+  if (profile.studentId === 'PENDING-ID' || profile.studentId === 'GUEST-ID') {
+    return <VerifyStudentId />;
   }
 
   // Role-based conditional rendering
