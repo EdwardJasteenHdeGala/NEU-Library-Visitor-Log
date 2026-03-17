@@ -117,6 +117,23 @@
         "purpose",
         "timestamp"
       ]
+    },
+    "Feedback": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Feedback",
+      "type": "object",
+      "description": "User submitted feedback about library services.",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "userPhoto": { "type": "string" },
+        "rating": { "type": "number" },
+        "visitType": { "type": "string" },
+        "message": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "userName", "rating", "message", "timestamp"]
     }
   },
   "auth": {
@@ -144,6 +161,16 @@
             "$ref": "#/backend/entities/Visit"
           },
           "description": "Root collection for all library visits."
+        }
+      },
+      {
+        "path": "/feedback/{feedbackId}",
+        "definition": {
+          "entityName": "Feedback",
+          "schema": {
+            "$ref": "#/backend/entities/Feedback"
+          },
+          "description": "User feedback submissions."
         }
       }
     ]
