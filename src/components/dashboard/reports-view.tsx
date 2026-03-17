@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -40,6 +39,7 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 import {
   Dialog,
   DialogContent,
@@ -57,11 +57,14 @@ export function ReportsView() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const { toast } = useToast();
+  const { profile } = useAuth();
+  const isAdmin = profile?.role === 'admin';
 
   const firestore = useFirestore();
   const visitsQuery = useMemoFirebase(() => {
+    if (!isAdmin || !firestore) return null;
     return query(collection(firestore, 'visits'), orderBy('timestamp', 'desc'));
-  }, [firestore]);
+  }, [firestore, isAdmin]);
   const { data: visits } = useCollection(visitsQuery);
 
   const [archives] = useState([

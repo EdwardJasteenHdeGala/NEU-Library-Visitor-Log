@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -12,6 +11,7 @@ import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { deleteDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -28,10 +28,13 @@ export function VisitorLog() {
   const [searchTerm, setSearchTerm] = useState("");
   const firestore = useFirestore();
   const { toast } = useToast();
+  const { profile } = useAuth();
+  const isAdmin = profile?.role === 'admin';
 
   const visitsQuery = useMemoFirebase(() => {
+    if (!isAdmin || !firestore) return null;
     return query(collection(firestore, 'visits'), orderBy('timestamp', 'desc'));
-  }, [firestore]);
+  }, [firestore, isAdmin]);
 
   const { data: visits, isLoading } = useCollection(visitsQuery);
 

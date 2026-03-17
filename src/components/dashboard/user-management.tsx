@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -99,9 +98,12 @@ export function UserManagement() {
     profile: currentUserProfile 
   } = useAuth();
 
+  const isAdmin = currentUserProfile?.role === 'admin';
+
   const usersQuery = useMemoFirebase(() => {
+    if (!isAdmin || !firestore) return null;
     return query(collection(firestore, 'user_profiles'), orderBy('updatedAt', 'desc'));
-  }, [firestore]);
+  }, [firestore, isAdmin]);
 
   const { data: users, isLoading } = useCollection(usersQuery);
 
@@ -373,7 +375,7 @@ export function UserManagement() {
                                   </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
-                                  <AlertDialogCancel className="rounded-xl font-bold">Keep Admin Access</AlertDialogCancel>
+                                  <AlertDialogCancel className="rounded-xl font-bold">Cancel</AlertDialogCancel>
                                   <AlertDialogAction 
                                     onClick={resignAdmin}
                                     className="bg-destructive hover:bg-destructive/90 text-white rounded-xl font-black"

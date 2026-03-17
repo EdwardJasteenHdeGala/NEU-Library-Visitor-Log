@@ -25,17 +25,22 @@ import {
   PieChart as RePieChart,
 } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { useAuth } from "@/hooks/use-auth";
 
 export function AdminOverview() {
   const firestore = useFirestore();
+  const { profile } = useAuth();
+  const isAdmin = profile?.role === 'admin';
 
   const visitsQuery = useMemoFirebase(() => {
+    if (!isAdmin || !firestore) return null;
     return query(collection(firestore, 'visits'), orderBy('timestamp', 'desc'), limit(5));
-  }, [firestore]);
+  }, [firestore, isAdmin]);
 
   const allVisitsQuery = useMemoFirebase(() => {
+    if (!isAdmin || !firestore) return null;
     return query(collection(firestore, 'visits'), orderBy('timestamp', 'desc'), limit(500));
-  }, [firestore]);
+  }, [firestore, isAdmin]);
 
   const { data: recentVisits, isLoading } = useCollection(visitsQuery);
   const { data: allVisits } = useCollection(allVisitsQuery);

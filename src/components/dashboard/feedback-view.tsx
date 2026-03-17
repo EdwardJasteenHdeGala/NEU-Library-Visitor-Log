@@ -26,10 +26,11 @@ export function FeedbackView() {
 
   const isAdmin = profile?.role === 'admin';
 
-  // Admin Query: Load all feedback
+  // Admin Query: Only load feedback if the user is currently an authorized admin
   const feedbackQuery = useMemoFirebase(() => {
+    if (!isAdmin || !firestore) return null;
     return query(collection(firestore, 'feedback'), orderBy('timestamp', 'desc'));
-  }, [firestore]);
+  }, [firestore, isAdmin]);
 
   const { data: feedbackList, isLoading: isLoadingFeedback } = useCollection(feedbackQuery);
 
