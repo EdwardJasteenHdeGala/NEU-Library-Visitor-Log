@@ -69,49 +69,54 @@
   }
 }
 
-.neu-mesh-gradient {
-  background-color: hsl(var(--background));
-  background-image: 
-    radial-gradient(at 0% 0%, hsla(153, 100%, 15%, 0.1) 0px, transparent 50%),
-    radial-gradient(at 100% 0%, hsla(45, 100%, 48%, 0.08) 0px, transparent 50%),
-    radial-gradient(at 100% 100%, hsla(153, 100%, 10%, 0.05) 0px, transparent 50%),
-    radial-gradient(at 0% 100%, hsla(45, 100%, 48%, 0.05) 0px, transparent 50%);
-  position: relative;
-}
+@layer components {
+  .neu-mesh-gradient {
+    @apply relative bg-background;
+    background-image: 
+      radial-gradient(at 0% 0%, hsla(153, 100%, 15%, 0.1) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, hsla(45, 100%, 48%, 0.08) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, hsla(153, 100%, 10%, 0.05) 0px, transparent 50%),
+      radial-gradient(at 0% 100%, hsla(45, 100%, 48%, 0.05) 0px, transparent 50%);
+  }
 
-.neu-mesh-gradient::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-  opacity: 0.02;
-  pointer-events: none;
-  z-index: 1;
-}
+  .neu-mesh-gradient::before {
+    content: "";
+    @apply absolute inset-0 pointer-events-none z-0 opacity-[0.03];
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  }
 
-.neu-bg-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background-image: url('https://neu.edu.ph/main/img/mains.jfif');
-  background-size: cover;
-  background-position: center;
-  opacity: 0.05;
-  mix-blend-mode: multiply;
-  filter: grayscale(100%) contrast(110%);
-}
+  .neu-bg-overlay {
+    @apply fixed inset-0 pointer-events-none opacity-[0.07] grayscale contrast-[1.1] mix-blend-multiply;
+    background-image: url('https://neu.edu.ph/main/img/mains.jfif');
+    background-size: cover;
+    background-position: center;
+    z-index: -1;
+  }
 
-.bg-dot-pattern {
-  background-image: radial-gradient(circle, hsl(var(--muted-foreground) / 0.1) 1px, transparent 1px);
-  background-size: 24px 24px;
-}
+  .bg-dot-pattern {
+    @apply absolute inset-0 opacity-[0.08] pointer-events-none;
+    background-image: radial-gradient(circle, hsl(var(--primary) / 0.2) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
 
-.neu-card-shadow {
-  box-shadow: 
-    0 10px 15px -3px rgba(0, 0, 0, 0.05),
-    0 4px 6px -2px rgba(0, 0, 0, 0.02),
-    0 20px 25px -5px rgba(0, 77, 38, 0.03);
+  .glass-panel {
+    @apply bg-white/70 backdrop-blur-2xl border border-white/40 shadow-xl;
+  }
+
+  .neu-card-shadow {
+    box-shadow: 
+      0 10px 15px -3px rgba(0, 0, 0, 0.04),
+      0 4px 6px -2px rgba(0, 0, 0, 0.01),
+      0 20px 25px -5px rgba(0, 77, 38, 0.03);
+  }
+
+  .neu-button-shadow {
+    box-shadow: 0 8px 25px -5px rgba(0, 77, 38, 0.2);
+  }
+
+  .neu-button-shadow-secondary {
+    box-shadow: 0 8px 25px -5px rgba(251, 191, 36, 0.25);
+  }
 }
 
 @keyframes blob {
@@ -126,25 +131,13 @@
   will-change: transform;
 }
 
-.glass-panel {
-  @apply bg-white/70 backdrop-blur-2xl border border-white/40 shadow-xl;
-}
-
-/* Custom Scrollbar */
+/* Custom Premium Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
 ::-webkit-scrollbar-track {
   @apply bg-transparent;
 }
 ::-webkit-scrollbar-thumb {
-  @apply bg-primary/20 rounded-full hover:bg-primary/30 transition-colors;
-}
-
-.neu-button-shadow {
-  box-shadow: 0 8px 25px -5px rgba(0, 77, 38, 0.2);
-}
-
-.neu-button-shadow-secondary {
-  box-shadow: 0 8px 25px -5px rgba(251, 191, 36, 0.25);
+  @apply bg-primary/20 rounded-full hover:bg-primary/40 transition-colors;
 }
