@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useAuth } from "@/hooks/use-auth";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { ShieldCheck, Loader2, UserCircle, GraduationCap, MapPin } from "lucide-react";
+import { ShieldCheck, Loader2, UserCircle, GraduationCap, MapPin, IdCard } from "lucide-react";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 
@@ -96,12 +96,12 @@ export function VerifyStudentId() {
             <div className="grid grid-cols-1 gap-6">
                 <div className="space-y-2">
                     <Label htmlFor="studentId" className="text-[10px] font-black uppercase tracking-widest text-primary/70 ml-1 flex items-center gap-2">
-                        <ShieldCheck className="h-3 w-3" />
-                        ID Number (Student / Faculty / Guest)
+                        <IdCard className="h-3 w-3" />
+                        ID Number (Student / Teacher / Staff / Guest)
                     </Label>
                     <Input 
                         id="studentId"
-                        placeholder="e.g. 24-13347-177" 
+                        placeholder="e.g. 24-13347-177 or employee-001" 
                         value={studentId} 
                         onChange={(e) => setStudentId(e.target.value)}
                         className="h-14 text-xl font-black rounded-2xl border-2 focus:ring-primary shadow-inner bg-muted/20"

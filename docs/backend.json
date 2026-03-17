@@ -5,7 +5,7 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "UserProfile",
       "type": "object",
-      "description": "Represents a user's profile within the NEU Access Hub, including their institutional status or guest access role.",
+      "description": "Represents a user's profile within the NEU Access Hub, including their institutional status (Student, Faculty, Staff) or guest access role.",
       "properties": {
         "id": {
           "type": "string",
@@ -18,7 +18,7 @@
         },
         "studentId": {
           "type": "string",
-          "description": "The student identification number or 'GUEST' for non-institutional users."
+          "description": "Institutional ID number (Student, Faculty, Employee, or Staff) or 'GUEST' for non-institutional users."
         },
         "role": {
           "type": "string",

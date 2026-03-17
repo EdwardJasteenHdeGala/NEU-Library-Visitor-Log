@@ -18,7 +18,8 @@ import {
   Save, 
   Loader2,
   ShieldOff,
-  AlertTriangle
+  AlertTriangle,
+  IdCard
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -145,9 +146,12 @@ export function ProfileView() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                    <Label className="font-bold text-primary uppercase text-xs tracking-wider">Student / Guest ID Number</Label>
+                    <Label className="font-bold text-primary uppercase text-xs tracking-wider flex items-center gap-2">
+                        <IdCard className="h-3 w-3" />
+                        ID Number (Student/Staff/Faculty)
+                    </Label>
                     <Input 
-                        placeholder="e.g. 24-13347-177" 
+                        placeholder="e.g. 24-13347-177 or Employee ID" 
                         value={formData.studentId}
                         onChange={(e) => setFormData({ ...formData, studentId: e.target.value })}
                         className="h-12 border-2 focus:ring-primary"
