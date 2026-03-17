@@ -13,7 +13,8 @@ import {
   ShieldAlert, 
   UserCheck, 
   ShieldOff, 
-  ArrowRightLeft 
+  ArrowRightLeft,
+  User as UserIcon
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { collection, query, orderBy } from "firebase/firestore";
@@ -30,11 +31,22 @@ import {
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export function UserManagement() {
   const [searchTerm, setSearchTerm] = useState("");
   const firestore = useFirestore();
-  const { setUserRole, transferSuperAdmin, profile: currentUserProfile } = useAuth();
+  const { setUserRole, transferSuperAdmin, resignAdmin, profile: currentUserProfile } = useAuth();
 
   const usersQuery = useMemoFirebase(() => {
     return query(collection(firestore, 'user_profiles'), orderBy('displayName', 'asc'));
@@ -145,7 +157,7 @@ export function UserManagement() {
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex flex-col">
-                        <span className="font-bold text-primary">{u.displayName}</span>
+                        <span className="font-bold text-primary">{u.displayName} {isCurrentUser && <span className="text-[8px] bg-primary/10 px-2 py-0.5 rounded text-primary uppercase ml-1">You</span>}</span>
                         <span className="text-[10px] text-muted-foreground font-medium truncate max-w-[150px]">{u.email}</span>
                       </div>
                     </div>
@@ -172,67 +184,108 @@ export function UserManagement() {
                     </div>
                   </TableCell>
                   <TableCell className="text-right">
-                    {!isCurrentUser && (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
-                            <MoreVertical className="h-4 w-4 text-muted-foreground" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-56 rounded-2xl p-2 shadow-2xl border-none">
-                          <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-4 py-3">Access Control</DropdownMenuLabel>
-                          <DropdownMenuSeparator />
-                          
-                          {/* Super Admin Transfer Option */}
-                          {iAmSuperAdmin && (
-                            <DropdownMenuItem 
-                              onClick={() => transferSuperAdmin(u.id)}
-                              className="rounded-xl h-11 gap-3 focus:bg-secondary/10 cursor-pointer text-secondary font-black"
-                            >
-                              <ArrowRightLeft className="h-4 w-4" />
-                              <span className="text-xs uppercase tracking-widest">Transfer Ownership</span>
-                            </DropdownMenuItem>
-                          )}
-
-                          {!isSuperAdmin && (
-                            <>
-                              {u.role !== 'admin' ? (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
+                          <MoreVertical className="h-4 w-4 text-muted-foreground" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-56 rounded-2xl p-2 shadow-2xl border-none">
+                        <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-4 py-3">
+                          {isCurrentUser ? "My Account" : "Access Control"}
+                        </DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        
+                        {isCurrentUser ? (
+                          <>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
                                 <DropdownMenuItem 
-                                  onClick={() => setUserRole(u.id, 'admin')}
-                                  className="rounded-xl h-11 gap-3 focus:bg-primary/5 cursor-pointer text-primary"
-                                >
-                                  <ShieldCheck className="h-4 w-4" />
-                                  <span className="font-black text-xs uppercase tracking-widest">Promote to Admin</span>
-                                </DropdownMenuItem>
-                              ) : (
-                                <DropdownMenuItem 
-                                  onClick={() => setUserRole(u.id, 'user')}
-                                  className="rounded-xl h-11 gap-3 focus:bg-destructive/5 cursor-pointer text-destructive"
+                                  onSelect={(e) => e.preventDefault()}
+                                  disabled={isSuperAdmin}
+                                  className="rounded-xl h-11 gap-3 focus:bg-destructive/5 cursor-pointer text-destructive font-black"
                                 >
                                   <ShieldOff className="h-4 w-4" />
-                                  <span className="font-black text-xs uppercase tracking-widest">Revoke Admin</span>
+                                  <span className="font-black text-xs uppercase tracking-widest">Resign Admin Access</span>
                                 </DropdownMenuItem>
-                              )}
-                              <DropdownMenuSeparator />
+                              </AlertDialogTrigger>
+                              <AlertDialogContent className="rounded-2xl">
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle className="text-2xl font-black text-primary italic uppercase tracking-tighter">Confirm Resignation</AlertDialogTitle>
+                                  <AlertDialogDescription className="text-base font-medium">
+                                    Are you sure you want to leave your administrative access? You will be demoted to a standard user and lose all dashboard access immediately.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel className="rounded-xl font-bold">Cancel</AlertDialogCancel>
+                                  <AlertDialogAction 
+                                    onClick={resignAdmin}
+                                    className="bg-destructive hover:bg-destructive/90 text-white rounded-xl font-black"
+                                  >
+                                    Confirm Resignation
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                            {isSuperAdmin && (
+                               <p className="px-4 py-2 text-[9px] text-muted-foreground italic leading-tight">
+                                 Super Admin must transfer ownership before resigning.
+                               </p>
+                            )}
+                          </>
+                        ) : (
+                          <>
+                            {/* Super Admin Transfer Option */}
+                            {iAmSuperAdmin && (
                               <DropdownMenuItem 
-                                onClick={() => setUserRole(u.id, 'user')}
-                                className="rounded-xl h-11 gap-3 focus:bg-muted cursor-pointer"
+                                onClick={() => transferSuperAdmin(u.id)}
+                                className="rounded-xl h-11 gap-3 focus:bg-secondary/10 cursor-pointer text-secondary font-black"
                               >
-                                <UserCheck className="h-4 w-4 text-muted-foreground" />
-                                <span className="font-bold text-xs">Set as Regular User</span>
+                                <ArrowRightLeft className="h-4 w-4" />
+                                <span className="text-xs uppercase tracking-widest">Transfer Ownership</span>
                               </DropdownMenuItem>
-                              <DropdownMenuItem 
-                                onClick={() => setUserRole(u.id, 'guest')}
-                                className="rounded-xl h-11 gap-3 focus:bg-muted cursor-pointer"
-                              >
-                                <Globe className="h-4 w-4 text-muted-foreground" />
-                                <span className="font-bold text-xs">Set as External Guest</span>
-                              </DropdownMenuItem>
-                            </>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    )}
+                            )}
+
+                            {!isSuperAdmin && (
+                              <>
+                                {u.role !== 'admin' ? (
+                                  <DropdownMenuItem 
+                                    onClick={() => setUserRole(u.id, 'admin')}
+                                    className="rounded-xl h-11 gap-3 focus:bg-primary/5 cursor-pointer text-primary"
+                                  >
+                                    <ShieldCheck className="h-4 w-4" />
+                                    <span className="font-black text-xs uppercase tracking-widest">Promote to Admin</span>
+                                  </DropdownMenuItem>
+                                ) : (
+                                  <DropdownMenuItem 
+                                    onClick={() => setUserRole(u.id, 'user')}
+                                    className="rounded-xl h-11 gap-3 focus:bg-destructive/5 cursor-pointer text-destructive"
+                                  >
+                                    <ShieldOff className="h-4 w-4" />
+                                    <span className="font-black text-xs uppercase tracking-widest">Revoke Admin</span>
+                                  </DropdownMenuItem>
+                                )}
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem 
+                                  onClick={() => setUserRole(u.id, 'user')}
+                                  className="rounded-xl h-11 gap-3 focus:bg-muted cursor-pointer"
+                                >
+                                  <UserCheck className="h-4 w-4 text-muted-foreground" />
+                                  <span className="font-bold text-xs">Set as Regular User</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem 
+                                  onClick={() => setUserRole(u.id, 'guest')}
+                                  className="rounded-xl h-11 gap-3 focus:bg-muted cursor-pointer"
+                                >
+                                  <Globe className="h-4 w-4 text-muted-foreground" />
+                                  <span className="font-bold text-xs">Set as External Guest</span>
+                                </DropdownMenuItem>
+                              </>
+                            )}
+                          </>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </TableCell>
                 </TableRow>
               );
