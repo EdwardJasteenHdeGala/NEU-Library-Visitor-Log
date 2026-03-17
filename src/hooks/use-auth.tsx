@@ -92,9 +92,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const q = query(collection(firestore, 'user_profiles'), where('email', '==', user.email.toLowerCase()), limit(1));
         const qSnap = await getDocs(q);
         
-        if (!qSnap.empty) {
-          const preDoc = qSnap.docs[0];
-          const preData = preDoc.data() as UserProfile;
+        // Find if any "Pending" profile exists for this email
+        const pendingDoc = qSnap.docs.find(d => !d.data().id || d.data().displayName === 'New User (Pending)');
+        
+        if (pendingDoc) {
+          const preData = pendingDoc.data() as UserProfile;
           
           // Migrate the "Pending" profile to an official UID-indexed profile
           const migratedData = {
@@ -106,7 +108,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           };
           
           await setDoc(docRef, migratedData);
-          await deleteDoc(preDoc.ref); // Remove the placeholder doc
+          await deleteDoc(pendingDoc.ref); // Remove the placeholder doc
           
           setProfile(migratedData as any);
           setLoading(false);

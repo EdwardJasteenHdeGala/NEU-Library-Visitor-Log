@@ -99,7 +99,7 @@ export function UserManagement() {
   } = useAuth();
 
   const usersQuery = useMemoFirebase(() => {
-    return query(collection(firestore, 'user_profiles'), orderBy('displayName', 'asc'));
+    return query(collection(firestore, 'user_profiles'), orderBy('updatedAt', 'desc'));
   }, [firestore]);
 
   const { data: users, isLoading } = useCollection(usersQuery);
