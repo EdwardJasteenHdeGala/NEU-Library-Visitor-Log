@@ -29,9 +29,19 @@ function AppContent() {
       return <LoginScreen onBack={() => setViewState('welcome')} />;
     }
     if (viewState === 'guest') {
-      return <GuestView onBack={() => setViewState('welcome')} />;
+      return (
+        <GuestView 
+            onBack={() => setViewState('welcome')} 
+            onLogin={() => setViewState('login')} 
+        />
+      );
     }
-    return <WelcomeScreen onLogin={() => setViewState('login')} onGuest={() => setViewState('guest')} />;
+    return (
+        <WelcomeScreen 
+            onLogin={() => setViewState('login')} 
+            onGuest={() => setViewState('guest')} 
+        />
+    );
   }
 
   // If a user is logged in but profile creation failed (extremely rare case), show a small loader

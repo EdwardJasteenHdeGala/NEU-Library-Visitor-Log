@@ -12,7 +12,8 @@ import {
   MapPin, 
   BookOpen,
   Phone,
-  Mail
+  Mail,
+  LogIn
 } from "lucide-react";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
@@ -20,9 +21,10 @@ import { Progress } from "@/components/ui/progress";
 
 interface GuestViewProps {
   onBack: () => void;
+  onLogin: () => void;
 }
 
-export function GuestView({ onBack }: GuestViewProps) {
+export function GuestView({ onBack, onLogin }: GuestViewProps) {
   const libraryImage = PlaceHolderImages.find(img => img.id === 'library-interior');
   const logoImage = PlaceHolderImages.find(img => img.id === 'neu-logo');
 
@@ -51,8 +53,19 @@ export function GuestView({ onBack }: GuestViewProps) {
               <h1 className="text-lg font-black tracking-tight italic hidden sm:block">GUEST VIEW</h1>
             </div>
           </div>
-          <div className="text-[10px] font-black uppercase tracking-widest text-secondary bg-secondary/10 px-3 py-1 rounded-full border border-secondary/20">
-            Public Information Mode
+          <div className="flex items-center gap-4">
+            <div className="hidden md:block text-[10px] font-black uppercase tracking-widest text-secondary bg-secondary/10 px-3 py-1 rounded-full border border-secondary/20">
+                Public Information Mode
+            </div>
+            <Button 
+                variant="secondary" 
+                size="sm" 
+                onClick={onLogin}
+                className="bg-secondary text-primary font-black text-xs uppercase hover:bg-white"
+            >
+                <LogIn className="h-3.5 w-3.5 mr-1.5" />
+                Sign In
+            </Button>
           </div>
         </div>
       </header>
@@ -157,7 +170,7 @@ export function GuestView({ onBack }: GuestViewProps) {
                 <p className="text-white/70 text-sm font-medium">Log in with your institutional account to record your visit and access full features.</p>
               </div>
               <Button 
-                onClick={onBack}
+                onClick={onLogin}
                 className="w-full h-14 bg-secondary hover:bg-white text-primary font-black text-lg rounded-2xl shadow-xl transition-all"
               >
                 Sign In Now
