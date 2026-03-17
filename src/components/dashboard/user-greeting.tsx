@@ -16,7 +16,8 @@ import {
   User,
   Settings,
   HelpCircle,
-  GraduationCap
+  GraduationCap,
+  RefreshCcw
 } from "lucide-react";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
@@ -88,6 +89,11 @@ export function UserGreeting() {
                 Admin Console
               </Button>
             )}
+            <Button variant="ghost" size="sm" onClick={logout} className="gap-2 text-white/80 hover:text-white hover:bg-white/10 font-bold text-xs uppercase">
+              <RefreshCcw className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Switch Account</span>
+              <span className="sm:hidden">Switch</span>
+            </Button>
             <Button variant="ghost" size="sm" onClick={logout} className="gap-2 text-white/80 hover:text-white hover:bg-white/10 font-bold text-xs uppercase">
               <LogOut className="h-3.5 w-3.5" />
               Sign Out

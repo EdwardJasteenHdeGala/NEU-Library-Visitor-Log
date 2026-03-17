@@ -16,7 +16,8 @@ import {
   HelpCircle,
   ShieldCheck,
   User,
-  UserCog
+  UserCog,
+  RefreshCcw
 } from "lucide-react";
 import { AdminOverview } from "./admin-overview";
 import { VisitorLog } from "./visitor-log";
@@ -115,6 +116,10 @@ export function DashboardLayout() {
                       </DropdownMenuItem>
                     )}
                     <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={logout} className="font-bold">
+                      <RefreshCcw className="mr-2 h-4 w-4" />
+                      Switch Account
+                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={logout} className="text-destructive font-bold">
                       <LogOut className="mr-2 h-4 w-4" />
                       Logout

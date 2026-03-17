@@ -6,11 +6,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { User, Shield, Lock, ShieldAlert, ShieldCheck } from "lucide-react";
+import { User, Shield, Lock, ShieldAlert, ShieldCheck, RefreshCcw, LogOut } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 
 export function ProfileView() {
-  const { profile, switchRole } = useAuth();
+  const { profile, switchRole, logout } = useAuth();
 
   return (
     <div className="max-w-2xl mx-auto space-y-8 animate-in fade-in duration-500">
@@ -95,9 +95,22 @@ export function ProfileView() {
             </div>
           </div>
 
-          <Button className="w-full h-14 bg-primary hover:bg-primary/90 text-white font-black text-xl neu-card-shadow">
-            Update Profile
-          </Button>
+          <div className="flex flex-col gap-4">
+            <Button className="w-full h-14 bg-primary hover:bg-primary/90 text-white font-black text-xl neu-card-shadow">
+              Update Profile
+            </Button>
+            
+            <div className="grid grid-cols-2 gap-4 pt-4">
+                <Button variant="outline" onClick={logout} className="h-12 gap-2 font-bold uppercase text-xs">
+                    <RefreshCcw className="h-4 w-4" />
+                    Switch Account
+                </Button>
+                <Button variant="destructive" onClick={logout} className="h-12 gap-2 font-bold uppercase text-xs">
+                    <LogOut className="h-4 w-4" />
+                    Sign Out
+                </Button>
+            </div>
+          </div>
         </CardContent>
       </Card>
       
