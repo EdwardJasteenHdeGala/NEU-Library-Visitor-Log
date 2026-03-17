@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -38,6 +39,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LiveClock } from "@/components/ui/live-clock";
+import Image from "next/image";
+import { PlaceHolderImages } from "@/lib/placeholder-images";
 
 type View = 'dashboard' | 'visitor-log' | 'users' | 'reports' | 'feedback' | 'profile' | 'help';
 
@@ -45,6 +48,7 @@ export function DashboardLayout() {
   const { logout, profile, switchRole } = useAuth();
   const [currentView, setCurrentView] = useState<View>('dashboard');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const logoImage = PlaceHolderImages.find(img => img.id === 'neu-logo');
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -81,8 +85,13 @@ export function DashboardLayout() {
       <nav className="bg-primary text-white p-4 shadow-2xl sticky top-0 z-50">
         <div className="max-w-7xl mx-auto flex justify-between items-center gap-4">
           <div className="flex items-center gap-4">
-            <div className="bg-white p-1.5 rounded-xl shadow-lg">
-                <Library className="h-6 w-6 text-primary" />
+            <div className="bg-white p-1.5 rounded-xl shadow-lg w-10 h-10 relative overflow-hidden flex items-center justify-center">
+                <Image 
+                  src={logoImage?.imageUrl || ""} 
+                  alt="NEU Logo" 
+                  fill 
+                  className="object-contain p-1"
+                />
             </div>
             <div className="flex flex-col -space-y-1 hidden sm:flex">
                 <h1 className="text-xl font-black tracking-tighter italic">NEU ADMIN</h1>
@@ -120,7 +129,7 @@ export function DashboardLayout() {
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex flex-col items-start hidden md:flex">
-                        <span className="text-xs font-black uppercase tracking-tighter leading-none">{profile?.displayName}</span>
+                        <span className="text-xs font-black uppercase tracking-tighter leading-none truncate max-w-[100px]">{profile?.displayName?.split(' ')[0]}</span>
                         <span className="text-[9px] font-bold text-secondary/70 uppercase">Master Admin</span>
                       </div>
                     </button>
@@ -190,7 +199,9 @@ export function DashboardLayout() {
 
       <footer className="p-10 bg-white border-t flex flex-col items-center gap-4">
         <div className="flex items-center gap-2 opacity-30 grayscale hover:grayscale-0 hover:opacity-100 transition-all cursor-default">
-            <Library className="h-5 w-5 text-primary" />
+            <div className="relative w-5 h-5">
+                <Image src={logoImage?.imageUrl || ""} alt="NEU" fill className="object-contain" />
+            </div>
             <span className="font-black text-xs uppercase tracking-[0.3em] text-primary">New Era University Library System</span>
         </div>
         <p className="text-[9px] font-black uppercase tracking-[0.4em] text-muted-foreground/60">&copy; {new Date().getFullYear()} INTEGRITY • EXCELLENCE • DISCIPLINE</p>
