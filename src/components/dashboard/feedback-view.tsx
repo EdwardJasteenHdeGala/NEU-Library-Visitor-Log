@@ -7,8 +7,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Star, MessageSquare, Loader2, Send, History, User, LayoutList, PenLine } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
-import { useFirebase, useCollection, useMemoFirebase } from "@/firebase";
-import { collection, addDoc, serverTimestamp, query, orderBy } from "firebase/firestore";
+import { useFirebase, useCollection, useMemoFirebase, addDocumentNonBlocking } from "@/firebase";
+import { collection, query, orderBy } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -26,7 +26,6 @@ export function FeedbackView() {
 
   const isAdmin = profile?.role === 'admin';
 
-  // Admin Query: Only load feedback if the user is currently an authorized admin
   const feedbackQuery = useMemoFirebase(() => {
     if (!isAdmin || !firestore) return null;
     return query(collection(firestore, 'feedback'), orderBy('timestamp', 'desc'));
@@ -34,45 +33,31 @@ export function FeedbackView() {
 
   const { data: feedbackList, isLoading: isLoadingFeedback } = useCollection(feedbackQuery);
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (!message.trim() || !profile || !firestore) {
-      toast({
-        title: "Incomplete Form",
-        description: "Please share your message before submitting.",
-        variant: "destructive"
-      });
+      toast({ title: "Incomplete Form", description: "Please share your message.", variant: "destructive" });
       return;
     }
 
     setIsSubmitting(true);
-    try {
-      await addDoc(collection(firestore, 'feedback'), {
-        userId: profile.id,
-        userName: profile.displayName,
-        userPhoto: profile.photoURL || '',
-        rating: parseInt(rating),
-        visitType,
-        message: message.trim(),
-        timestamp: serverTimestamp()
-      });
-      
-      toast({
-        title: "Feedback Received",
-        description: "Thank you! Your input helps us improve the library hub.",
-      });
-      
+    // Non-blocking mutation
+    addDocumentNonBlocking(collection(firestore, 'feedback'), {
+      userId: profile.id,
+      userName: profile.displayName,
+      userPhoto: profile.photoURL || '',
+      rating: parseInt(rating),
+      visitType,
+      message: message.trim(),
+      timestamp: new Date()
+    });
+    
+    setTimeout(() => {
+      toast({ title: "Feedback Received", description: "Thank you for helping us improve." });
       setMessage("");
       setRating("5");
       setVisitType("study");
-    } catch (error) {
-      toast({
-        title: "Submission Failed",
-        description: "Could not send feedback. Please try again later.",
-        variant: "destructive"
-      });
-    } finally {
       setIsSubmitting(false);
-    }
+    }, 600);
   };
 
   const renderFeedbackList = () => (
@@ -80,12 +65,12 @@ export function FeedbackView() {
       {isLoadingFeedback ? (
         <div className="flex flex-col items-center justify-center py-20 gap-4">
           <Loader2 className="h-10 w-10 animate-spin text-primary" />
-          <p className="font-bold text-muted-foreground animate-pulse">Retrieving feedback logs...</p>
+          <p className="font-bold text-muted-foreground animate-pulse">Retrieving feedback...</p>
         </div>
       ) : feedbackList?.length === 0 ? (
         <Card className="p-20 flex flex-col items-center justify-center text-center gap-4 border-dashed border-2">
           <MessageSquare className="h-12 w-12 text-muted-foreground opacity-20" />
-          <p className="text-muted-foreground font-bold italic">No feedback has been recorded yet.</p>
+          <p className="text-muted-foreground font-bold italic">No feedback recorded.</p>
         </Card>
       ) : (
         feedbackList?.map((item) => (
@@ -129,34 +114,28 @@ export function FeedbackView() {
   );
 
   const renderFeedbackForm = () => (
-    <Card className="neu-card-shadow border-none rounded-[2rem] overflow-hidden bg-white max-w-2xl mx-auto">
-      <CardHeader className="bg-primary p-8 text-center text-white">
-         <div className="flex justify-center gap-2 mb-4">
+    <Card className="neu-card-shadow border-none rounded-[2.5rem] overflow-hidden bg-white max-w-2xl mx-auto">
+      <CardHeader className="bg-primary p-10 text-center text-white">
+         <div className="flex justify-center gap-3 mb-4">
             {[...Array(5)].map((_, i) => (
-              <button 
-                key={i} 
-                onClick={() => setRating((i + 1).toString())}
-                className="hover:scale-110 transition-transform"
-              >
-                <Star 
-                  className={`h-10 w-10 ${i < parseInt(rating) ? 'fill-secondary text-secondary' : 'text-white/20'}`} 
-                />
+              <button key={i} onClick={() => setRating((i + 1).toString())} className="hover:scale-125 transition-transform duration-300">
+                <Star className={`h-12 w-12 ${i < parseInt(rating) ? 'fill-secondary text-secondary' : 'text-white/20'}`} />
               </button>
             ))}
          </div>
-         <CardTitle className="text-xl font-black italic tracking-tighter uppercase">Rate our service</CardTitle>
+         <CardTitle className="text-2xl font-black italic tracking-tighter uppercase">Rate our hub</CardTitle>
       </CardHeader>
-      <CardContent className="p-8 md:p-12 space-y-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="space-y-3">
-              <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-2 flex items-center gap-2">
-                  <Star className="h-3 w-3" /> Score
+      <CardContent className="p-10 md:p-14 space-y-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+          <div className="space-y-4">
+              <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-2 flex items-center gap-3">
+                  <Star className="h-4 w-4" /> Score
               </label>
               <Select value={rating} onValueChange={setRating}>
-                  <SelectTrigger className="h-14 rounded-2xl border-2 font-bold focus:ring-primary shadow-inner">
+                  <SelectTrigger className="h-16 rounded-2xl border-2 font-black focus:ring-primary shadow-inner text-lg">
                       <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="rounded-2xl border-none shadow-2xl">
+                  <SelectContent className="rounded-2xl border-none shadow-3xl">
                       <SelectItem value="5" className="font-bold">5 - Excellent</SelectItem>
                       <SelectItem value="4" className="font-bold">4 - Good</SelectItem>
                       <SelectItem value="3" className="font-bold">3 - Average</SelectItem>
@@ -165,15 +144,15 @@ export function FeedbackView() {
                   </SelectContent>
               </Select>
           </div>
-          <div className="space-y-3">
-              <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-2 flex items-center gap-2">
-                  <History className="h-3 w-3" /> Visit Type
+          <div className="space-y-4">
+              <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-2 flex items-center gap-3">
+                  <History className="h-4 w-4" /> Visit Type
               </label>
               <Select value={visitType} onValueChange={setVisitType}>
-                  <SelectTrigger className="h-14 rounded-2xl border-2 font-bold focus:ring-primary shadow-inner">
+                  <SelectTrigger className="h-16 rounded-2xl border-2 font-black focus:ring-primary shadow-inner text-lg">
                       <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="rounded-2xl border-none shadow-2xl">
+                  <SelectContent className="rounded-2xl border-none shadow-3xl max-h-[300px]">
                       <SelectItem value="study" className="font-bold">Studying</SelectItem>
                       <SelectItem value="research" className="font-bold">Research</SelectItem>
                       <SelectItem value="borrow" className="font-bold">Borrowing Books</SelectItem>
@@ -185,13 +164,13 @@ export function FeedbackView() {
           </div>
         </div>
 
-        <div className="space-y-3">
-          <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-2 flex items-center gap-2">
-              <MessageSquare className="h-3 w-3" /> Your Comments
+        <div className="space-y-4">
+          <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-2 flex items-center gap-3">
+              <MessageSquare className="h-4 w-4" /> Your Comments
           </label>
           <Textarea 
-              placeholder="Share your experience or suggestions for improvement..." 
-              className="min-h-[150px] text-lg p-6 rounded-3xl border-2 focus:ring-primary shadow-inner bg-muted/20"
+              placeholder="Share your suggestions..." 
+              className="min-h-[180px] text-xl p-8 rounded-[2rem] border-2 focus:ring-primary shadow-inner bg-muted/20"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
           />
@@ -200,13 +179,13 @@ export function FeedbackView() {
         <Button 
           onClick={handleSubmit}
           disabled={isSubmitting || !message.trim()}
-          className="w-full h-16 md:h-20 bg-primary hover:bg-primary/95 text-white font-black text-xl md:text-2xl gap-3 neu-card-shadow rounded-2xl group overflow-hidden relative"
+          className="w-full h-20 bg-primary hover:bg-primary/95 text-white font-black text-2xl gap-4 neu-card-shadow rounded-[1.5rem] group relative overflow-hidden"
         >
           {isSubmitting ? (
-            <Loader2 className="h-6 w-6 animate-spin" />
+            <Loader2 className="h-8 w-8 animate-spin" />
           ) : (
             <>
-              <Send className="h-6 w-6 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+              <Send className="h-8 w-8 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
               TRANSMIT FEEDBACK
             </>
           )}
@@ -217,31 +196,29 @@ export function FeedbackView() {
 
   if (isAdmin) {
     return (
-      <div className="space-y-8 animate-in fade-in duration-500">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h2 className="text-3xl font-black text-primary mb-2 italic uppercase">System Sentiments</h2>
-            <p className="text-muted-foreground font-medium">Review institutional feedback or contribute your own experience.</p>
-          </div>
+      <div className="space-y-10 animate-in fade-in duration-700">
+        <div>
+          <h2 className="text-4xl font-black text-primary mb-2 italic uppercase tracking-tighter">System Sentiments</h2>
+          <p className="text-muted-foreground font-medium text-lg">Review and monitor institutional experience telemetry.</p>
         </div>
 
         <Tabs defaultValue="list" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 h-14 bg-muted p-1 rounded-2xl mb-8">
-            <TabsTrigger value="list" className="rounded-xl font-black text-xs uppercase tracking-widest gap-2 data-[state=active]:bg-white data-[state=active]:text-primary">
-              <LayoutList className="h-4 w-4" />
+          <TabsList className="grid w-full grid-cols-2 h-16 bg-muted p-1.5 rounded-[1.5rem] mb-10">
+            <TabsTrigger value="list" className="rounded-xl font-black text-[10px] uppercase tracking-widest gap-3 data-[state=active]:bg-white data-[state=active]:text-primary">
+              <LayoutList className="h-5 w-5" />
               Feedback Board
             </TabsTrigger>
-            <TabsTrigger value="form" className="rounded-xl font-black text-xs uppercase tracking-widest gap-2 data-[state=active]:bg-white data-[state=active]:text-primary">
-              <PenLine className="h-4 w-4" />
+            <TabsTrigger value="form" className="rounded-xl font-black text-[10px] uppercase tracking-widest gap-3 data-[state=active]:bg-white data-[state=active]:text-primary">
+              <PenLine className="h-5 w-5" />
               Submit My Feedback
             </TabsTrigger>
           </TabsList>
           
-          <TabsContent value="list" className="animate-in fade-in slide-in-from-left-4 duration-300">
+          <TabsContent value="list" className="animate-in slide-in-from-left-4 duration-500">
             {renderFeedbackList()}
           </TabsContent>
           
-          <TabsContent value="form" className="animate-in fade-in slide-in-from-right-4 duration-300">
+          <TabsContent value="form" className="animate-in slide-in-from-right-4 duration-500">
             {renderFeedbackForm()}
           </TabsContent>
         </Tabs>
@@ -250,24 +227,12 @@ export function FeedbackView() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-8 animate-in fade-in duration-500">
-      <div className="text-center space-y-2">
-        <h2 className="text-3xl font-black text-primary italic uppercase">How was your visit?</h2>
-        <p className="text-muted-foreground font-medium italic">Your feedback helps us provide a better research environment.</p>
+    <div className="max-w-3xl mx-auto space-y-12 animate-in fade-in duration-700">
+      <div className="text-center space-y-4">
+        <h2 className="text-5xl font-black text-primary italic uppercase tracking-tighter">Rate Your Visit</h2>
+        <p className="text-xl text-muted-foreground font-medium opacity-80">Help us advance institutional research standards.</p>
       </div>
       {renderFeedbackForm()}
-      <div className="flex items-center justify-center gap-4 text-muted-foreground p-6">
-        <div className="flex -space-x-2">
-          {[...Array(3)].map((_, i) => (
-            <div key={i} className="h-8 w-8 rounded-full border-2 border-background bg-muted flex items-center justify-center overflow-hidden">
-               <Avatar className="h-full w-full">
-                  <AvatarImage src={`https://picsum.photos/seed/${i + 10}/100/100`} />
-               </Avatar>
-            </div>
-          ))}
-        </div>
-        <p className="text-[10px] font-black uppercase tracking-widest italic opacity-50">Join others in helping us improve.</p>
-      </div>
     </div>
   );
 }

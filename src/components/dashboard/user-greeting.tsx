@@ -41,8 +41,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator
 } from "@/components/ui/dropdown-menu";
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
-import { useFirebase } from "@/firebase";
+import { collection, doc } from "firebase/firestore";
+import { useFirebase, addDocumentNonBlocking } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LiveClock } from "@/components/ui/live-clock";
@@ -88,7 +88,7 @@ export function UserGreeting() {
     setAcademicYear(getAcademicYear());
   }, []);
 
-  const handleLogVisit = async () => {
+  const handleLogVisit = () => {
     if (!purpose || !profile || !firestore || !currentCollege) {
       toast({
         title: "Incomplete Details",
@@ -99,30 +99,26 @@ export function UserGreeting() {
     }
 
     setIsLogging(true);
-    try {
-      await addDoc(collection(firestore, 'visits'), {
-        userId: profile.id,
-        userName: profile.displayName,
-        college: currentCollege,
-        roleAtTime: profile.role,
-        purpose: purpose,
-        timestamp: serverTimestamp(),
-        academicYear: getAcademicYear()
-      });
+    // Non-blocking mutation
+    addDocumentNonBlocking(collection(firestore, 'visits'), {
+      userId: profile.id,
+      userName: profile.displayName,
+      college: currentCollege,
+      roleAtTime: profile.role,
+      purpose: purpose,
+      timestamp: new Date(), // Using local date for instant feedback
+      academicYear: getAcademicYear()
+    });
+
+    // Simulate completion for local UX
+    setTimeout(() => {
       toast({
         title: "Visit Transmitted",
         description: `Your presence in ${currentCollege} has been officially recorded.`,
       });
       setHasLoggedThisSession(true);
-    } catch (error) {
-      toast({
-        title: "Sync Error",
-        description: "Institutional servers are currently unreachable. Retrying...",
-        variant: "destructive"
-      });
-    } finally {
       setIsLogging(false);
-    }
+    }, 600);
   };
 
   const handleSubViewChange = (view: UserSubView) => {
@@ -148,10 +144,11 @@ export function UserGreeting() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col overflow-x-hidden neu-mesh-gradient">
-      <div className="fixed top-[-10%] left-[-5%] w-[400px] h-[400px] bg-primary/8 rounded-full blur-[100px] animate-blob pointer-events-none z-0" />
-      <div className="fixed bottom-[-10%] right-[-5%] w-[400px] h-[400px] bg-secondary/8 rounded-full blur-[100px] animate-blob delay-5000 pointer-events-none z-0" />
+      <div className="fixed top-[-5%] left-[-5%] w-[500px] h-[500px] bg-primary/8 rounded-full blur-[100px] animate-blob pointer-events-none z-0" />
+      <div className="fixed bottom-[-5%] right-[-5%] w-[500px] h-[500px] bg-secondary/8 rounded-full blur-[100px] animate-blob delay-5000 pointer-events-none z-0" />
       <div className="neu-bg-overlay" />
 
+      {/* Global Header synchronized with DashboardLayout */}
       <header className="relative z-[70] p-3 bg-primary text-white sticky top-0 shadow-xl border-b border-white/10 backdrop-blur-xl bg-primary/95 h-[60px] flex items-center transition-all">
         <div className="max-w-7xl mx-auto flex justify-between items-center gap-4 w-full">
           <div className="flex items-center gap-3">
@@ -165,7 +162,6 @@ export function UserGreeting() {
                   fill 
                   priority 
                   className="object-contain p-1.5 group-hover:scale-110 transition-transform duration-500"
-                  data-ai-hint="university logo"
                 />
             </div>
             <div className="flex flex-col -space-y-0.5">
@@ -196,9 +192,9 @@ export function UserGreeting() {
                 variant="neuSecondary" 
                 size="sm" 
                 onClick={() => switchRole('admin')} 
-                className="h-9 px-5 gap-2.5 font-black text-[9px] uppercase rounded-xl hover:scale-105 transition-all shadow-xl"
+                className="h-9 px-6 gap-2.5 font-black text-[9px] uppercase rounded-xl hover:scale-105 transition-all shadow-xl"
               >
-                <ShieldCheck className="h-3.5 w-3.5" />
+                <ShieldCheck className="h-4 w-4" />
                 <span className="hidden sm:inline">Admin Mode</span>
               </Button>
             )}
@@ -210,7 +206,7 @@ export function UserGreeting() {
                   <AvatarFallback className="bg-secondary text-primary font-black text-[10px]">{userInitials}</AvatarFallback>
                 </Avatar>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-60 rounded-[2rem] p-2.5 mt-2 border-none shadow-3xl bg-white/98 backdrop-blur-3xl animate-in slide-in-from-top-3">
+              <DropdownMenuContent align="end" className="w-64 rounded-[2.5rem] p-3.5 mt-3 border-none shadow-3xl bg-white/98 backdrop-blur-3xl animate-in slide-in-from-top-3">
                 <DropdownMenuLabel className="text-[8px] font-black uppercase tracking-widest text-muted-foreground px-4 py-3">User Menu</DropdownMenuLabel>
                 <DropdownMenuSeparator className="mx-2 opacity-10" />
                 <DropdownMenuItem onClick={() => handleSubViewChange('profile')} className="rounded-xl h-12 gap-4 cursor-pointer focus:bg-primary/5 px-4">
@@ -247,7 +243,7 @@ export function UserGreeting() {
                             subView === item.id ? "bg-secondary text-primary shadow-xl" : "text-white/70 hover:bg-white/10"
                         )}
                     >
-                        <item.icon className="h-5 w-5" />
+                        <item.icon className="h-6 w-6" />
                         {item.label}
                     </button>
                 ))}

@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
@@ -6,19 +5,15 @@ import { GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
 import { 
   doc, 
   getDoc, 
-  setDoc, 
-  updateDoc, 
   serverTimestamp, 
   writeBatch, 
   query, 
   collection, 
   where, 
   getDocs, 
-  limit, 
-  deleteDoc,
-  addDoc
+  limit
 } from 'firebase/firestore';
-import { useFirebase, useUser } from '@/firebase';
+import { useFirebase, useUser, setDocumentNonBlocking, updateDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 
 export interface UserProfile {
@@ -92,13 +87,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const q = query(collection(firestore, 'user_profiles'), where('email', '==', user.email.toLowerCase()), limit(1));
         const qSnap = await getDocs(q);
         
-        // Find if any "Pending" profile exists for this email
         const pendingDoc = qSnap.docs.find(d => !d.data().id || d.data().displayName === 'New User (Pending)');
         
         if (pendingDoc) {
           const preData = pendingDoc.data() as UserProfile;
-          
-          // Migrate the "Pending" profile to an official UID-indexed profile
           const migratedData = {
             ...preData,
             id: user.uid,
@@ -107,8 +99,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             updatedAt: serverTimestamp()
           };
           
-          await setDoc(docRef, migratedData);
-          await deleteDoc(pendingDoc.ref); // Remove the placeholder doc
+          // Non-blocking write
+          setDocumentNonBlocking(docRef, migratedData, { merge: true });
+          deleteDocumentNonBlocking(pendingDoc.ref);
           
           setProfile(migratedData as any);
           setLoading(false);
@@ -120,17 +113,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
 
-      // 2. STANDARD REGISTRATION: If no pre-authorization exists
       const isInstitutional = user.email && user.email.endsWith('@neu.edu.ph');
       const isBootstrapAdmin = user.email === BOOTSTRAP_SUPER_ADMIN_EMAIL;
       const isAuthorized = user.email && AUTHORIZED_ADMIN_EMAILS.includes(user.email);
-      
       const isProfessorEsperanza = user.email === 'jcesperanza@neu.edu.ph';
       
       const defaultCollege = isInstitutional 
         ? (isProfessorEsperanza || isBootstrapAdmin ? 'CICS' : 'General Education') 
         : 'External (Guest)';
-      
       const defaultRole = isInstitutional ? 'user' : 'guest';
 
       if (docSnap.exists()) {
@@ -161,14 +151,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         if (needsUpdate) {
-          await updateDoc(docRef, { ...updates, updatedAt: serverTimestamp() });
+          updateDocumentNonBlocking(docRef, { ...updates, updatedAt: serverTimestamp() });
           setProfile({ ...data, ...updates });
         } else {
           setProfile(data);
         }
       } else {
         const initialRole = (isAuthorized && intendedRole === 'admin') || isBootstrapAdmin ? 'admin' : defaultRole;
-        
         const profileData = {
           id: user.uid,
           email: user.email!.toLowerCase(),
@@ -183,7 +172,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           updatedAt: serverTimestamp()
         };
         
-        await setDoc(docRef, profileData);
+        setDocumentNonBlocking(docRef, profileData, { merge: true });
         setProfile(profileData as any);
       }
     } catch (error) {
@@ -219,35 +208,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!user || !firestore || !profile) return false;
     try {
       const docRef = doc(firestore, 'user_profiles', user.uid);
-      await updateDoc(docRef, {
+      updateDocumentNonBlocking(docRef, {
         ...data,
         updatedAt: serverTimestamp()
       });
       setProfile({ ...profile, ...data });
       return true;
     } catch (error: any) {
-        toast({
-            title: "Update Error",
-            description: "Failed to update profile information.",
-            variant: "destructive"
-        });
         return false;
     }
   };
 
   const switchRole = async (newRole: 'user' | 'admin') => {
-    if (!profile || !profile.isAuthorizedAdmin) {
-      toast({
-        title: "Access Denied",
-        description: "You are not authorized for administrative access.",
-        variant: "destructive"
-      });
-      return;
-    }
-
+    if (!profile || !profile.isAuthorizedAdmin) return;
     try {
       const docRef = doc(firestore, 'user_profiles', profile.id);
-      await updateDoc(docRef, { 
+      updateDocumentNonBlocking(docRef, { 
         role: newRole,
         updatedAt: serverTimestamp()
       });
@@ -256,21 +232,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         title: "Role Updated",
         description: `Your active role is now: ${newRole.toUpperCase()}`,
       });
-    } catch (error: any) {
-      toast({
-        title: "Update Error",
-        description: "Failed to switch access role.",
-        variant: "destructive"
-      });
-    }
+    } catch (error: any) {}
   };
 
   const setUserRole = async (userId: string, newRole: 'user' | 'admin' | 'guest') => {
     if (!profile?.isAuthorizedAdmin || !firestore) return;
-
     try {
       const docRef = doc(firestore, 'user_profiles', userId);
-      await updateDoc(docRef, {
+      updateDocumentNonBlocking(docRef, {
         role: newRole,
         isAuthorizedAdmin: newRole === 'admin',
         updatedAt: serverTimestamp()
@@ -279,103 +248,55 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         title: "User Role Updated",
         description: `User has been successfully updated to: ${newRole.toUpperCase()}`,
       });
-    } catch (error: any) {
-      toast({
-        title: "Update Error",
-        description: "Failed to update user role.",
-        variant: "destructive"
-      });
-    }
+    } catch (error: any) {}
   };
 
   const transferSuperAdmin = async (targetUserId: string) => {
     if (!profile?.isSuperAdmin || !firestore) return;
-
     try {
       const batch = writeBatch(firestore);
       const currentRef = doc(firestore, 'user_profiles', profile.id);
       const targetRef = doc(firestore, 'user_profiles', targetUserId);
 
-      batch.update(currentRef, {
-        isSuperAdmin: false,
-        updatedAt: serverTimestamp()
-      });
-
-      batch.update(targetRef, {
-        isSuperAdmin: true,
-        role: 'admin',
-        isAuthorizedAdmin: true,
-        updatedAt: serverTimestamp()
-      });
-
+      batch.update(currentRef, { isSuperAdmin: false, updatedAt: serverTimestamp() });
+      batch.update(targetRef, { isSuperAdmin: true, role: 'admin', isAuthorizedAdmin: true, updatedAt: serverTimestamp() });
       await batch.commit();
-      setProfile({ ...profile, isSuperAdmin: false });
 
+      setProfile({ ...profile, isSuperAdmin: false });
       toast({
         title: "Ownership Transferred",
         description: "Super Admin privileges have been successfully transferred.",
       });
-    } catch (error: any) {
-      toast({
-        title: "Transfer Error",
-        description: "Failed to transfer Super Admin status.",
-        variant: "destructive"
-      });
-    }
+    } catch (error: any) {}
   };
 
   const resignAdmin = async () => {
-    if (!profile || !profile.isAuthorizedAdmin) return;
-    
-    if (profile.isSuperAdmin) {
-      toast({
-        title: "Action Restricted",
-        description: "Super Admin cannot resign without transferring ownership first.",
-        variant: "destructive"
-      });
-      return;
-    }
-
+    if (!profile || !profile.isAuthorizedAdmin || profile.isSuperAdmin) return;
     try {
       const docRef = doc(firestore, 'user_profiles', profile.id);
-      await updateDoc(docRef, {
+      updateDocumentNonBlocking(docRef, {
         role: 'user',
         isAuthorizedAdmin: false,
         updatedAt: serverTimestamp()
       });
       setProfile({ ...profile, role: 'user', isAuthorizedAdmin: false });
-      toast({
-        title: "Privileges Resigned",
-        description: "You have successfully resigned your administrative access.",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Update Error",
-        description: "Failed to resign admin privileges.",
-        variant: "destructive"
-      });
-    }
+    } catch (error: any) {}
   };
 
   const addUserByEmail = async (email: string, role: 'user' | 'admin' | 'guest', college: string) => {
     if (!profile?.isAuthorizedAdmin || !firestore) return false;
     const cleanEmail = email.toLowerCase().trim();
-    
     try {
       const q = query(collection(firestore, 'user_profiles'), where('email', '==', cleanEmail), limit(1));
       const qSnap = await getDocs(q);
       
       if (!qSnap.empty) {
-        toast({
-          title: "User Exists",
-          description: "This email is already registered or invited.",
-          variant: "destructive"
-        });
+        toast({ title: "User Exists", description: "This email is already registered.", variant: "destructive" });
         return false;
       }
 
-      // Create a "Pending" profile
-      await addDoc(collection(firestore, 'user_profiles'), {
+      const pendingRef = doc(collection(firestore, 'user_profiles'));
+      setDocumentNonBlocking(pendingRef, {
         email: cleanEmail,
         role,
         isAuthorizedAdmin: role === 'admin',
@@ -384,19 +305,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         studentId: 'PENDING-ID',
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
-      });
+      }, { merge: true });
 
-      toast({
-        title: "Invitation Sent",
-        description: `${cleanEmail} will automatically receive ${role} access upon login.`,
-      });
+      toast({ title: "Invitation Sent", description: `${cleanEmail} pre-authorized.` });
       return true;
     } catch (error: any) {
-      toast({
-        title: "Error Inviting User",
-        description: "Failed to create invitation record.",
-        variant: "destructive"
-      });
       return false;
     }
   };
