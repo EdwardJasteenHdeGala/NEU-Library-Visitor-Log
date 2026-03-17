@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -6,33 +7,44 @@ import { Button } from "@/components/ui/button";
 import { 
   LayoutDashboard, 
   Users, 
-  History, 
+  FileText,
+  MessageSquare, 
   Settings, 
   LogOut, 
-  MessageSquare, 
-  FileText,
   UserCircle,
   Library,
-  ChevronRight
+  HelpCircle,
+  ShieldCheck,
+  User
 } from "lucide-react";
 import { AdminOverview } from "./admin-overview";
 import { VisitorLog } from "./visitor-log";
 import { ReportsView } from "./reports-view";
 import { FeedbackView } from "./feedback-view";
 import { ProfileView } from "./profile-view";
+import { HelpView } from "./help-view";
 import { cn } from "@/lib/utils";
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuLabel, 
+  DropdownMenuSeparator, 
+  DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu";
 
-type View = 'dashboard' | 'visitor-log' | 'reports' | 'feedback' | 'profile' | 'settings';
+type View = 'dashboard' | 'visitor-log' | 'reports' | 'feedback' | 'profile' | 'help';
 
 export function DashboardLayout() {
-  const { logout, profile } = useAuth();
+  const { logout, profile, switchRole } = useAuth();
   const [currentView, setCurrentView] = useState<View>('dashboard');
 
   const navItems = [
-    { id: 'dashboard', label: 'Home', icon: LayoutDashboard },
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'visitor-log', label: 'Visitor Log', icon: Users },
     { id: 'reports', label: 'Reports', icon: FileText },
     { id: 'feedback', label: 'Feedback', icon: MessageSquare },
+    { id: 'help', label: 'Help & Support', icon: HelpCircle },
     { id: 'profile', label: 'Settings', icon: Settings },
   ];
 
@@ -42,6 +54,7 @@ export function DashboardLayout() {
       case 'visitor-log': return <VisitorLog />;
       case 'reports': return <ReportsView />;
       case 'feedback': return <FeedbackView />;
+      case 'help': return <HelpView />;
       case 'profile': return <ProfileView />;
       default: return <AdminOverview />;
     }
@@ -55,8 +68,8 @@ export function DashboardLayout() {
             <div className="bg-white p-1 rounded-md">
                 <Library className="h-5 w-5 text-primary" />
             </div>
-            <h1 className="text-xl font-black tracking-tight hidden sm:block">NEU Library Visitor Log</h1>
-            <h1 className="text-xl font-black tracking-tight sm:hidden">NEU Hub</h1>
+            <h1 className="text-xl font-black tracking-tight hidden sm:block">NEU Library Admin</h1>
+            <h1 className="text-xl font-black tracking-tight sm:hidden">Admin</h1>
           </div>
           
           <div className="flex items-center gap-6">
@@ -66,27 +79,44 @@ export function DashboardLayout() {
                         key={item.id}
                         onClick={() => setCurrentView(item.id as View)}
                         className={cn(
-                            "text-sm font-bold transition-all hover:text-secondary",
+                            "text-sm font-bold transition-all hover:text-secondary flex items-center gap-1.5",
                             currentView === item.id ? "text-secondary border-b-2 border-secondary pb-1" : "text-white/80"
                         )}
                     >
+                        <item.icon className="h-4 w-4" />
                         {item.label}
                     </button>
                 ))}
             </div>
             
             <div className="flex items-center gap-4">
-                <button 
-                    onClick={() => setCurrentView('profile')}
-                    className="flex items-center gap-2 hover:opacity-80 transition-opacity"
-                >
-                    <UserCircle className="h-6 w-6 text-secondary" />
-                    <span className="text-sm font-bold hidden md:inline">{profile?.displayName}</span>
-                </button>
-                <Button variant="secondary" size="sm" onClick={logout} className="h-8 font-bold text-xs gap-1">
-                    <LogOut className="h-3 w-3" />
-                    Logout
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                      <UserCircle className="h-6 w-6 text-secondary" />
+                      <span className="text-sm font-bold hidden md:inline">{profile?.displayName}</span>
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => setCurrentView('profile')}>
+                      <Settings className="mr-2 h-4 w-4" />
+                      Settings
+                    </DropdownMenuItem>
+                    {profile?.isAuthorizedAdmin && (
+                      <DropdownMenuItem onClick={() => switchRole('user')} className="text-blue-600">
+                        <User className="mr-2 h-4 w-4" />
+                        Switch to User Role
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={logout} className="text-destructive">
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Logout
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
             </div>
           </div>
         </div>

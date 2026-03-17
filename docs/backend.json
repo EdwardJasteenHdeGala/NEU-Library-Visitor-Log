@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "UserProfile": {
@@ -8,7 +9,7 @@
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the UserProfile entity."
+          "description": "Unique identifier for the UserProfile entity (Firebase UID)."
         },
         "email": {
           "type": "string",
@@ -21,7 +22,20 @@
         },
         "role": {
           "type": "string",
-          "description": "The access role assigned to the user, either 'user' or 'admin'."
+          "description": "The current active access role: 'user' or 'admin'.",
+          "enum": ["user", "admin"]
+        },
+        "isAuthorizedAdmin": {
+          "type": "boolean",
+          "description": "Flag indicating if the user is authorized to switch to admin role."
+        },
+        "college": {
+          "type": "string",
+          "description": "The college or department the user belongs to."
+        },
+        "displayName": {
+          "type": "string",
+          "description": "The full name of the user."
         },
         "createdAt": {
           "type": "string",
@@ -47,7 +61,7 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Visit",
       "type": "object",
-      "description": "Records details of a visitor's entry and exit, typically linked to a user profile.",
+      "description": "Records details of a visitor's entry and exit.",
       "properties": {
         "id": {
           "type": "string",
@@ -55,46 +69,44 @@
         },
         "userId": {
           "type": "string",
-          "description": "Reference to the UserProfile entity associated with this visit. (Relationship: UserProfile 1:N Visit)"
+          "description": "Reference to the UserProfile UID."
         },
-        "checkInTime": {
+        "userName": {
           "type": "string",
-          "description": "Timestamp indicating when the visitor checked in.",
-          "format": "date-time"
+          "description": "Name of the visitor at the time of log."
         },
-        "checkOutTime": {
+        "college": {
           "type": "string",
-          "description": "Timestamp indicating when the visitor checked out. This field is optional if the visitor has not yet checked out.",
-          "format": "date-time"
+          "description": "College of the visitor."
+        },
+        "roleAtTime": {
+          "type": "string",
+          "description": "Role of the user at the time of visit (student/faculty/staff)."
         },
         "purpose": {
           "type": "string",
-          "description": "The purpose or reason for the visit. This field is optional."
+          "description": "Purpose of visit.",
+          "enum": ["reading books", "research in thesis", "use of computer", "doing assignments"]
         },
-        "createdAt": {
+        "timestamp": {
           "type": "string",
-          "description": "Timestamp indicating when the visit record was created.",
-          "format": "date-time"
-        },
-        "updatedAt": {
-          "type": "string",
-          "description": "Timestamp indicating when the visit record was last updated.",
+          "description": "Timestamp of the visit entry.",
           "format": "date-time"
         }
       },
       "required": [
         "id",
         "userId",
-        "checkInTime",
-        "createdAt",
-        "updatedAt"
+        "userName",
+        "purpose",
+        "timestamp"
       ]
     }
   },
   "auth": {
     "providers": [
-      "password",
-      "anonymous"
+      "google.com",
+      "password"
     ]
   },
   "firestore": {
@@ -106,36 +118,19 @@
           "schema": {
             "$ref": "#/backend/entities/UserProfile"
           },
-          "description": "Stores individual user profiles. The document ID (`userId`) must match the Firebase Authentication UID. Includes denormalized 'role' field for authorization independence and 'studentId' for login linkage.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier of the user, matching their Firebase Authentication UID."
-            }
-          ]
+          "description": "Stores individual user profiles."
         }
       },
       {
-        "path": "/user_profiles/{userId}/visits/{visitId}",
+        "path": "/visits/{visitId}",
         "definition": {
           "entityName": "Visit",
           "schema": {
             "$ref": "#/backend/entities/Visit"
           },
-          "description": "Records individual visits associated with a specific user. The 'userId' is inherited from the parent path and also explicitly stored in the document for robust ownership and queryability, ensuring authorization independence.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier of the user who made the visit, matching their Firebase Authentication UID."
-            },
-            {
-              "name": "visitId",
-              "description": "The unique identifier for a specific visit record."
-            }
-          ]
+          "description": "Root collection for all library visits to allow admin-wide queries."
         }
       }
-    ],
-    "reasoning": "The recommended Firestore structure for the NEU Access Hub prioritizes Authorization Independence and Query-Aware Security Rules (QAPs) by leveraging a hierarchical, path-based ownership model combined with essential data denormalization. \n\n1.  **Authorization Independence (Denormalization):**\n    *   **UserProfile:** User profiles are stored in `/user_profiles/{userId}`. The `role` field (either 'user' or 'admin') is denormalized directly into each `UserProfile` document. This is critical for authorization independence because security rules can directly evaluate `get(/user_profiles/$(request.auth.uid)).data.role` without relying on `get()` calls to a parent or unrelated document for role-based access. This ensures atomic operations and simplifies rule debugging. The user's `studentId` and `email` are also part of this document, allowing for direct authentication checks within the profile itself.\n    *   **Visit:** Visit records are stored as a subcollection under the respective user's profile: `/user_profiles/{userId}/visits/{visitId}`. The `userId` is present both in the document path (as a wildcard) and explicitly within the `Visit` document. This explicit `userId` field in the `Visit` document adheres to the denormalization mandate for subcollections. If access to a `Visit` document were to depend on any attribute of its parent `UserProfile` *other than* the `userId` in its path, that attribute would also be denormalized into the `Visit` document. In this current schema, the `userId` is sufficient for ownership checks.\n\n2.  **QAPs (Query-Aware Security Rules):**\n    *   **Structural Segregation:** Each collection (`user_profiles`, `visits`) holds homogeneous data with consistent security requirements. There are no mixed public/private documents within the same collection, simplifying `list` rules.\n    *   **Path-Based Ownership:** By using `/user_profiles/{userId}` and `/user_profiles/{userId}/visits/{visitId}`, the structure inherently supports QAPs for user-specific data. When a regular user queries for their profile or their visits, the `userId` in the query path (`/user_profiles/$(request.auth.uid)`) naturally scopes the result to only their owned data. The security rules then only need to verify that `request.auth.uid == userId` (for users) or check for an admin role (for broader access). This prevents rules from acting as filters, which is inefficient and insecure. An admin could be allowed to `list` all documents in `/user_profiles` or `/user_profiles/{userId}/visits` (for any `userId`), with the rule explicitly checking `request.auth.uid`'s role via their `UserProfile` document.\n\nThis design ensures simple, robust, and easily debuggable security rules by making authorization context explicit in the data structure and minimizing complex cross-document `get()` calls."
+    ]
   }
 }

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -6,6 +7,7 @@ import { WelcomeScreen } from "@/components/auth/welcome-screen";
 import { LoginScreen } from "@/components/auth/login-screen";
 import { VerifyStudentId } from "@/components/auth/verify-student-id";
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
+import { UserGreeting } from "@/components/dashboard/user-greeting";
 import { Loader2 } from "lucide-react";
 
 function AppContent() {
@@ -32,7 +34,12 @@ function AppContent() {
     return <VerifyStudentId />;
   }
 
-  return <DashboardLayout />;
+  // Role-based conditional rendering
+  if (profile.role === 'admin') {
+    return <DashboardLayout />;
+  }
+
+  return <UserGreeting />;
 }
 
 export default function Home() {
