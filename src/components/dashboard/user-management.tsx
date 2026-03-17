@@ -14,7 +14,8 @@ import {
   UserCheck, 
   ShieldOff, 
   ArrowRightLeft,
-  User as UserIcon
+  User as UserIcon,
+  AlertTriangle
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { collection, query, orderBy } from "firebase/firestore";
@@ -190,7 +191,7 @@ export function UserManagement() {
                           <MoreVertical className="h-4 w-4 text-muted-foreground" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-56 rounded-2xl p-2 shadow-2xl border-none">
+                      <DropdownMenuContent align="end" className="w-64 rounded-2xl p-2 shadow-2xl border-none">
                         <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-4 py-3">
                           {isCurrentUser ? "My Account" : "Access Control"}
                         </DropdownMenuLabel>
@@ -213,7 +214,7 @@ export function UserManagement() {
                                 <AlertDialogHeader>
                                   <AlertDialogTitle className="text-2xl font-black text-primary italic uppercase tracking-tighter">Confirm Resignation</AlertDialogTitle>
                                   <AlertDialogDescription className="text-base font-medium">
-                                    Are you sure you want to leave your administrative access? You will be demoted to a standard user and lose all dashboard access immediately.
+                                    Are you absolutely sure you want to revoke your administrative access? This action is permanent and you will be demoted to a standard user immediately.
                                   </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
@@ -237,13 +238,41 @@ export function UserManagement() {
                           <>
                             {/* Super Admin Transfer Option */}
                             {iAmSuperAdmin && (
-                              <DropdownMenuItem 
-                                onClick={() => transferSuperAdmin(u.id)}
-                                className="rounded-xl h-11 gap-3 focus:bg-secondary/10 cursor-pointer text-secondary font-black"
-                              >
-                                <ArrowRightLeft className="h-4 w-4" />
-                                <span className="text-xs uppercase tracking-widest">Transfer Ownership</span>
-                              </DropdownMenuItem>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <DropdownMenuItem 
+                                    onSelect={(e) => e.preventDefault()}
+                                    className="rounded-xl h-11 gap-3 focus:bg-secondary/10 cursor-pointer text-secondary font-black"
+                                  >
+                                    <ArrowRightLeft className="h-4 w-4" />
+                                    <span className="text-xs uppercase tracking-widest">Transfer Ownership</span>
+                                  </DropdownMenuItem>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent className="rounded-2xl border-2 border-secondary/20">
+                                  <AlertDialogHeader>
+                                    <div className="mx-auto bg-secondary/10 p-3 rounded-full w-fit mb-2">
+                                      <ArrowRightLeft className="h-8 w-8 text-secondary" />
+                                    </div>
+                                    <AlertDialogTitle className="text-2xl font-black text-primary italic uppercase tracking-tighter text-center">Transfer Ownership</AlertDialogTitle>
+                                    <AlertDialogDescription className="text-center text-base">
+                                      You are about to transfer **Super Admin** status to <strong className="text-primary">{u.displayName}</strong>. This action will revoke your unique ownership privileges and cannot be undone.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <div className="p-4 bg-muted/30 rounded-xl border border-dashed border-muted-foreground/20 flex items-start gap-3">
+                                    <AlertTriangle className="h-5 w-5 text-secondary shrink-0 mt-0.5" />
+                                    <p className="text-[11px] font-medium text-muted-foreground">This is a high-security action. Ensure the recipient is a trusted institutional administrator.</p>
+                                  </div>
+                                  <AlertDialogFooter className="sm:justify-center gap-2">
+                                    <AlertDialogCancel className="rounded-xl font-bold border-2">Cancel Transfer</AlertDialogCancel>
+                                    <AlertDialogAction 
+                                      onClick={() => transferSuperAdmin(u.id)}
+                                      className="bg-secondary hover:bg-white hover:text-primary hover:border-secondary border-2 border-transparent text-primary rounded-xl font-black"
+                                    >
+                                      Confirm Transfer
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
                             )}
 
                             {!isSuperAdmin && (

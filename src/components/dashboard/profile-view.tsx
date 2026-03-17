@@ -205,7 +205,7 @@ export function ProfileView() {
                     As Super Admin, you must transfer ownership before resigning.
                   </span>
                 ) : (
-                  <span className="block mt-2">This action is permanent and cannot be undone without Super Admin approval.</span>
+                  <span className="block mt-2 font-black text-destructive uppercase">Warning: This action is permanent.</span>
                 )}
               </p>
             </div>
@@ -225,11 +225,11 @@ export function ProfileView() {
                 <AlertDialogHeader>
                   <AlertDialogTitle className="text-2xl font-black text-primary italic uppercase tracking-tighter">Confirm Resignation</AlertDialogTitle>
                   <AlertDialogDescription className="text-base font-medium">
-                    Are you absolutely sure? You will be demoted to a standard user and lose all administrative dashboard access immediately.
+                    Are you absolutely sure? You will be demoted to a standard user and lose all administrative dashboard access immediately. This cannot be undone without Super Admin approval.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel className="rounded-xl font-bold">Cancel</AlertDialogCancel>
+                  <AlertDialogCancel className="rounded-xl font-bold border-2">Keep Admin Access</AlertDialogCancel>
                   <AlertDialogAction 
                     onClick={handleResign}
                     className="bg-destructive hover:bg-destructive/90 text-white rounded-xl font-black"
