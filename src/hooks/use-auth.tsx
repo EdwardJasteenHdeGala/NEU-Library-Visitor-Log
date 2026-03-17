@@ -31,7 +31,9 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Core list of authorized administrative accounts
+/**
+ * List of institutional emails authorized to access administrative features.
+ */
 const AUTHORIZED_ADMIN_EMAILS = [
   'edwardjasteen.degala@neu.edu.ph',
   'jcesperanza@neu.edu.ph'
@@ -78,8 +80,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       if (docSnap.exists()) {
         const data = docSnap.data() as UserProfile;
-        // Re-check authorization in case the email was added to the list later
+        // Re-check authorization status based on the current list
         const isAuthorized = user.email && AUTHORIZED_ADMIN_EMAILS.includes(user.email);
+        
+        // Update authorization flag if it changed (e.g., email added to list)
         if (isAuthorized && !data.isAuthorizedAdmin) {
           await updateDoc(docRef, { isAuthorizedAdmin: true });
           setProfile({ ...data, isAuthorizedAdmin: true });
@@ -87,6 +91,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setProfile(data);
         }
       } else {
+        // Create new profile for first-time sign-in
         const isAuthorized = user.email && AUTHORIZED_ADMIN_EMAILS.includes(user.email);
         
         const profileData = {
@@ -114,6 +119,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async () => {
     try {
       const provider = new GoogleAuthProvider();
+      // Enforce institutional domain selection
       provider.setCustomParameters({ hd: 'neu.edu.ph' });
       await signInWithPopup(auth, provider);
     } catch (error: any) {
@@ -132,6 +138,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const verifyStudentId = async (studentId: string) => {
     if (!user || !firestore) return false;
     
+    // Check if the student ID matches the test account requirement
     const isTestId = studentId === '24-13347-177';
     const isAuthorized = user.email && AUTHORIZED_ADMIN_EMAILS.includes(user.email);
 
@@ -165,7 +172,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!profile || !profile.isAuthorizedAdmin) {
       toast({
         title: "Access Denied",
-        description: "You are not authorized for this role.",
+        description: "You are not authorized for administrative access.",
         variant: "destructive"
       });
       return;
@@ -179,13 +186,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
       setProfile({ ...profile, role: newRole });
       toast({
-        title: "Role Switched",
-        description: `You are now viewing as ${newRole}.`,
+        title: "Role Updated",
+        description: `Your active role is now: ${newRole.toUpperCase()}`,
       });
     } catch (error: any) {
       toast({
-        title: "Error",
-        description: "Failed to switch role.",
+        title: "Update Error",
+        description: "Failed to switch access role.",
         variant: "destructive"
       });
     }
