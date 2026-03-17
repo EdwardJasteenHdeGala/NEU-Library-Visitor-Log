@@ -1,3 +1,16 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "neu-logo",
+      "description": "New Era University Building",
+      "imageUrl": "https://picsum.photos/seed/neu-campus/800/600",
+      "imageHint": "university campus"
+    },
+    {
+      "id": "library-interior",
+      "description": "Modern Library Interior",
+      "imageUrl": "https://picsum.photos/seed/library/1200/800",
+      "imageHint": "library interior"
+    }
+  ]
 }
