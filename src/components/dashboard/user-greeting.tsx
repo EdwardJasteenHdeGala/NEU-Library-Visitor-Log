@@ -20,7 +20,8 @@ import {
   HelpCircle,
   Menu,
   X,
-  Globe
+  Globe,
+  Settings
 } from "lucide-react";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
@@ -39,6 +40,7 @@ import { LiveClock } from "@/components/ui/live-clock";
 import { getAcademicYear } from "@/lib/utils";
 import { FeedbackView } from "./feedback-view";
 import { HelpView } from "./help-view";
+import { ProfileView } from "./profile-view";
 import { cn } from "@/lib/utils";
 
 const NEU_COLLEGES = [
@@ -56,7 +58,7 @@ const NEU_COLLEGES = [
   { id: "EXTERNAL", name: "External / Guest" },
 ];
 
-type UserSubView = 'log-entry' | 'feedback' | 'help';
+type UserSubView = 'log-entry' | 'feedback' | 'help' | 'profile';
 
 export function UserGreeting() {
   const { logout, profile, switchRole } = useAuth();
@@ -127,6 +129,7 @@ export function UserGreeting() {
     { id: 'log-entry', label: 'Log Entry', icon: History },
     { id: 'feedback', label: 'Feedback', icon: MessageSquare },
     { id: 'help', label: 'Help & Guide', icon: HelpCircle },
+    { id: 'profile', label: 'Settings', icon: Settings },
   ];
 
   return (
@@ -167,9 +170,9 @@ export function UserGreeting() {
                     Admin
                   </Button>
                 )}
-                <Button variant="ghost" size="sm" onClick={logout} title="Switch Account" className="h-8 md:h-10 gap-1 md:gap-2 text-white/70 hover:text-white hover:bg-white/10 font-black text-[8px] md:text-[10px] uppercase rounded-xl transition-all">
-                  <RefreshCcw className="h-3.5 w-3.5 md:h-4 md:w-4" />
-                  <span className="hidden sm:inline">Switch</span>
+                <Button variant="ghost" size="sm" onClick={logout} title="Sign Out" className="h-8 md:h-10 gap-1 md:gap-2 text-white/70 hover:text-white hover:bg-white/10 font-black text-[8px] md:text-[10px] uppercase rounded-xl transition-all">
+                  <LogOut className="h-3.5 w-3.5 md:h-4 md:w-4" />
+                  <span className="hidden sm:inline">Logout</span>
                 </Button>
                 <Button 
                     variant="ghost" 
@@ -370,6 +373,7 @@ export function UserGreeting() {
 
         {subView === 'feedback' && <FeedbackView />}
         {subView === 'help' && <HelpView />}
+        {subView === 'profile' && <ProfileView />}
       </main>
 
       <footer className="p-8 md:p-12 text-center bg-white border-t mt-auto">
