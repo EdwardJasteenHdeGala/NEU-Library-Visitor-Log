@@ -133,13 +133,32 @@ export function LoginScreen({ onBack }: LoginScreenProps) {
                         <p className="text-sm text-muted-foreground">Authorized personnel and faculty login only.</p>
                     </div>
 
-                    <Button 
-                        onClick={handleLogin} 
-                        className="w-full h-14 text-lg font-black gap-3 bg-primary text-white hover:bg-primary/90 transition-all shadow-xl"
-                    >
-                        <ShieldCheck className="h-6 w-6 text-secondary" />
-                        Admin Authorization
-                    </Button>
+                    <div className="space-y-4">
+                        <Button 
+                            onClick={handleLogin} 
+                            className="w-full h-14 text-lg font-black gap-3 bg-white border-2 border-primary/20 hover:bg-muted text-primary transition-all shadow-sm"
+                        >
+                            <Image src="https://www.google.com/favicon.ico" alt="Google" width={24} height={24} />
+                            Admin Google Sign-in
+                        </Button>
+
+                        <div className="relative">
+                            <div className="absolute inset-0 flex items-center">
+                                <span className="w-full border-t border-muted-foreground/20" />
+                            </div>
+                            <div className="relative flex justify-center text-[10px] font-black uppercase tracking-widest">
+                                <span className="bg-card px-4 text-muted-foreground">Or Direct Access</span>
+                            </div>
+                        </div>
+
+                        <Button 
+                            onClick={handleLogin} 
+                            className="w-full h-14 text-lg font-black gap-3 bg-primary text-white hover:bg-primary/90 transition-all shadow-xl"
+                        >
+                            <ShieldCheck className="h-6 w-6 text-secondary" />
+                            Admin Authorization
+                        </Button>
+                    </div>
 
                     <div className="space-y-4 pt-4">
                         <div className="p-4 bg-muted rounded-xl border-l-4 border-secondary space-y-1">
