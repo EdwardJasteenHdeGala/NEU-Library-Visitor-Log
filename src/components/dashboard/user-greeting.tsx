@@ -52,7 +52,7 @@ export function UserGreeting() {
         userId: profile.id,
         userName: profile.displayName,
         college: profile.college || 'Guest',
-        roleAtTime: profile.role === 'guest' ? 'guest' : 'student',
+        roleAtTime: profile.role,
         purpose: purpose,
         timestamp: serverTimestamp()
       });
@@ -118,9 +118,13 @@ export function UserGreeting() {
                     Admin
                   </Button>
                 )}
-                <Button variant="ghost" size="sm" onClick={logout} className="h-8 md:h-10 gap-1 md:gap-2 text-white/70 hover:text-white hover:bg-white/10 font-black text-[8px] md:text-[10px] uppercase rounded-xl transition-all">
+                <Button variant="ghost" size="sm" onClick={logout} title="Switch Account" className="h-8 md:h-10 gap-1 md:gap-2 text-white/70 hover:text-white hover:bg-white/10 font-black text-[8px] md:text-[10px] uppercase rounded-xl transition-all">
                   <RefreshCcw className="h-3.5 w-3.5 md:h-4 md:w-4" />
-                  <span className="hidden sm:inline">Switch Account</span>
+                  <span className="hidden sm:inline">Switch</span>
+                </Button>
+                <Button variant="destructive" size="sm" onClick={logout} className="h-8 md:h-10 gap-1 md:gap-2 font-black text-[8px] md:text-[10px] uppercase rounded-xl shadow-lg border-2 border-white/10">
+                  <LogOut className="h-3.5 w-3.5 md:h-4 md:w-4" />
+                  <span className="hidden sm:inline">Sign Out</span>
                 </Button>
             </div>
           </div>
