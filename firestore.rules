@@ -1,0 +1,85 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * NEU Access Hub Security Rules
+     *
+     * CORE PHILOSOPHY:
+     * This ruleset implements a strict User-Ownership model supplemented by Role-Based Access Control (RBAC). 
+     * Access is primarily governed by the hierarchical path structure, ensuring users can only 
+     * access data nested under their own unique identifier, while authorized Administrators 
+     * maintain oversight across the entire dataset.
+     *
+     * DATA STRUCTURE:
+     * - /user_profiles/{userId}: Root collection for student/staff profiles. The {userId} matches the Firebase Auth UID.
+     * - /user_profiles/{userId}/visits/{visitId}: Subcollection for tracking individual entry/exit logs.
+     *
+     * KEY SECURITY DECISIONS:
+     * 1. Authorization Independence: The user's 'role' is denormalized directly into the UserProfile 
+     *    document to allow for fast, reliable permission checks without traversing complex relationships.
+     * 2. Path-Auth Binding: For all user-owned data, the 'userId' in the document path MUST match 
+     *    the authenticated user's UID.
+     * 3. Admin Override: Users with the 'admin' role in their profile are granted broad read 
+     *    and management permissions for auditing and system maintenance.
+     * 4. Immutable Identity: Critical relational fields like 'userId' and 'id' are enforced as 
+     *    immutable to prevent data hijacking or relational corruption.
+     *
+     * PROTOTYPING MODE:
+     * These rules prioritize strict authorization (who can access) while remaining flexible 
+     * on data shapes (what the data looks like) to facilitate rapid development iteration.
+     */
+
+    // --- Helper Functions ---
+
+    /** @description Checks if the request is from a signed-in user. */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /** @description Checks if the authenticated user's UID matches the provided userId. */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    /** @description Checks if the authenticated user has the 'admin' role. */
+    function isAdmin() {
+      // Ensure the user is signed in and their profile exists before checking the role
+      return isSignedIn() && exists(/databases/$(database)/documents/user_profiles/$(request.auth.uid)) && get(/databases/$(database)/documents/user_profiles/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // --- Collection Rules ---
+
+    /**
+     * @description Rules for the UserProfile collection. Users manage their own profile; admins manage all.
+     * @path /user_profiles/{userId}
+     * @allow (get) If the user is the owner or an admin.
+     * @allow (create) If the user's UID matches the document ID and they provide their own ID in the data.
+     * @deny (list) If a non-admin attempts to query the entire user list.
+     * @principle Path-based ownership and self-creation for root user documents.
+     */
+    match /user_profiles/{userId} {
+      allow get: if isOwner(userId) || isAdmin();
+      allow list: if isAdmin();
+      allow create: if isOwner(userId) && request.resource.data.id == userId;
+      allow update: if (isOwner(userId) || isAdmin()) && resource != null && request.resource.data.id == resource.data.id;
+      allow delete: if isAdmin() && resource != null;
+
+      /**
+       * @description Rules for the Visit subcollection. Users track their own visits; admins audit all.
+       * @path /user_profiles/{userId}/visits/{visitId}
+       * @allow (list) If the user is listing their own visits or is an admin.
+       * @allow (create) If the user is the parent owner and provides a matching userId field.
+       * @deny (delete) If a regular user attempts to delete a visit log (audit integrity).
+       * @principle Relational integrity enforced by matching path variables to internal data fields.
+       */
+      match /visits/{visitId} {
+        allow get, list: if isOwner(userId) || isAdmin();
+        allow create: if isOwner(userId) && request.resource.data.userId == userId;
+        allow update: if (isOwner(userId) || isAdmin()) && resource != null && request.resource.data.userId == resource.data.userId;
+        allow delete: if isAdmin() && resource != null;
+      }
+    }
+
+  }
+}
