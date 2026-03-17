@@ -19,7 +19,8 @@ import {
   AlertTriangle,
   UserPlus,
   Loader2,
-  Building2
+  Building2,
+  Send
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { collection, query, orderBy } from "firebase/firestore";
@@ -151,7 +152,7 @@ export function UserManagement() {
                 <DialogHeader>
                   <DialogTitle className="text-2xl font-black text-primary italic uppercase tracking-tighter">Authorize Access</DialogTitle>
                   <DialogDescription>
-                    Invite an email to the system with a pre-defined role and department, similar to sharing a folder.
+                    Provide an email to pre-authorize access. This works like sharing a Google Drive folder; the user gets permissions as soon as they log in.
                   </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-6 py-4">
@@ -161,7 +162,7 @@ export function UserManagement() {
                       <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input 
                           id="email" 
-                          placeholder="user@gmail.com or @neu.edu.ph" 
+                          placeholder="user@gmail.com" 
                           value={newEmail}
                           onChange={(e) => setNewEmail(e.target.value)}
                           className="h-12 rounded-xl border-2 pl-10 font-bold focus:ring-primary"
@@ -170,15 +171,15 @@ export function UserManagement() {
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="role" className="text-[10px] font-black uppercase tracking-widest text-primary/70 ml-1">Assigned Role</Label>
+                      <Label htmlFor="role" className="text-[10px] font-black uppercase tracking-widest text-primary/70 ml-1">Initial Role</Label>
                       <Select value={newRole} onValueChange={setNewRole}>
                         <SelectTrigger className="h-12 rounded-xl border-2 font-bold focus:ring-primary">
                           <SelectValue placeholder="Role" />
                         </SelectTrigger>
                         <SelectContent className="rounded-xl border-none shadow-2xl">
-                          <SelectItem value="user" className="font-bold">User</SelectItem>
-                          <SelectItem value="admin" className="font-bold">Admin</SelectItem>
-                          <SelectItem value="guest" className="font-bold">Guest</SelectItem>
+                          <SelectItem value="user" className="font-bold text-sm">Institutional User</SelectItem>
+                          <SelectItem value="admin" className="font-bold text-sm">Administrator</SelectItem>
+                          <SelectItem value="guest" className="font-bold text-sm">Guest Visitor</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -190,7 +191,7 @@ export function UserManagement() {
                         </SelectTrigger>
                         <SelectContent className="rounded-xl border-none shadow-2xl max-h-[300px]">
                           {NEU_COLLEGES.map(c => (
-                            <SelectItem key={c.id} value={c.id} className="font-bold">{c.id}</SelectItem>
+                            <SelectItem key={c.id} value={c.id} className="font-bold text-xs">{c.id}</SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
@@ -206,12 +207,12 @@ export function UserManagement() {
                     {isAdding ? (
                       <>
                         <Loader2 className="h-5 w-5 animate-spin" />
-                        SYNCHRONIZING...
+                        INVITING...
                       </>
                     ) : (
                       <>
-                        <ShieldCheck className="h-5 w-5" />
-                        GRANT ACCESS
+                        <Send className="h-5 w-5" />
+                        GRANT PERMISSION
                       </>
                     )}
                   </Button>
@@ -228,7 +229,7 @@ export function UserManagement() {
               <UserCog className="h-6 w-6 text-secondary" />
             </div>
             <div>
-              <p className="text-[10px] font-black uppercase tracking-widest opacity-60">Total Registered</p>
+              <p className="text-[10px] font-black uppercase tracking-widest opacity-60">Directory Size</p>
               <p className="text-2xl font-black">{users?.length || 0}</p>
             </div>
           </CardContent>
@@ -252,7 +253,7 @@ export function UserManagement() {
               <ShieldCheck className="h-6 w-6 text-blue-600" />
             </div>
             <div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Admins</p>
+              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Active Admins</p>
               <p className="text-2xl font-black text-primary">
                 {users?.filter(u => u.role === 'admin').length || 0}
               </p>
@@ -265,16 +266,16 @@ export function UserManagement() {
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/50 border-none">
-              <TableHead className="font-black text-primary py-4 uppercase text-[10px] tracking-widest">User Details</TableHead>
-              <TableHead className="font-black text-primary py-4 uppercase text-[10px] tracking-widest">ID / Status</TableHead>
+              <TableHead className="font-black text-primary py-4 uppercase text-[10px] tracking-widest">User Identity</TableHead>
+              <TableHead className="font-black text-primary py-4 uppercase text-[10px] tracking-widest">Institutional ID</TableHead>
               <TableHead className="font-black text-primary py-4 uppercase text-[10px] tracking-widest">Origin</TableHead>
-              <TableHead className="font-black text-primary py-4 uppercase text-[10px] tracking-widest">Access Role</TableHead>
+              <TableHead className="font-black text-primary py-4 uppercase text-[10px] tracking-widest">Role</TableHead>
               <TableHead className="font-black text-primary py-4 uppercase text-[10px] tracking-widest text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              <TableRow><TableCell colSpan={5} className="text-center py-8">Loading directory...</TableCell></TableRow>
+              <TableRow><TableCell colSpan={5} className="text-center py-8">Loading Directory...</TableCell></TableRow>
             ) : filteredUsers.length === 0 ? (
               <TableRow><TableCell colSpan={5} className="text-center py-8 text-muted-foreground italic">No users matching search criteria.</TableCell></TableRow>
             ) : filteredUsers.map((u, i) => {
@@ -283,7 +284,7 @@ export function UserManagement() {
                 .map((n: string) => n[0])
                 .join('')
                 .toUpperCase()
-                .slice(0, 2) || 'V';
+                .slice(0, 2) || 'U';
 
               const isSuperAdmin = u.isSuperAdmin === true;
               const isCurrentUser = u.id === currentUserProfile?.id;
@@ -291,34 +292,33 @@ export function UserManagement() {
               const isPending = u.displayName === 'New User (Pending)';
 
               return (
-                <TableRow key={i} className="hover:bg-muted/30 border-b">
+                <TableRow key={u.id} className="hover:bg-muted/30 border-b">
                   <TableCell className="py-4">
                     <div className="flex items-center gap-3">
-                      <Avatar className={cn("h-10 w-10 border-2 shadow-sm transition-opacity", isPending ? "border-dashed border-muted-foreground/30 opacity-60" : "border-muted")}>
+                      <Avatar className={cn("h-10 w-10 border-2 shadow-sm", isPending ? "border-dashed border-muted-foreground/30" : "border-muted")}>
                         <AvatarImage src={u.photoURL} alt={u.displayName} />
                         <AvatarFallback className="bg-muted text-primary font-black text-xs">
                           {userInitials}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex flex-col">
-                        <span className={cn("font-bold text-primary", isPending && "italic text-muted-foreground flex items-center gap-1.5")}>
+                        <span className={cn("font-bold text-primary flex items-center gap-2", isPending && "italic text-muted-foreground")}>
                           {u.displayName} 
-                          {isPending && <Badge className="text-[8px] bg-secondary/10 text-secondary border-none px-2 h-4 font-black">INVITED</Badge>}
-                          {isCurrentUser && <span className="text-[8px] bg-primary/10 px-2 py-0.5 rounded text-primary uppercase">You</span>}
+                          {isPending && (
+                            <Badge className="text-[7px] bg-secondary/10 text-secondary border-none px-2 h-4 font-black tracking-widest uppercase">
+                              PENDING SYNC
+                            </Badge>
+                          )}
+                          {isCurrentUser && <span className="text-[8px] bg-primary text-white px-2 py-0.5 rounded uppercase font-black">You</span>}
                         </span>
-                        <span className="text-[10px] text-muted-foreground font-medium truncate max-w-[150px]">{u.email}</span>
+                        <span className="text-[10px] text-muted-foreground font-medium">{u.email}</span>
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className="font-mono text-xs font-bold text-muted-foreground">
-                    {isPending ? (
-                      <span className="text-[10px] uppercase font-black text-secondary flex items-center gap-1">
-                        <Loader2 className="h-3 w-3 animate-spin" />
-                        Awaiting Sync
-                      </span>
-                    ) : u.studentId}
+                  <TableCell className="font-mono text-[10px] font-black text-muted-foreground">
+                    {isPending ? '---' : u.studentId}
                   </TableCell>
-                  <TableCell className="text-sm font-medium">{u.college || 'External'}</TableCell>
+                  <TableCell className="text-sm font-bold uppercase tracking-tight italic text-primary/80">{u.college || 'Guest'}</TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-2">
                       {isSuperAdmin && (
@@ -347,7 +347,7 @@ export function UserManagement() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-64 rounded-2xl p-2 shadow-2xl border-none">
                         <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-4 py-3">
-                          {isCurrentUser ? "My Account" : "Access Control"}
+                          {isCurrentUser ? "Self Control" : "Institutional Permissions"}
                         </DropdownMenuLabel>
                         <DropdownMenuSeparator />
                         
@@ -361,36 +361,30 @@ export function UserManagement() {
                                   className="rounded-xl h-11 gap-3 focus:bg-destructive/5 cursor-pointer text-destructive font-black"
                                 >
                                   <ShieldOff className="h-4 w-4" />
-                                  <span className="font-black text-xs uppercase tracking-widest">Resign Admin Access</span>
+                                  <span className="font-black text-xs uppercase tracking-widest">Resign Admin Privileges</span>
                                 </DropdownMenuItem>
                               </AlertDialogTrigger>
                               <AlertDialogContent className="rounded-2xl">
                                 <AlertDialogHeader>
                                   <AlertDialogTitle className="text-2xl font-black text-primary italic uppercase tracking-tighter">Confirm Resignation</AlertDialogTitle>
                                   <AlertDialogDescription className="text-base font-medium">
-                                    Are you absolutely sure you want to revoke your administrative access? This action is permanent and you will be demoted to a standard user immediately.
+                                    You are about to revoke your own administrative access. You will be demoted to a regular user immediately.
                                   </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
-                                  <AlertDialogCancel className="rounded-xl font-bold">Cancel</AlertDialogCancel>
+                                  <AlertDialogCancel className="rounded-xl font-bold">Keep Admin Access</AlertDialogCancel>
                                   <AlertDialogAction 
                                     onClick={resignAdmin}
                                     className="bg-destructive hover:bg-destructive/90 text-white rounded-xl font-black"
                                   >
-                                    Confirm Resignation
+                                    Confirm Demotion
                                   </AlertDialogAction>
                                 </AlertDialogFooter>
                               </AlertDialogContent>
                             </AlertDialog>
-                            {isSuperAdmin && (
-                               <p className="px-4 py-2 text-[9px] text-muted-foreground italic leading-tight">
-                                 Super Admin must transfer ownership before resigning.
-                               </p>
-                            )}
                           </>
                         ) : (
                           <>
-                            {/* Super Admin Transfer Option */}
                             {iAmSuperAdmin && (
                               <AlertDialog>
                                 <AlertDialogTrigger asChild>
@@ -404,23 +398,16 @@ export function UserManagement() {
                                 </AlertDialogTrigger>
                                 <AlertDialogContent className="rounded-2xl border-2 border-secondary/20">
                                   <AlertDialogHeader>
-                                    <div className="mx-auto bg-secondary/10 p-3 rounded-full w-fit mb-2">
-                                      <ArrowRightLeft className="h-8 w-8 text-secondary" />
-                                    </div>
                                     <AlertDialogTitle className="text-2xl font-black text-primary italic uppercase tracking-tighter text-center">Transfer Ownership</AlertDialogTitle>
                                     <AlertDialogDescription className="text-center text-base">
-                                      You are about to transfer **Super Admin** status to <strong className="text-primary">{u.displayName}</strong>. This action will revoke your unique ownership privileges and cannot be undone.
+                                      Transfer Super Admin status to <strong className="text-primary">{u.displayName}</strong>. You will lose your unique institutional ownership privileges.
                                     </AlertDialogDescription>
                                   </AlertDialogHeader>
-                                  <div className="p-4 bg-muted/30 rounded-xl border border-dashed border-muted-foreground/20 flex items-start gap-3">
-                                    <AlertTriangle className="h-5 w-5 text-secondary shrink-0 mt-0.5" />
-                                    <p className="text-[11px] font-medium text-muted-foreground">This is a high-security action. Ensure the recipient is a trusted institutional administrator.</p>
-                                  </div>
                                   <AlertDialogFooter className="sm:justify-center gap-2">
-                                    <AlertDialogCancel className="rounded-xl font-bold border-2">Cancel Transfer</AlertDialogCancel>
+                                    <AlertDialogCancel className="rounded-xl font-bold border-2">Cancel</AlertDialogCancel>
                                     <AlertDialogAction 
                                       onClick={() => transferSuperAdmin(u.id)}
-                                      className="bg-secondary hover:bg-white hover:text-primary hover:border-secondary border-2 border-transparent text-primary rounded-xl font-black"
+                                      className="bg-secondary text-primary rounded-xl font-black"
                                     >
                                       Confirm Transfer
                                     </AlertDialogAction>
@@ -437,7 +424,7 @@ export function UserManagement() {
                                     className="rounded-xl h-11 gap-3 focus:bg-primary/5 cursor-pointer text-primary"
                                   >
                                     <ShieldCheck className="h-4 w-4" />
-                                    <span className="font-black text-xs uppercase tracking-widest">Promote to Admin</span>
+                                    <span className="font-black text-xs uppercase tracking-widest">Grant Admin Role</span>
                                   </DropdownMenuItem>
                                 ) : (
                                   <DropdownMenuItem 
@@ -445,7 +432,7 @@ export function UserManagement() {
                                     className="rounded-xl h-11 gap-3 focus:bg-destructive/5 cursor-pointer text-destructive"
                                   >
                                     <ShieldOff className="h-4 w-4" />
-                                    <span className="font-black text-xs uppercase tracking-widest">Revoke Admin</span>
+                                    <span className="font-black text-xs uppercase tracking-widest">Revoke Admin Role</span>
                                   </DropdownMenuItem>
                                 )}
                                 <DropdownMenuSeparator />
@@ -454,14 +441,14 @@ export function UserManagement() {
                                   className="rounded-xl h-11 gap-3 focus:bg-muted cursor-pointer"
                                 >
                                   <UserCheck className="h-4 w-4 text-muted-foreground" />
-                                  <span className="font-bold text-xs">Set as Regular User</span>
+                                  <span className="font-bold text-xs">Set Institutional User</span>
                                 </DropdownMenuItem>
                                 <DropdownMenuItem 
                                   onClick={() => setUserRole(u.id, 'guest')}
                                   className="rounded-xl h-11 gap-3 focus:bg-muted cursor-pointer"
                                 >
                                   <Globe className="h-4 w-4 text-muted-foreground" />
-                                  <span className="font-bold text-xs">Set as External Guest</span>
+                                  <span className="font-bold text-xs">Set External Guest</span>
                                 </DropdownMenuItem>
                               </>
                             )}
