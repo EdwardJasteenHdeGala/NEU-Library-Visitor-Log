@@ -13,7 +13,6 @@ import {
   UserCog,
   HelpCircle,
   ShieldCheck,
-  RefreshCcw,
   Menu,
   X
 } from "lucide-react";
@@ -87,11 +86,11 @@ export function DashboardLayout() {
       <div className="fixed bottom-[-5%] left-[-5%] w-[400px] h-[400px] bg-secondary/5 rounded-full blur-[80px] animate-blob delay-2000 pointer-events-none" />
       <div className="neu-bg-overlay" />
 
-      <nav className="bg-primary text-white p-3 shadow-xl sticky top-0 z-[60] border-b border-white/5 backdrop-blur-xl bg-primary/95 transition-all">
-        <div className="max-w-[1600px] mx-auto flex justify-between items-center gap-4">
+      <nav className="bg-primary text-white p-3 shadow-xl sticky top-0 z-[70] border-b border-white/5 backdrop-blur-xl bg-primary/95 transition-all h-[60px] flex items-center">
+        <div className="max-w-7xl mx-auto flex justify-between items-center gap-4 w-full">
           <div className="flex items-center gap-3">
             <div 
-              className="bg-white p-1 rounded-xl shadow-lg w-9 h-9 relative overflow-hidden flex items-center justify-center group cursor-pointer" 
+              className="bg-white p-1 rounded-lg shadow-lg w-8 h-8 relative overflow-hidden flex items-center justify-center group cursor-pointer" 
               onClick={() => handleNavClick('dashboard')}
             >
                 <Image 
@@ -102,9 +101,9 @@ export function DashboardLayout() {
                   className="object-contain p-1 group-hover:scale-110 transition-transform duration-300"
                 />
             </div>
-            <div className="flex flex-col -space-y-1 hidden sm:flex">
-                <h1 className="text-base font-black tracking-tighter italic uppercase leading-tight">NEU HUB</h1>
-                <span className="text-[7px] font-black text-secondary uppercase tracking-[0.3em] opacity-80">Institutional Admin</span>
+            <div className="flex flex-col -space-y-0.5 hidden xs:flex">
+                <h1 className="text-sm font-black tracking-tighter italic uppercase leading-none">NEU HUB</h1>
+                <span className="text-[6px] font-black text-secondary uppercase tracking-[0.2em] opacity-80">Institutional Admin</span>
             </div>
           </div>
 
@@ -178,7 +177,7 @@ export function DashboardLayout() {
         
         {/* Mobile Navigation */}
         {isMobileMenuOpen && (
-            <div className="lg:hidden fixed inset-x-0 top-[60px] bg-primary p-4 border-t border-white/10 shadow-2xl space-y-1 animate-in slide-in-from-top-4 duration-300 z-[50]">
+            <div className="lg:hidden fixed inset-x-0 top-[60px] bg-primary p-4 border-t border-white/10 shadow-2xl space-y-1 animate-in slide-in-from-top-4 duration-300 z-[70]">
                 {navItems.map((item) => (
                     <button
                         key={item.id}
@@ -196,7 +195,7 @@ export function DashboardLayout() {
         )}
       </nav>
 
-      <main className="relative flex-1 w-full max-w-[1600px] mx-auto p-4 md:p-8 animate-in fade-in duration-700">
+      <main className="relative flex-1 w-full max-w-7xl mx-auto p-4 md:p-8 animate-in fade-in duration-700 pb-20">
         <div className="relative z-10 w-full">
           {renderView()}
         </div>

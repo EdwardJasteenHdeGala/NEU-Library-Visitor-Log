@@ -149,8 +149,8 @@ export function UserGreeting() {
       <div className="fixed bottom-[-5%] right-[-5%] w-[300px] h-[300px] bg-secondary/5 rounded-full blur-[60px] animate-blob delay-1000 pointer-events-none" />
       <div className="neu-bg-overlay" />
 
-      <header className="relative z-[70] p-3 bg-primary text-white sticky top-0 shadow-xl border-b border-white/10 backdrop-blur-xl bg-primary/95">
-        <div className="max-w-7xl mx-auto flex justify-between items-center gap-4">
+      <header className="relative z-[70] p-3 bg-primary text-white sticky top-0 shadow-xl border-b border-white/10 backdrop-blur-xl bg-primary/95 h-[60px] flex items-center">
+        <div className="max-w-7xl mx-auto flex justify-between items-center gap-4 w-full">
           <div className="flex items-center gap-3">
             <div 
               className="bg-white p-1 rounded-lg shadow-lg w-8 h-8 relative overflow-hidden flex items-center justify-center group cursor-pointer" 
@@ -225,7 +225,7 @@ export function UserGreeting() {
         
         {/* Mobile Nav */}
         {isMobileMenuOpen && (
-            <div className="lg:hidden fixed inset-x-0 top-[60px] bg-primary p-4 border-t border-white/10 shadow-2xl space-y-1 animate-in slide-in-from-top-4 duration-300 z-[60]">
+            <div className="lg:hidden fixed inset-x-0 top-[60px] bg-primary p-4 border-t border-white/10 shadow-2xl space-y-1 animate-in slide-in-from-top-4 duration-300 z-[70]">
                 {navItems.map((item) => (
                     <button
                         key={item.id}
@@ -243,7 +243,7 @@ export function UserGreeting() {
         )}
       </header>
 
-      <main className="relative z-10 flex-1 max-w-7xl mx-auto w-full p-4 md:p-8 animate-in fade-in duration-700">
+      <main className="relative z-10 flex-1 max-w-7xl mx-auto w-full p-4 md:p-8 animate-in fade-in duration-700 pb-20">
         {subView === 'log-entry' && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             <div className="lg:col-span-8 space-y-8">
