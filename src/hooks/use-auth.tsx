@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
-import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, serverTimestamp, writeBatch } from 'firebase/firestore';
 import { useFirebase, useUser } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 
@@ -12,6 +12,7 @@ export interface UserProfile {
   studentId: string;
   role: 'guest' | 'user' | 'admin';
   isAuthorizedAdmin: boolean;
+  isSuperAdmin?: boolean; // Added dynamic super admin flag
   displayName: string;
   photoURL?: string;
   college?: string;
@@ -29,14 +30,15 @@ interface AuthContextType {
   updateProfileData: (data: Partial<UserProfile>) => Promise<boolean>;
   switchRole: (newRole: 'user' | 'admin') => Promise<void>;
   setUserRole: (userId: string, newRole: 'user' | 'admin' | 'guest') => Promise<void>;
+  transferSuperAdmin: (targetUserId: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Authorized administrators with high-level access
-export const SUPER_ADMIN_EMAIL = 'edwardjasteen.degala@neu.edu.ph';
+// Initial bootstrap Super Admin
+export const BOOTSTRAP_SUPER_ADMIN_EMAIL = 'edwardjasteen.degala@neu.edu.ph';
 const AUTHORIZED_ADMIN_EMAILS = [
-  SUPER_ADMIN_EMAIL,
+  BOOTSTRAP_SUPER_ADMIN_EMAIL,
   'jcesperanza@neu.edu.ph'
 ];
 
@@ -70,10 +72,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const docSnap = await getDoc(docRef);
       
       const isInstitutional = user.email && user.email.endsWith('@neu.edu.ph');
+      const isBootstrapAdmin = user.email === BOOTSTRAP_SUPER_ADMIN_EMAIL;
       const isAuthorized = user.email && AUTHORIZED_ADMIN_EMAILS.includes(user.email);
       
-      // CICS Department identification
-      const isCICS = user.email === SUPER_ADMIN_EMAIL || user.email === 'jcesperanza@neu.edu.ph';
+      const isCICS = user.email === BOOTSTRAP_SUPER_ADMIN_EMAIL || user.email === 'jcesperanza@neu.edu.ph';
       
       const defaultCollege = isInstitutional 
         ? (isCICS ? 'CICS' : 'General Education') 
@@ -91,7 +93,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           needsUpdate = true;
         }
 
-        if (isAuthorized && !data.isAuthorizedAdmin) {
+        // Bootstrap logic: if this is the hardcoded email and isSuperAdmin isn't set, force it once
+        if (isBootstrapAdmin && !data.isSuperAdmin) {
+          updates.isSuperAdmin = true;
+          updates.isAuthorizedAdmin = true;
+          updates.role = 'admin';
+          needsUpdate = true;
+        }
+
+        if (isAuthorized && !data.isAuthorizedAdmin && !isBootstrapAdmin) {
           updates.isAuthorizedAdmin = true;
           needsUpdate = true;
         }
@@ -113,14 +123,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setProfile(data);
         }
       } else {
-        const initialRole = (isAuthorized && intendedRole === 'admin') ? 'admin' : defaultRole;
+        const initialRole = (isAuthorized && intendedRole === 'admin') || isBootstrapAdmin ? 'admin' : defaultRole;
         
         const profileData = {
           id: user.uid,
           email: user.email!,
           studentId: isInstitutional ? 'PENDING-ID' : 'GUEST-ID',
           role: initialRole, 
-          isAuthorizedAdmin: !!isAuthorized,
+          isAuthorizedAdmin: !!isAuthorized || isBootstrapAdmin,
+          isSuperAdmin: isBootstrapAdmin,
           displayName: user.displayName || 'Visitor',
           photoURL: user.photoURL || '',
           college: defaultCollege,
@@ -160,13 +171,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await signOut(auth);
   };
 
-  const verifyStudentId = async (studentId: string) => {
-    return updateProfileData({ studentId });
-  };
-
   const updateProfileData = async (data: Partial<UserProfile>) => {
     if (!user || !firestore || !profile) return false;
-    
     try {
       const docRef = doc(firestore, 'user_profiles', user.uid);
       await updateDoc(docRef, {
@@ -238,8 +244,70 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const transferSuperAdmin = async (targetUserId: string) => {
+    if (!profile?.isSuperAdmin || !firestore) {
+      toast({
+        title: "Permission Denied",
+        description: "Only the Super Admin can transfer ownership.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const batch = writeBatch(firestore);
+      const currentRef = doc(firestore, 'user_profiles', profile.id);
+      const targetRef = doc(firestore, 'user_profiles', targetUserId);
+
+      // Remove super admin from self
+      batch.update(currentRef, {
+        isSuperAdmin: false,
+        updatedAt: serverTimestamp()
+      });
+
+      // Grant super admin to target and force admin role
+      batch.update(targetRef, {
+        isSuperAdmin: true,
+        role: 'admin',
+        isAuthorizedAdmin: true,
+        updatedAt: serverTimestamp()
+      });
+
+      await batch.commit();
+
+      // Update local state
+      setProfile({ ...profile, isSuperAdmin: false });
+
+      toast({
+        title: "Ownership Transferred",
+        description: "Super Admin privileges have been successfully transferred.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Transfer Error",
+        description: "Failed to transfer Super Admin status.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const verifyStudentId = async (studentId: string) => {
+    return updateProfileData({ studentId });
+  };
+
   return (
-    <AuthContext.Provider value={{ user, profile, loading: loading || isUserLoading, login, logout, verifyStudentId, updateProfileData, switchRole, setUserRole }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      profile, 
+      loading: loading || isUserLoading, 
+      login, 
+      logout, 
+      verifyStudentId, 
+      updateProfileData, 
+      switchRole, 
+      setUserRole,
+      transferSuperAdmin
+    }}>
       {children}
     </AuthContext.Provider>
   );

@@ -3,13 +3,24 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Search, UserCog, ShieldCheck, Mail, Globe, MoreVertical, ShieldAlert, UserCheck, ShieldOff } from "lucide-react";
+import { 
+  Search, 
+  UserCog, 
+  ShieldCheck, 
+  Mail, 
+  Globe, 
+  MoreVertical, 
+  ShieldAlert, 
+  UserCheck, 
+  ShieldOff, 
+  ArrowRightLeft 
+} from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { collection, query, orderBy } from "firebase/firestore";
 import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useAuth, SUPER_ADMIN_EMAIL } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/use-auth";
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -23,7 +34,7 @@ import { Button } from "@/components/ui/button";
 export function UserManagement() {
   const [searchTerm, setSearchTerm] = useState("");
   const firestore = useFirestore();
-  const { setUserRole, profile: currentUserProfile } = useAuth();
+  const { setUserRole, transferSuperAdmin, profile: currentUserProfile } = useAuth();
 
   const usersQuery = useMemoFirebase(() => {
     return query(collection(firestore, 'user_profiles'), orderBy('displayName', 'asc'));
@@ -119,8 +130,9 @@ export function UserManagement() {
                 .toUpperCase()
                 .slice(0, 2) || 'V';
 
-              const isSuperAdmin = u.email === SUPER_ADMIN_EMAIL;
+              const isSuperAdmin = u.isSuperAdmin === true;
               const isCurrentUser = u.id === currentUserProfile?.id;
+              const iAmSuperAdmin = currentUserProfile?.isSuperAdmin === true;
 
               return (
                 <TableRow key={i} className="hover:bg-muted/30 border-b">
@@ -160,7 +172,7 @@ export function UserManagement() {
                     </div>
                   </TableCell>
                   <TableCell className="text-right">
-                    {!isSuperAdmin && !isCurrentUser && (
+                    {!isCurrentUser && (
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
@@ -170,38 +182,54 @@ export function UserManagement() {
                         <DropdownMenuContent align="end" className="w-56 rounded-2xl p-2 shadow-2xl border-none">
                           <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-4 py-3">Access Control</DropdownMenuLabel>
                           <DropdownMenuSeparator />
-                          {u.role !== 'admin' ? (
+                          
+                          {/* Super Admin Transfer Option */}
+                          {iAmSuperAdmin && (
                             <DropdownMenuItem 
-                              onClick={() => setUserRole(u.id, 'admin')}
-                              className="rounded-xl h-11 gap-3 focus:bg-primary/5 cursor-pointer text-primary"
+                              onClick={() => transferSuperAdmin(u.id)}
+                              className="rounded-xl h-11 gap-3 focus:bg-secondary/10 cursor-pointer text-secondary font-black"
                             >
-                              <ShieldCheck className="h-4 w-4" />
-                              <span className="font-black text-xs uppercase tracking-widest">Promote to Admin</span>
-                            </DropdownMenuItem>
-                          ) : (
-                            <DropdownMenuItem 
-                              onClick={() => setUserRole(u.id, 'user')}
-                              className="rounded-xl h-11 gap-3 focus:bg-destructive/5 cursor-pointer text-destructive"
-                            >
-                              <ShieldOff className="h-4 w-4" />
-                              <span className="font-black text-xs uppercase tracking-widest">Revoke Admin</span>
+                              <ArrowRightLeft className="h-4 w-4" />
+                              <span className="text-xs uppercase tracking-widest">Transfer Ownership</span>
                             </DropdownMenuItem>
                           )}
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem 
-                            onClick={() => setUserRole(u.id, 'user')}
-                            className="rounded-xl h-11 gap-3 focus:bg-muted cursor-pointer"
-                          >
-                            <UserCheck className="h-4 w-4 text-muted-foreground" />
-                            <span className="font-bold text-xs">Set as Regular User</span>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            onClick={() => setUserRole(u.id, 'guest')}
-                            className="rounded-xl h-11 gap-3 focus:bg-muted cursor-pointer"
-                          >
-                            <Globe className="h-4 w-4 text-muted-foreground" />
-                            <span className="font-bold text-xs">Set as External Guest</span>
-                          </DropdownMenuItem>
+
+                          {!isSuperAdmin && (
+                            <>
+                              {u.role !== 'admin' ? (
+                                <DropdownMenuItem 
+                                  onClick={() => setUserRole(u.id, 'admin')}
+                                  className="rounded-xl h-11 gap-3 focus:bg-primary/5 cursor-pointer text-primary"
+                                >
+                                  <ShieldCheck className="h-4 w-4" />
+                                  <span className="font-black text-xs uppercase tracking-widest">Promote to Admin</span>
+                                </DropdownMenuItem>
+                              ) : (
+                                <DropdownMenuItem 
+                                  onClick={() => setUserRole(u.id, 'user')}
+                                  className="rounded-xl h-11 gap-3 focus:bg-destructive/5 cursor-pointer text-destructive"
+                                >
+                                  <ShieldOff className="h-4 w-4" />
+                                  <span className="font-black text-xs uppercase tracking-widest">Revoke Admin</span>
+                                </DropdownMenuItem>
+                              )}
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem 
+                                onClick={() => setUserRole(u.id, 'user')}
+                                className="rounded-xl h-11 gap-3 focus:bg-muted cursor-pointer"
+                              >
+                                <UserCheck className="h-4 w-4 text-muted-foreground" />
+                                <span className="font-bold text-xs">Set as Regular User</span>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem 
+                                onClick={() => setUserRole(u.id, 'guest')}
+                                className="rounded-xl h-11 gap-3 focus:bg-muted cursor-pointer"
+                              >
+                                <Globe className="h-4 w-4 text-muted-foreground" />
+                                <span className="font-bold text-xs">Set as External Guest</span>
+                              </DropdownMenuItem>
+                            </>
+                          )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     )}
