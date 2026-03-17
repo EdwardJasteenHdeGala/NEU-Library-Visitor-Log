@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -15,16 +14,16 @@
     --primary-foreground: 0 0% 100%;
     --secondary: 45 100% 48%; /* NEU Vibrant Gold */
     --secondary-foreground: 153 100% 10%;
-    --muted: 210 10% 90%;
-    --muted-foreground: 210 20% 40%;
+    --muted: 210 10% 96%;
+    --muted-foreground: 210 20% 45%;
     --accent: 45 100% 48%;
     --accent-foreground: 153 100% 10%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: 210 20% 85%;
-    --input: 210 20% 85%;
+    --border: 210 20% 90%;
+    --input: 210 20% 90%;
     --ring: 153 100% 15%;
-    --radius: 0.75rem;
+    --radius: 1rem;
     --chart-1: 153 100% 15%;
     --chart-2: 45 100% 48%;
     --chart-3: 197 37% 24%;
@@ -68,9 +67,22 @@
 }
 
 .neu-card-shadow {
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05), 0 2px 10px -2px rgba(0, 0, 0, 0.03);
 }
 
 .neu-button-shadow {
-  box-shadow: 0 4px 14px 0 rgba(0, 77, 38, 0.2);
+  box-shadow: 0 10px 15px -3px rgba(0, 77, 38, 0.1), 0 4px 6px -2px rgba(0, 77, 38, 0.05);
+}
+
+.neu-button-shadow-secondary {
+  box-shadow: 0 10px 15px -3px rgba(184, 134, 11, 0.1), 0 4px 6px -2px rgba(184, 134, 11, 0.05);
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite;
 }
