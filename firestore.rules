@@ -12,22 +12,14 @@ service cloud.firestore {
      * maintain oversight across the entire dataset.
      *
      * DATA STRUCTURE:
-     * - /user_profiles/{userId}: Root collection for student/staff profiles. The {userId} matches the Firebase Auth UID.
-     * - /user_profiles/{userId}/visits/{visitId}: Subcollection for tracking individual entry/exit logs.
+     * - /user_profiles/{userId}: Root collection for student/staff profiles.
+     * - /visits/{visitId}: Root collection for all library logs (Admin view).
      *
      * KEY SECURITY DECISIONS:
      * 1. Authorization Independence: The user's 'role' is denormalized directly into the UserProfile 
-     *    document to allow for fast, reliable permission checks without traversing complex relationships.
-     * 2. Path-Auth Binding: For all user-owned data, the 'userId' in the document path MUST match 
-     *    the authenticated user's UID.
-     * 3. Admin Override: Users with the 'admin' role in their profile are granted broad read 
-     *    and management permissions for auditing and system maintenance.
-     * 4. Immutable Identity: Critical relational fields like 'userId' and 'id' are enforced as 
-     *    immutable to prevent data hijacking or relational corruption.
-     *
-     * PROTOTYPING MODE:
-     * These rules prioritize strict authorization (who can access) while remaining flexible 
-     * on data shapes (what the data looks like) to facilitate rapid development iteration.
+     *    document to allow for fast, reliable permission checks.
+     * 2. Admin Override: Users with the 'admin' role in their profile are granted broad read 
+     *    and management permissions.
      */
 
     // --- Helper Functions ---
@@ -51,12 +43,7 @@ service cloud.firestore {
     // --- Collection Rules ---
 
     /**
-     * @description Rules for the UserProfile collection. Users manage their own profile; admins manage all.
-     * @path /user_profiles/{userId}
-     * @allow (get) If the user is the owner or an admin.
-     * @allow (create) If the user's UID matches the document ID and they provide their own ID in the data.
-     * @deny (list) If a non-admin attempts to query the entire user list.
-     * @principle Path-based ownership and self-creation for root user documents.
+     * @description Rules for the UserProfile collection.
      */
     match /user_profiles/{userId} {
       allow get: if isOwner(userId) || isAdmin();
@@ -64,21 +51,22 @@ service cloud.firestore {
       allow create: if isOwner(userId) && request.resource.data.id == userId;
       allow update: if (isOwner(userId) || isAdmin()) && resource != null && request.resource.data.id == resource.data.id;
       allow delete: if isAdmin() && resource != null;
+    }
 
-      /**
-       * @description Rules for the Visit subcollection. Users track their own visits; admins audit all.
-       * @path /user_profiles/{userId}/visits/{visitId}
-       * @allow (list) If the user is listing their own visits or is an admin.
-       * @allow (create) If the user is the parent owner and provides a matching userId field.
-       * @deny (delete) If a regular user attempts to delete a visit log (audit integrity).
-       * @principle Relational integrity enforced by matching path variables to internal data fields.
-       */
-      match /visits/{visitId} {
-        allow get, list: if isOwner(userId) || isAdmin();
-        allow create: if isOwner(userId) && request.resource.data.userId == userId;
-        allow update: if (isOwner(userId) || isAdmin()) && resource != null && request.resource.data.userId == resource.data.userId;
-        allow delete: if isAdmin() && resource != null;
-      }
+    /**
+     * @description Rules for the global visits collection.
+     * @path /visits/{visitId}
+     */
+    match /visits/{visitId} {
+      // Admins can see everything. Users can only see their own logs.
+      allow list: if isAdmin();
+      allow get: if isSignedIn() && (isAdmin() || resource.data.userId == request.auth.uid);
+      
+      // Anyone signed in can create a log as long as they provide their own UID.
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      
+      // Only admins can modify or purge logs for audit integrity.
+      allow update, delete: if isAdmin();
     }
 
   }
