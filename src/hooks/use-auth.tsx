@@ -27,6 +27,7 @@ interface AuthContextType {
   login: (requestedRole?: 'user' | 'admin') => Promise<void>;
   logout: () => Promise<void>;
   verifyStudentId: (studentId: string) => Promise<boolean>;
+  updateProfileData: (data: Partial<UserProfile>) => Promise<boolean>;
   switchRole: (newRole: 'user' | 'admin') => Promise<void>;
 }
 
@@ -70,10 +71,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const isInstitutional = user.email && user.email.endsWith('@neu.edu.ph');
       const isAuthorized = user.email && AUTHORIZED_ADMIN_EMAILS.includes(user.email);
       
-      // CICS Department identification (for Professor Esperanza and authorized developers)
+      // CICS Department identification
       const isCICS = user.email === 'edwardjasteen.degala@neu.edu.ph' || user.email === 'jcesperanza@neu.edu.ph';
       
-      // Determine base status
       const defaultCollege = isInstitutional 
         ? (isCICS ? 'CICS' : 'General Education') 
         : 'External (Guest)';
@@ -85,27 +85,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         let needsUpdate = false;
         const updates: any = {};
 
-        // Sync Google Photo
         if (user.photoURL && data.photoURL !== user.photoURL) {
           updates.photoURL = user.photoURL;
           needsUpdate = true;
         }
 
-        // Admin authorization check
         if (isAuthorized && !data.isAuthorizedAdmin) {
           updates.isAuthorizedAdmin = true;
           needsUpdate = true;
         }
 
-        // Department/College sync
         if (isCICS && data.college !== 'CICS') {
           updates.college = 'CICS';
           needsUpdate = true;
         }
 
-        // Handle Role Logic
-        // If an authorized admin clicks "User Login", we respect that choice (intendedRole will be 'user')
-        // If they click "Admin Login", we set their role to 'admin' (intendedRole will be 'admin')
         if (isAuthorized && intendedRole && data.role !== intendedRole) {
           updates.role = intendedRole;
           needsUpdate = true;
@@ -118,13 +112,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setProfile(data);
         }
       } else {
-        // Create new profile for first-time login
         const initialRole = (isAuthorized && intendedRole === 'admin') ? 'admin' : defaultRole;
         
         const profileData = {
           id: user.uid,
           email: user.email!,
-          studentId: isInstitutional ? 'G-AUTH' : 'GUEST-USER',
+          studentId: isInstitutional ? 'PENDING-ID' : 'GUEST-ID',
           role: initialRole, 
           isAuthorizedAdmin: !!isAuthorized,
           displayName: user.displayName || 'Visitor',
@@ -141,7 +134,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error("Error managing profile:", error);
     } finally {
       setLoading(false);
-      setIntendedRole(null); // Reset intended role after processing
+      setIntendedRole(null);
     }
   };
 
@@ -151,10 +144,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setIntendedRole(requestedRole);
       }
       const provider = new GoogleAuthProvider();
-      // Ensure Google account selector always appears for switching
-      provider.setCustomParameters({ 
-        prompt: 'select_account'
-      });
+      provider.setCustomParameters({ prompt: 'select_account' });
       await signInWithPopup(auth, provider);
     } catch (error: any) {
       toast({
@@ -170,28 +160,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const verifyStudentId = async (studentId: string) => {
+    return updateProfileData({ studentId });
+  };
+
+  const updateProfileData = async (data: Partial<UserProfile>) => {
     if (!user || !firestore || !profile) return false;
     
-    if (!user.email?.endsWith('@neu.edu.ph')) {
-      toast({
-        title: "Restricted Action",
-        description: "Only institutional accounts can link a Student ID.",
-        variant: "destructive"
-      });
-      return false;
-    }
-
     try {
-      await updateDoc(doc(firestore, 'user_profiles', user.uid), {
-        studentId: studentId,
+      const docRef = doc(firestore, 'user_profiles', user.uid);
+      await updateDoc(docRef, {
+        ...data,
         updatedAt: serverTimestamp()
       });
-      setProfile({ ...profile, studentId });
+      setProfile({ ...profile, ...data });
       return true;
     } catch (error: any) {
         toast({
-            title: "Verification Error",
-            description: "Failed to link Student ID.",
+            title: "Update Error",
+            description: "Failed to update profile information.",
             variant: "destructive"
         });
         return false;
@@ -229,7 +215,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading: loading || isUserLoading, login, logout, verifyStudentId, switchRole }}>
+    <AuthContext.Provider value={{ user, profile, loading: loading || isUserLoading, login, logout, verifyStudentId, updateProfileData, switchRole }}>
       {children}
     </AuthContext.Provider>
   );

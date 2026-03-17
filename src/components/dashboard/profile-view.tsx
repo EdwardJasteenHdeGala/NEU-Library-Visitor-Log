@@ -1,17 +1,26 @@
 
 "use client";
 
+import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { User, Shield, Lock, ShieldAlert, ShieldCheck, RefreshCcw, LogOut, Camera } from "lucide-react";
+import { User, Shield, Lock, ShieldAlert, ShieldCheck, RefreshCcw, LogOut, Camera, Save, Loader2 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useToast } from "@/hooks/use-toast";
 
 export function ProfileView() {
-  const { profile, switchRole, logout } = useAuth();
+  const { profile, switchRole, logout, updateProfileData } = useAuth();
+  const { toast } = useToast();
+  
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [formData, setFormData] = useState({
+    studentId: profile?.studentId || "",
+    college: profile?.college || "",
+  });
 
   const userInitials = profile?.displayName
     ?.split(' ')
@@ -19,6 +28,19 @@ export function ProfileView() {
     .join('')
     .toUpperCase()
     .slice(0, 2) || 'ST';
+
+  const handleSave = async () => {
+    setIsUpdating(true);
+    const success = await updateProfileData(formData);
+    setIsUpdating(false);
+    
+    if (success) {
+      toast({
+        title: "Profile Updated",
+        description: "Your identification details have been saved.",
+      });
+    }
+  };
 
   return (
     <div className="max-w-2xl mx-auto space-y-8 animate-in fade-in duration-500">
@@ -75,8 +97,8 @@ export function ProfileView() {
                       <span className="font-bold text-primary text-sm">{profile?.email}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                      <Label className="text-muted-foreground text-[10px] font-black uppercase">Student ID:</Label>
-                      <span className="font-bold text-primary text-sm">{profile?.studentId}</span>
+                      <Label className="text-muted-foreground text-[10px] font-black uppercase">Access Status:</Label>
+                      <span className="font-bold text-green-600 text-sm uppercase tracking-widest">Verified</span>
                   </div>
               </div>
               <div className="text-right">
@@ -90,8 +112,29 @@ export function ProfileView() {
           <div className="space-y-4">
             <div className="space-y-2">
               <Label className="font-bold text-muted-foreground uppercase text-xs tracking-wider">Display Name</Label>
-              <Input defaultValue={profile?.displayName} className="h-12 bg-muted/20 border-muted" readOnly />
-              <p className="text-[10px] text-muted-foreground italic">Profile information is synchronized from your institutional Google account.</p>
+              <Input value={profile?.displayName} className="h-12 bg-muted/20 border-muted" readOnly disabled />
+              <p className="text-[10px] text-muted-foreground italic">Name is synchronized from your Google account.</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                    <Label className="font-bold text-primary uppercase text-xs tracking-wider">Student / Guest ID Number</Label>
+                    <Input 
+                        placeholder="e.g. 24-13347-177" 
+                        value={formData.studentId}
+                        onChange={(e) => setFormData({ ...formData, studentId: e.target.value })}
+                        className="h-12 border-2 focus:ring-primary"
+                    />
+                </div>
+                <div className="space-y-2">
+                    <Label className="font-bold text-primary uppercase text-xs tracking-wider">College / Department</Label>
+                    <Input 
+                        placeholder="e.g. CICS, CEA, or External" 
+                        value={formData.college}
+                        onChange={(e) => setFormData({ ...formData, college: e.target.value })}
+                        className="h-12 border-2 focus:ring-primary"
+                    />
+                </div>
             </div>
             
             <div className="relative py-4">
@@ -105,33 +148,25 @@ export function ProfileView() {
                 </div>
             </div>
 
-            <div className="p-4 bg-muted/50 rounded-xl space-y-2">
-               <div className="flex justify-between items-center">
-                 <span className="text-xs font-bold text-primary uppercase">College / Dept</span>
-                 <span className="text-xs font-black text-secondary">{profile?.college || 'N/A'}</span>
-               </div>
-               <div className="flex justify-between items-center">
-                 <span className="text-xs font-bold text-primary uppercase">Profile Status</span>
-                 <span className="text-xs font-black text-green-600">VERIFIED</span>
-               </div>
-            </div>
+            <Button 
+                onClick={handleSave} 
+                className="w-full h-14 bg-primary hover:bg-primary/90 text-white font-black text-xl neu-card-shadow gap-2"
+                disabled={isUpdating}
+            >
+                {isUpdating ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />}
+                Save Profile Changes
+            </Button>
           </div>
 
-          <div className="flex flex-col gap-4">
-            <Button className="w-full h-14 bg-primary hover:bg-primary/90 text-white font-black text-xl neu-card-shadow">
-              Sync Google Profile
-            </Button>
-            
-            <div className="grid grid-cols-2 gap-4 pt-4">
-                <Button variant="outline" onClick={logout} className="h-12 gap-2 font-bold uppercase text-xs">
-                    <RefreshCcw className="h-4 w-4" />
-                    Switch Account
-                </Button>
-                <Button variant="destructive" onClick={logout} className="h-12 gap-2 font-bold uppercase text-xs">
-                    <LogOut className="h-4 w-4" />
-                    Sign Out
-                </Button>
-            </div>
+          <div className="grid grid-cols-2 gap-4 pt-4">
+              <Button variant="outline" onClick={logout} className="h-12 gap-2 font-bold uppercase text-xs">
+                  <RefreshCcw className="h-4 w-4" />
+                  Switch Account
+              </Button>
+              <Button variant="destructive" onClick={logout} className="h-12 gap-2 font-bold uppercase text-xs">
+                  <LogOut className="h-4 w-4" />
+                  Sign Out
+              </Button>
           </div>
         </CardContent>
       </Card>
