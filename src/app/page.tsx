@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -7,11 +6,14 @@ import { WelcomeScreen } from "@/components/auth/welcome-screen";
 import { LoginScreen } from "@/components/auth/login-screen";
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
 import { UserGreeting } from "@/components/dashboard/user-greeting";
+import { GuestView } from "@/components/guest/guest-view";
 import { Loader2 } from "lucide-react";
+
+type AuthViewState = 'welcome' | 'login' | 'guest';
 
 function AppContent() {
   const { user, profile, loading } = useAuth();
-  const [showLogin, setShowLogin] = useState(false);
+  const [viewState, setViewState] = useState<AuthViewState>('welcome');
 
   if (loading) {
     return (
@@ -23,10 +25,13 @@ function AppContent() {
   }
 
   if (!user) {
-    if (showLogin) {
-      return <LoginScreen onBack={() => setShowLogin(false)} />;
+    if (viewState === 'login') {
+      return <LoginScreen onBack={() => setViewState('welcome')} />;
     }
-    return <WelcomeScreen onLogin={() => setShowLogin(true)} />;
+    if (viewState === 'guest') {
+      return <GuestView onBack={() => setViewState('welcome')} />;
+    }
+    return <WelcomeScreen onLogin={() => setViewState('login')} onGuest={() => setViewState('guest')} />;
   }
 
   // If a user is logged in but profile creation failed (extremely rare case), show a small loader

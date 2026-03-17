@@ -1,4 +1,3 @@
-
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -8,9 +7,10 @@ import Image from "next/image";
 
 interface WelcomeScreenProps {
   onLogin: () => void;
+  onGuest: () => void;
 }
 
-export function WelcomeScreen({ onLogin }: WelcomeScreenProps) {
+export function WelcomeScreen({ onLogin, onGuest }: WelcomeScreenProps) {
   const bgImage = PlaceHolderImages.find(img => img.id === 'neu-campus');
   const logoImage = PlaceHolderImages.find(img => img.id === 'neu-logo');
 
@@ -73,6 +73,7 @@ export function WelcomeScreen({ onLogin }: WelcomeScreenProps) {
             <Button 
               variant="outline" 
               size="lg"
+              onClick={onGuest}
               className="h-16 px-12 text-lg font-black rounded-2xl border-2 border-white/20 bg-white/5 backdrop-blur-md text-white hover:bg-white/10 shadow-xl transition-all"
             >
               Guest View
