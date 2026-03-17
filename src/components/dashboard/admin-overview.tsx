@@ -273,16 +273,17 @@ export function AdminOverview() {
                 <SelectTrigger className="rounded-xl h-12 border-2 border-muted"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Colleges</SelectItem>
-                  <SelectItem value="cea">CEA (Engineering/Arch)</SelectItem>
-                  <SelectItem value="cas">CAS (Arts/Sciences)</SelectItem>
-                  <SelectItem value="cba">CBA (Business)</SelectItem>
-                  <SelectItem value="coed">COED (Education)</SelectItem>
-                  <SelectItem value="ccis">CCIS (Computer Studies)</SelectItem>
-                  <SelectItem value="com">COM (Medicine)</SelectItem>
-                  <SelectItem value="con">CON (Nursing)</SelectItem>
-                  <SelectItem value="col">COL (Law)</SelectItem>
-                  <SelectItem value="grad">Graduate School</SelectItem>
-                  <SelectItem value="shs">Senior High School</SelectItem>
+                  <SelectItem value="CICS">CICS (Computer Studies)</SelectItem>
+                  <SelectItem value="CEA">CEA (Engineering/Arch)</SelectItem>
+                  <SelectItem value="CAS">CAS (Arts/Sciences)</SelectItem>
+                  <SelectItem value="CBA">CBA (Business)</SelectItem>
+                  <SelectItem value="COED">COED (Education)</SelectItem>
+                  <SelectItem value="COM">COM (Medicine)</SelectItem>
+                  <SelectItem value="CON">CON (Nursing)</SelectItem>
+                  <SelectItem value="COL">COL (Law)</SelectItem>
+                  <SelectItem value="GRAD">Graduate School</SelectItem>
+                  <SelectItem value="SHS">Senior High School</SelectItem>
+                  <SelectItem value="HS">High School</SelectItem>
                 </SelectContent>
               </Select>
             </div>

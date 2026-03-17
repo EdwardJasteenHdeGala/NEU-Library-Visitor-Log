@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -126,9 +125,11 @@ export function ReportsView() {
                 </SelectTrigger>
                 <SelectContent className="rounded-2xl shadow-2xl border-none">
                   <SelectItem value="all" className="font-bold">Institutional (All)</SelectItem>
-                  <SelectItem value="cea" className="font-bold">CEA Engineering</SelectItem>
-                  <SelectItem value="cics" className="font-bold">CICS Computing</SelectItem>
-                  <SelectItem value="external" className="font-bold">External Visitors</SelectItem>
+                  <SelectItem value="CEA" className="font-bold">CEA Engineering</SelectItem>
+                  <SelectItem value="CICS" className="font-bold">CICS Computing</SelectItem>
+                  <SelectItem value="SHS" className="font-bold">SHS Senior High</SelectItem>
+                  <SelectItem value="HS" className="font-bold">HS High School</SelectItem>
+                  <SelectItem value="EXTERNAL" className="font-bold">External Visitors</SelectItem>
                 </SelectContent>
               </Select>
             </div>

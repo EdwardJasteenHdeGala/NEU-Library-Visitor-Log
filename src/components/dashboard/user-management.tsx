@@ -78,6 +78,7 @@ const NEU_COLLEGES = [
   { id: "COL", name: "Law" },
   { id: "GRAD", name: "Graduate School" },
   { id: "SHS", name: "Senior High School" },
+  { id: "HS", name: "High School" },
   { id: "EXTERNAL", name: "External / Guest" },
 ];
 
