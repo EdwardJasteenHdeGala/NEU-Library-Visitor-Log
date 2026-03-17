@@ -2,21 +2,27 @@
   "placeholderImages": [
     {
       "id": "neu-campus",
-      "description": "New Era University Campus",
-      "imageUrl": "https://picsum.photos/seed/neu-campus/1920/1080",
+      "description": "New Era University Main Campus Entrance",
+      "imageUrl": "https://picsum.photos/seed/neu-campus-hero/1920/1080",
       "imageHint": "university campus"
     },
     {
       "id": "library-interior",
-      "description": "Modern Library Interior",
-      "imageUrl": "https://picsum.photos/seed/neu-library/1920/1080",
-      "imageHint": "library study"
+      "description": "Modern Library Study Area",
+      "imageUrl": "https://picsum.photos/seed/neu-library-main/1920/1080",
+      "imageHint": "modern library"
     },
     {
       "id": "neu-logo",
-      "description": "NEU CEA Official Logo",
-      "imageUrl": "https://picsum.photos/seed/neu-cea/400/400",
-      "imageHint": "college logo"
+      "description": "New Era University - Institutional Logo",
+      "imageUrl": "https://placehold.co/400x400/004d26/ffffff?text=NEU+CEA",
+      "imageHint": "institutional logo"
+    },
+    {
+      "id": "student-study",
+      "description": "Students collaborating in a university setting",
+      "imageUrl": "https://picsum.photos/seed/neu-students/800/600",
+      "imageHint": "students studying"
     }
   ]
 }
