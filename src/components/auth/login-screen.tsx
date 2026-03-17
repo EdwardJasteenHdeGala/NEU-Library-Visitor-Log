@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -14,7 +13,8 @@ import {
   ShieldCheck, 
   User as UserIcon,
   Search,
-  Loader2
+  Loader2,
+  Scan
 } from "lucide-react";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
@@ -43,12 +43,12 @@ export function LoginScreen({ onBack }: LoginScreenProps) {
     setTimeout(() => {
       setIsScanning(false);
       toast({
-        title: "RFID Detected",
-        description: "Institutional ID: 24-1XXX-1XX detected. Syncing Department: CICS...",
+        title: "ID Detected & Verified",
+        description: "Institutional Identity Confirmed. Syncing College: CICS...",
       });
       // In a real app, this would trigger a specialized login flow
       handleLogin();
-    }, 2000);
+    }, 2500);
   };
 
   return (
@@ -142,16 +142,16 @@ export function LoginScreen({ onBack }: LoginScreenProps) {
                           size="lg"
                           onClick={handleRFIDTap}
                           disabled={isScanning}
-                          className="w-full h-16 gap-3 rounded-2xl group relative overflow-hidden"
+                          className="w-full h-16 gap-3 rounded-2xl group relative overflow-hidden shadow-lg hover:shadow-secondary/20"
                       >
                           {isScanning ? (
                             <>
-                              <Loader2 className="h-6 w-6 animate-spin" />
-                              DETECTING DEPARTMENT...
+                              <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                              <span className="animate-pulse">ID SCANNING...</span>
                             </>
                           ) : (
                             <>
-                              <Fingerprint className="h-6 w-6 group-hover:scale-110 transition-transform" />
+                              <Scan className="h-6 w-6 group-hover:scale-110 transition-transform" />
                               Tap RFID School ID
                             </>
                           )}
@@ -161,7 +161,7 @@ export function LoginScreen({ onBack }: LoginScreenProps) {
 
                     <div className="p-5 bg-primary/5 rounded-2xl flex items-start gap-4 text-xs text-primary/80 leading-relaxed border border-primary/10">
                         <Mail className="h-5 w-5 mt-0.5 shrink-0 text-primary" />
-                        <span className="font-medium">Please use your <strong>@neu.edu.ph</strong> email address. For first-time users, have your Student ID ready for verification.</span>
+                        <span className="font-medium">Please use your <strong>@neu.edu.ph</strong> email address if possible. First-time users must verify their ID.</span>
                     </div>
                 </TabsContent>
 
@@ -195,7 +195,7 @@ export function LoginScreen({ onBack }: LoginScreenProps) {
                             onClick={handleLogin} 
                             variant="neu"
                             size="lg"
-                            className="w-full h-16 gap-3 rounded-2xl"
+                            className="w-full h-16 gap-3 rounded-2xl shadow-lg"
                         >
                             <ShieldCheck className="h-6 w-6 text-secondary" />
                             Admin Authorization

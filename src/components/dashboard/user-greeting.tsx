@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -19,7 +18,9 @@ import {
   Sparkles,
   TrendingUp,
   Globe,
-  Building2
+  Building2,
+  Trophy,
+  History
 } from "lucide-react";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
@@ -30,13 +31,26 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { useFirebase } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LiveClock } from "@/components/ui/live-clock";
 import { getAcademicYear } from "@/lib/utils";
+
+const NEU_COLLEGES = [
+  { id: "CICS", name: "Computer & Info Sciences" },
+  { id: "CEA", name: "Engineering & Architecture" },
+  { id: "CAS", name: "Arts & Sciences" },
+  { id: "CBA", name: "Business Administration" },
+  { id: "COED", name: "Education" },
+  { id: "CON", name: "Nursing" },
+  { id: "COM", name: "Medicine" },
+  { id: "COL", name: "Law" },
+  { id: "GRAD", name: "Graduate School" },
+  { id: "SHS", name: "Senior High School" },
+  { id: "EXTERNAL", name: "External / Guest" },
+];
 
 export function UserGreeting() {
   const { logout, profile, switchRole } = useAuth();
@@ -46,9 +60,9 @@ export function UserGreeting() {
   const [purpose, setPurpose] = useState<string>("");
   const [currentCollege, setCurrentCollege] = useState<string>(profile?.college || "");
   const [isLogging, setIsLogging] = useState(false);
+  const [hasLoggedThisSession, setHasLoggedThisSession] = useState(false);
   const [academicYear, setAcademicYear] = useState("");
 
-  const libraryImage = PlaceHolderImages.find(img => img.id === 'library-interior');
   const logoImage = PlaceHolderImages.find(img => img.id === 'neu-logo');
 
   useEffect(() => {
@@ -59,7 +73,7 @@ export function UserGreeting() {
     if (!purpose || !profile || !firestore || !currentCollege) {
       toast({
         title: "Missing Information",
-        description: "Please select both a department and a purpose for your visit.",
+        description: "Please select both your college/dept and a purpose for your visit.",
         variant: "destructive"
       });
       return;
@@ -80,7 +94,7 @@ export function UserGreeting() {
         title: "Log Recorded",
         description: `Visit for ${currentCollege} successfully registered.`,
       });
-      setPurpose("");
+      setHasLoggedThisSession(true);
     } catch (error) {
       toast({
         title: "Sync Failed",
@@ -174,73 +188,115 @@ export function UserGreeting() {
             </div>
           </div>
 
-          <Card className="neu-card-shadow border-none overflow-hidden rounded-[2rem] md:rounded-[3rem] bg-white relative">
-            <CardHeader className="p-6 md:p-12 border-b bg-muted/30">
-              <CardTitle className="text-2xl md:text-4xl font-black text-primary flex items-center gap-3 md:gap-5 italic tracking-tighter">
-                <CheckCircle2 className="h-6 w-6 md:h-10 md:w-10 text-secondary" />
-                VISITOR LOG ENTRY
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-6 md:p-12 lg:p-16 space-y-10">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
-                <div className="space-y-4 md:space-y-6">
-                  <label className="text-[8px] md:text-xs font-black text-muted-foreground uppercase tracking-[0.3em] md:tracking-[0.5em] ml-2 md:ml-3 opacity-70 flex items-center gap-2">
-                    <Building2 className="h-3.5 w-3.5" />
-                    Confirm Department
-                  </label>
-                  <Input 
-                    value={currentCollege} 
-                    onChange={(e) => setCurrentCollege(e.target.value)}
-                    placeholder="e.g. CICS, CEA, or External"
-                    className="h-16 md:h-20 text-lg md:text-xl font-bold rounded-[1.5rem] md:rounded-[2rem] border-2 md:border-4 border-muted focus:ring-primary shadow-inner px-6 md:px-10 bg-muted/10"
-                  />
-                  <p className="text-[10px] text-muted-foreground italic px-4">Verify your department for this specific visit.</p>
+          {!hasLoggedThisSession ? (
+            <Card className="neu-card-shadow border-none overflow-hidden rounded-[2rem] md:rounded-[3rem] bg-white relative">
+                <CardHeader className="p-6 md:p-12 border-b bg-muted/30">
+                <CardTitle className="text-2xl md:text-4xl font-black text-primary flex items-center gap-3 md:gap-5 italic tracking-tighter">
+                    <CheckCircle2 className="h-6 w-6 md:h-10 md:w-10 text-secondary" />
+                    VISITOR LOG ENTRY
+                </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6 md:p-12 lg:p-16 space-y-10">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
+                    <div className="space-y-4 md:space-y-6">
+                    <label className="text-[8px] md:text-xs font-black text-muted-foreground uppercase tracking-[0.3em] md:tracking-[0.5em] ml-2 md:ml-3 opacity-70 flex items-center gap-2">
+                        <Building2 className="h-3.5 w-3.5" />
+                        Target Department
+                    </label>
+                    <Select value={currentCollege} onValueChange={setCurrentCollege}>
+                        <SelectTrigger className="h-16 md:h-20 text-lg md:text-xl font-bold rounded-[1.5rem] md:rounded-[2rem] border-2 md:border-4 border-muted focus:ring-primary shadow-inner px-6 md:px-10 bg-muted/10">
+                            <SelectValue placeholder="Select College" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-[1.5rem] md:rounded-[2.5rem] p-2 md:p-3 shadow-2xl border-none max-h-[400px]">
+                            {NEU_COLLEGES.map((college) => (
+                                <SelectItem key={college.id} value={college.id} className="rounded-xl h-10 md:h-14 font-bold px-4 md:px-6 text-sm md:text-lg italic">
+                                    {college.name} ({college.id})
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                    <p className="text-[10px] text-muted-foreground italic px-4">Identify the college you are visiting today.</p>
+                    </div>
+
+                    <div className="space-y-4 md:space-y-6">
+                    <label className="text-[8px] md:text-xs font-black text-muted-foreground uppercase tracking-[0.3em] md:tracking-[0.5em] ml-2 md:ml-3 opacity-70 flex items-center gap-2">
+                        <BookOpen className="h-3.5 w-3.5" />
+                        Reason for visit
+                    </label>
+                    <Select value={purpose} onValueChange={setPurpose}>
+                        <SelectTrigger className="h-16 md:h-20 text-lg md:text-xl font-bold rounded-[1.5rem] md:rounded-[2rem] border-2 md:border-4 border-muted focus:ring-primary shadow-inner px-6 md:px-10 bg-muted/10">
+                        <SelectValue placeholder="Select Purpose" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-[1.5rem] md:rounded-[2.5rem] p-2 md:p-3 shadow-2xl border-none max-h-[300px]">
+                        <SelectItem value="reading books" className="rounded-xl h-10 md:h-14 font-bold px-4 md:px-6 text-sm md:text-lg">📖 Reading Materials</SelectItem>
+                        <SelectItem value="research in thesis" className="rounded-xl h-10 md:h-14 font-bold px-4 md:px-6 text-sm md:text-lg">🔬 Thesis Research</SelectItem>
+                        <SelectItem value="use of computer" className="rounded-xl h-10 md:h-14 font-bold px-4 md:px-6 text-sm md:text-lg">💻 Digital Laboratory</SelectItem>
+                        <SelectItem value="doing assignments" className="rounded-xl h-10 md:h-14 font-bold px-4 md:px-6 text-sm md:text-lg">📝 Assignments</SelectItem>
+                        <SelectItem value="group study" className="rounded-xl h-10 md:h-14 font-bold px-4 md:px-6 text-sm md:text-lg">🤝 Collaborative Study</SelectItem>
+                        {!isGuest && <SelectItem value="consultation" className="rounded-xl h-10 md:h-14 font-bold px-4 md:px-6 text-sm md:text-lg">💬 Faculty Consultation</SelectItem>}
+                        <SelectItem value="charging device" className="rounded-xl h-10 md:h-14 font-bold px-4 md:px-6 text-sm md:text-lg">⚡ Power/Charging</SelectItem>
+                        <SelectItem value="resting/waiting" className="rounded-xl h-10 md:h-14 font-bold px-4 md:px-6 text-sm md:text-lg">⌛ Waiting Area</SelectItem>
+                        <SelectItem value="printing/scanning" className="rounded-xl h-10 md:h-14 font-bold px-4 md:px-6 text-sm md:text-lg">🖨️ Printing Services</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    </div>
                 </div>
 
-                <div className="space-y-4 md:space-y-6">
-                  <label className="text-[8px] md:text-xs font-black text-muted-foreground uppercase tracking-[0.3em] md:tracking-[0.5em] ml-2 md:ml-3 opacity-70 flex items-center gap-2">
-                    <BookOpen className="h-3.5 w-3.5" />
-                    Reason for visit
-                  </label>
-                  <Select value={purpose} onValueChange={setPurpose}>
-                    <SelectTrigger className="h-16 md:h-20 text-lg md:text-xl font-bold rounded-[1.5rem] md:rounded-[2rem] border-2 md:border-4 border-muted focus:ring-primary shadow-inner px-6 md:px-10 bg-muted/10">
-                      <SelectValue placeholder="Select Purpose" />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-[1.5rem] md:rounded-[2.5rem] p-2 md:p-3 shadow-2xl border-none max-h-[300px]">
-                      <SelectItem value="reading books" className="rounded-xl h-10 md:h-14 font-bold px-4 md:px-6 text-sm md:text-lg">📖 Reading Materials</SelectItem>
-                      <SelectItem value="research in thesis" className="rounded-xl h-10 md:h-14 font-bold px-4 md:px-6 text-sm md:text-lg">🔬 Thesis Research</SelectItem>
-                      <SelectItem value="use of computer" className="rounded-xl h-10 md:h-14 font-bold px-4 md:px-6 text-sm md:text-lg">💻 Digital Laboratory</SelectItem>
-                      <SelectItem value="doing assignments" className="rounded-xl h-10 md:h-14 font-bold px-4 md:px-6 text-sm md:text-lg">📝 Assignments</SelectItem>
-                      <SelectItem value="group study" className="rounded-xl h-10 md:h-14 font-bold px-4 md:px-6 text-sm md:text-lg">🤝 Collaborative Study</SelectItem>
-                      {!isGuest && <SelectItem value="consultation" className="rounded-xl h-10 md:h-14 font-bold px-4 md:px-6 text-sm md:text-lg">💬 Faculty Consultation</SelectItem>}
-                      <SelectItem value="charging device" className="rounded-xl h-10 md:h-14 font-bold px-4 md:px-6 text-sm md:text-lg">⚡ Power/Charging</SelectItem>
-                      <SelectItem value="resting/waiting" className="rounded-xl h-10 md:h-14 font-bold px-4 md:px-6 text-sm md:text-lg">⌛ Waiting Area</SelectItem>
-                      <SelectItem value="printing/scanning" className="rounded-xl h-10 md:h-14 font-bold px-4 md:px-6 text-sm md:text-lg">🖨️ Printing Services</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <Button 
-                onClick={handleLogVisit} 
-                variant="neu"
-                disabled={!purpose || !currentCollege || isLogging}
-                className="w-full h-16 md:h-24 text-xl md:text-3xl font-black rounded-[1.5rem] md:rounded-[2rem] py-6 md:py-10 gap-3 md:gap-5 group overflow-hidden relative shadow-2xl mt-4"
-              >
-                {isLogging ? (
-                  <div className="flex items-center gap-3 md:gap-4">
-                      <div className="h-6 w-6 md:h-8 md:w-8 border-3 md:border-4 border-white border-t-transparent animate-spin rounded-full" />
-                      RECORDING...
+                <Button 
+                    onClick={handleLogVisit} 
+                    variant="neu"
+                    disabled={!purpose || !currentCollege || isLogging}
+                    className="w-full h-16 md:h-24 text-xl md:text-3xl font-black rounded-[1.5rem] md:rounded-[2rem] py-6 md:py-10 gap-3 md:gap-5 group overflow-hidden relative shadow-2xl mt-4"
+                >
+                    {isLogging ? (
+                    <div className="flex items-center gap-3 md:gap-4">
+                        <div className="h-6 w-6 md:h-8 md:w-8 border-3 md:border-4 border-white border-t-transparent animate-spin rounded-full" />
+                        RECORDING...
+                    </div>
+                    ) : (
+                    <>
+                        <CheckCircle2 className="h-6 w-6 md:h-10 md:w-10 text-secondary group-hover:scale-125 transition-transform" />
+                        REGISTER ENTRY
+                    </>
+                    )}
+                </Button>
+                </CardContent>
+            </Card>
+          ) : (
+            <Card className="neu-card-shadow border-none overflow-hidden rounded-[2rem] md:rounded-[3rem] bg-white relative animate-in zoom-in duration-500">
+               <div className="bg-primary p-12 md:p-20 flex flex-col items-center text-center gap-8">
+                  <div className="h-32 w-32 md:h-48 md:w-48 bg-white/10 rounded-full flex items-center justify-center border-4 border-dashed border-secondary/40 animate-pulse">
+                     <Trophy className="h-16 w-16 md:h-24 md:w-24 text-secondary" />
                   </div>
-                ) : (
-                  <>
-                      <CheckCircle2 className="h-6 w-6 md:h-10 md:w-10 text-secondary group-hover:scale-125 transition-transform" />
-                      REGISTER ENTRY
-                  </>
-                )}
-              </Button>
-            </CardContent>
-          </Card>
+                  <div className="space-y-4">
+                     <h2 className="text-3xl md:text-5xl lg:text-6xl font-black text-white italic tracking-tighter">ENTRY RECORDED!</h2>
+                     <p className="text-white/60 text-lg md:text-xl font-medium max-w-md mx-auto leading-relaxed">
+                        Your attendance has been securely transmitted to the institutional registry. Thank you for your cooperation.
+                     </p>
+                  </div>
+                  <div className="flex flex-col md:flex-row gap-4 w-full max-w-sm">
+                      <Button 
+                        variant="outline" 
+                        size="lg" 
+                        onClick={logout}
+                        className="flex-1 h-16 border-white/20 bg-white/5 text-white hover:bg-white/10 gap-3 rounded-2xl"
+                      >
+                         <LogOut className="h-5 w-5" />
+                         Sign Out
+                      </Button>
+                      <Button 
+                        variant="neuSecondary" 
+                        size="lg" 
+                        onClick={() => setHasLoggedThisSession(false)}
+                        className="flex-1 h-16 gap-3 rounded-2xl"
+                      >
+                         <History className="h-5 w-5" />
+                         Re-Entry
+                      </Button>
+                  </div>
+               </div>
+            </Card>
+          )}
         </div>
 
         <div className="space-y-8 md:space-y-12 lg:sticky lg:top-32">
