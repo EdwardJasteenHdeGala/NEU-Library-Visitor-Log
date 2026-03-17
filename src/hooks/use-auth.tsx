@@ -46,8 +46,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const checkProfile = async () => {
       if (user) {
-        // Special logic for student ID login simulated via password/custom logic
-        // For Google Sign-in, we check domain
         if (user.email && !user.email.endsWith('@neu.edu.ph')) {
           toast({
             title: "Invalid Domain",
@@ -59,7 +57,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setLoading(false);
           return;
         }
-        await fetchProfile(user.uid);
+        await fetchOrCreateProfile(user.uid);
       } else {
         setProfile(null);
         setLoading(false);
@@ -69,17 +67,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     checkProfile();
   }, [user, isUserLoading, auth, toast]);
 
-  const fetchProfile = async (uid: string) => {
+  const fetchOrCreateProfile = async (uid: string) => {
+    if (!user || !firestore) return;
     try {
       const docRef = doc(firestore, 'user_profiles', uid);
       const docSnap = await getDoc(docRef);
+      
       if (docSnap.exists()) {
         setProfile(docSnap.data() as UserProfile);
       } else {
-        setProfile(null);
+        // Auto-create profile for Google users to bypass verification screen
+        const isSuperUser = user.email && AUTHORIZED_ADMIN_EMAILS.includes(user.email);
+        const isTestAccount = false; // Placeholder if needed for specific logic
+
+        const profileData = {
+          id: user.uid,
+          email: user.email!,
+          studentId: 'G-AUTH', // Indicating Google Auth based profile
+          role: 'user' as const, 
+          isAuthorizedAdmin: isSuperUser || isTestAccount,
+          displayName: user.displayName || 'Visitor',
+          college: 'General Education',
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        };
+        
+        await setDoc(docRef, profileData);
+        setProfile(profileData as any);
       }
     } catch (error) {
-      console.error("Error fetching profile:", error);
+      console.error("Error fetching/creating profile:", error);
     } finally {
       setLoading(false);
     }
@@ -106,7 +123,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const verifyStudentId = async (studentId: string) => {
     if (!user || !firestore) return false;
     
-    // Check for specific test ID requirement
     const isTestAccount = studentId === '24-13347-177';
     const isSuperUser = user.email && AUTHORIZED_ADMIN_EMAILS.includes(user.email);
 
@@ -115,11 +131,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         id: user.uid,
         email: user.email!,
         studentId: studentId,
-        // Start as user, but allow switching if authorized
-        role: 'user', 
+        role: 'user' as const, 
         isAuthorizedAdmin: isSuperUser || isTestAccount,
         displayName: user.displayName || 'Visitor',
-        college: 'General Education', // Default for now
+        college: 'General Education',
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       };
