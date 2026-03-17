@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -10,22 +11,22 @@
     --card-foreground: 210 40% 10%;
     --popover: 0 0% 100%;
     --popover-foreground: 210 40% 10%;
-    --primary: 153 100% 15%; /* NEU Green */
+    --primary: 153 100% 15%; /* NEU Deep Green */
     --primary-foreground: 0 0% 100%;
-    --secondary: 45 100% 50%; /* NEU Gold */
+    --secondary: 45 100% 48%; /* NEU Vibrant Gold */
     --secondary-foreground: 153 100% 10%;
     --muted: 210 10% 90%;
     --muted-foreground: 210 20% 40%;
-    --accent: 45 100% 50%;
+    --accent: 45 100% 48%;
     --accent-foreground: 153 100% 10%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
     --border: 210 20% 85%;
     --input: 210 20% 85%;
     --ring: 153 100% 15%;
-    --radius: 0.5rem;
+    --radius: 0.75rem;
     --chart-1: 153 100% 15%;
-    --chart-2: 45 100% 50%;
+    --chart-2: 45 100% 48%;
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
@@ -58,7 +59,7 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground font-body;
+    @apply bg-background text-foreground font-body antialiased;
   }
 }
 
@@ -67,5 +68,9 @@
 }
 
 .neu-card-shadow {
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+}
+
+.neu-button-shadow {
+  box-shadow: 0 4px 14px 0 rgba(0, 77, 38, 0.2);
 }

@@ -3,21 +3,27 @@
   "placeholderImages": [
     {
       "id": "neu-campus",
-      "description": "New Era University Main Campus",
-      "imageUrl": "https://picsum.photos/seed/neu-campus-main/1920/1080",
+      "description": "New Era University Main Campus Entrance",
+      "imageUrl": "https://picsum.photos/seed/neu-campus-hero/1920/1080",
       "imageHint": "university campus"
     },
     {
       "id": "library-interior",
-      "description": "Modern Library Interior",
-      "imageUrl": "https://picsum.photos/seed/neu-library-interior/1920/1080",
-      "imageHint": "library study"
+      "description": "Modern Library Study Area",
+      "imageUrl": "https://picsum.photos/seed/neu-library-main/1920/1080",
+      "imageHint": "modern library"
     },
     {
       "id": "neu-logo",
-      "description": "NEU College of Engineering and Architecture Logo",
-      "imageUrl": "https://picsum.photos/seed/neu-cea-logo/400/400",
-      "imageHint": "college logo"
+      "description": "NEU CEA Institutional Logo",
+      "imageUrl": "https://picsum.photos/seed/neu-cea-logo-main/400/400",
+      "imageHint": "institutional logo"
+    },
+    {
+      "id": "student-study",
+      "description": "Students collaborating in a university setting",
+      "imageUrl": "https://picsum.photos/seed/neu-students/800/600",
+      "imageHint": "students studying"
     }
   ]
 }
