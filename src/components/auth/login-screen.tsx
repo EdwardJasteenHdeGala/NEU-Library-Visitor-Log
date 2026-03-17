@@ -39,6 +39,7 @@ export function LoginScreen({ onBack }: LoginScreenProps) {
     <div 
       className="min-h-screen flex items-center justify-center p-4 bg-cover bg-center transition-all duration-700"
       style={{ backgroundImage: `url(${bgImage?.imageUrl})` }}
+      data-ai-hint={bgImage?.imageHint}
     >
       <div className="absolute inset-0 bg-primary/60 backdrop-blur-md" />
       
@@ -60,6 +61,7 @@ export function LoginScreen({ onBack }: LoginScreenProps) {
                     alt="NEU Logo" 
                     fill 
                     className="object-contain p-2"
+                    data-ai-hint={logoImage?.imageHint}
                 />
             </div>
             
@@ -186,7 +188,7 @@ export function LoginScreen({ onBack }: LoginScreenProps) {
                 <button className="text-[10px] font-black text-muted-foreground hover:text-primary uppercase tracking-wider">Terms of Use</button>
             </div>
             <p className="text-[9px] text-muted-foreground/60 font-bold uppercase tracking-[0.2em]">
-                &copy; 2024 New Era University
+                &copy; {new Date().getFullYear()} New Era University
             </p>
           </div>
         </CardContent>

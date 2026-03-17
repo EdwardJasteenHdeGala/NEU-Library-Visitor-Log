@@ -1,9 +1,10 @@
+
 {
   "placeholderImages": [
     {
       "id": "neu-campus",
-      "description": "New Era University Campus",
-      "imageUrl": "https://picsum.photos/seed/neu-campus/1920/1080",
+      "description": "New Era University Main Campus",
+      "imageUrl": "https://picsum.photos/seed/neu-main-campus/1920/1080",
       "imageHint": "university campus"
     },
     {

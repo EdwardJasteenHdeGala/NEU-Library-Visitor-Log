@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -9,12 +10,13 @@ interface WelcomeScreenProps {
 }
 
 export function WelcomeScreen({ onLogin }: WelcomeScreenProps) {
-  const bgImage = PlaceHolderImages.find(img => img.id === 'library-interior');
+  const bgImage = PlaceHolderImages.find(img => img.id === 'neu-campus');
 
   return (
     <div 
       className="min-h-screen flex flex-col relative bg-cover bg-center"
       style={{ backgroundImage: `url(${bgImage?.imageUrl})` }}
+      data-ai-hint={bgImage?.imageHint}
     >
       <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px]" />
       
