@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -364,7 +363,7 @@ export function UserGreeting() {
                 </CardContent>
               </Card>
               
-              <LiveClock className="bg-white border-2 border-muted" />
+              <LiveClock className="bg-white border-2 border-muted text-primary" />
             </div>
           </div>
         )}

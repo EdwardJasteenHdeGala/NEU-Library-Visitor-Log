@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -96,7 +95,7 @@ export function DashboardLayout() {
             </div>
           </div>
 
-          <LiveClock className="hidden lg:flex scale-90" />
+          <LiveClock className="hidden lg:flex scale-90 text-white bg-white/10 border-white/20" />
           
           <div className="flex items-center gap-2 md:gap-4 lg:gap-6">
             <div className="hidden lg:flex items-center gap-6">
