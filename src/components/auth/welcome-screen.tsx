@@ -1,10 +1,19 @@
 
 "use client";
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Library, ArrowRight, ShieldCheck, GraduationCap } from "lucide-react";
+import { Library, ArrowRight, ShieldCheck, GraduationCap, Info, Book, HelpCircle, X } from "lucide-react";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import Image from "next/image";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 interface WelcomeScreenProps {
   onLogin: () => void;
@@ -27,12 +36,11 @@ export function WelcomeScreen({ onLogin, onGuest }: WelcomeScreenProps) {
         <div className="flex items-center gap-3 text-white">
           <div className="bg-white p-1.5 md:p-2 rounded-xl shadow-lg border border-white/20">
             <Image 
-              src={logoImage?.imageUrl || "https://placehold.co/400x400/004d26/ffffff?text=NEU+CEA"} 
+              src={logoImage?.imageUrl || ""} 
               alt="NEU CEA" 
               width={32} 
               height={32} 
               className="object-contain md:w-10 md:h-10"
-              data-ai-hint={logoImage?.imageHint}
             />
           </div>
           <div className="flex flex-col -space-y-1">
@@ -41,9 +49,94 @@ export function WelcomeScreen({ onLogin, onGuest }: WelcomeScreenProps) {
           </div>
         </div>
         <div className="hidden md:flex gap-8 text-white/90 font-bold text-xs uppercase tracking-widest">
-          <button className="hover:text-secondary transition-colors underline-offset-8 hover:underline">Guidelines</button>
-          <button className="hover:text-secondary transition-colors underline-offset-8 hover:underline">Resources</button>
-          <button className="hover:text-secondary transition-colors underline-offset-8 hover:underline">Support</button>
+          <Dialog>
+            <DialogTrigger asChild>
+              <button className="hover:text-secondary transition-colors underline-offset-8 hover:underline">Guidelines</button>
+            </DialogTrigger>
+            <DialogContent className="rounded-[2rem] max-w-2xl">
+              <DialogHeader>
+                <DialogTitle className="text-2xl font-black text-primary italic uppercase tracking-tighter flex items-center gap-2">
+                  <ShieldCheck className="h-6 w-6 text-secondary" />
+                  Institutional Guidelines
+                </DialogTitle>
+                <DialogDescription>Access protocols for the New Era University Library Hub.</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto pr-2">
+                <section className="space-y-2">
+                  <h4 className="font-black text-primary text-sm uppercase">1. Mandatory Attendance</h4>
+                  <p className="text-sm text-muted-foreground">Every visitor must log their entry via the Access Hub portal. Failure to log may result in a formal report to the college department.</p>
+                </section>
+                <section className="space-y-2">
+                  <h4 className="font-black text-primary text-sm uppercase">2. Identification</h4>
+                  <p className="text-sm text-muted-foreground">Students and faculty must present their valid physical RFID ID upon request. External guests must be pre-authorized or register as 'Guest'.</p>
+                </section>
+                <section className="space-y-2">
+                  <h4 className="font-black text-primary text-sm uppercase">3. Conduct & Integrity</h4>
+                  <p className="text-sm text-muted-foreground">Maintain absolute silence. No food or drinks are allowed within the library research areas. All digital resources must be used for academic purposes only.</p>
+                </section>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          <Dialog>
+            <DialogTrigger asChild>
+              <button className="hover:text-secondary transition-colors underline-offset-8 hover:underline">Resources</button>
+            </DialogTrigger>
+            <DialogContent className="rounded-[2rem] max-w-2xl">
+              <DialogHeader>
+                <DialogTitle className="text-2xl font-black text-primary italic uppercase tracking-tighter flex items-center gap-2">
+                  <Book className="h-6 w-6 text-secondary" />
+                  Academic Resources
+                </DialogTitle>
+                <DialogDescription>Integrated research tools available at NEU.</DialogDescription>
+              </DialogHeader>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
+                <div className="p-4 bg-muted/50 rounded-2xl border border-primary/10">
+                  <h4 className="font-black text-primary text-xs uppercase mb-2">Digital Library</h4>
+                  <p className="text-[11px] text-muted-foreground">Access over 50,000+ e-journals and institutional research papers through our internal network.</p>
+                </div>
+                <div className="p-4 bg-muted/50 rounded-2xl border border-primary/10">
+                  <h4 className="font-black text-primary text-xs uppercase mb-2">Thesis Archive</h4>
+                  <p className="text-[11px] text-muted-foreground">Physical and digital repository for CEA, CICS, and other college capstone projects.</p>
+                </div>
+                <div className="p-4 bg-muted/50 rounded-2xl border border-primary/10">
+                  <h4 className="font-black text-primary text-xs uppercase mb-2">Computer Lab</h4>
+                  <p className="text-[11px] text-muted-foreground">Dedicated workstations for research, CAD, and software development tasks.</p>
+                </div>
+                <div className="p-4 bg-muted/50 rounded-2xl border border-primary/10">
+                  <h4 className="font-black text-primary text-xs uppercase mb-2">Study Zones</h4>
+                  <p className="text-[11px] text-muted-foreground">Reserved areas for group collaborations and quiet individual study.</p>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          <Dialog>
+            <DialogTrigger asChild>
+              <button className="hover:text-secondary transition-colors underline-offset-8 hover:underline">Support</button>
+            </DialogTrigger>
+            <DialogContent className="rounded-[2rem]">
+              <DialogHeader>
+                <DialogTitle className="text-2xl font-black text-primary italic uppercase tracking-tighter flex items-center gap-2">
+                  <HelpCircle className="h-6 w-6 text-secondary" />
+                  Technical Support
+                </DialogTitle>
+              </DialogHeader>
+              <div className="space-y-6 py-6 text-center">
+                <div className="bg-primary/5 p-6 rounded-3xl border border-primary/10">
+                  <p className="text-sm font-bold text-primary mb-1">Institutional IT Helpdesk</p>
+                  <p className="text-xs text-muted-foreground mb-4">Monday - Friday | 08:00 - 17:00</p>
+                  <div className="flex flex-col gap-2">
+                    <p className="text-lg font-black text-primary tracking-tight italic">support.hub@neu.edu.ph</p>
+                    <p className="text-sm font-medium text-secondary">Loc. 1234 / 5678</p>
+                  </div>
+                </div>
+                <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">
+                  Integrity • Excellence • Discipline
+                </p>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       </header>
 

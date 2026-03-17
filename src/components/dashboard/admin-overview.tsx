@@ -2,7 +2,7 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Users, History, MessageSquare, AlertCircle, TrendingUp, Filter, BarChart3, PieChart } from "lucide-react";
+import { Users, History, MessageSquare, AlertCircle, TrendingUp, Filter, BarChart3, PieChart, Building2 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { 
   Select, 
@@ -25,8 +25,6 @@ import {
   Cell,
   Pie,
   PieChart as RePieChart,
-  Line,
-  LineChart
 } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 
@@ -38,7 +36,7 @@ export function AdminOverview() {
   }, [firestore]);
 
   const allVisitsQuery = useMemoFirebase(() => {
-    return query(collection(firestore, 'visits'), orderBy('timestamp', 'desc'), limit(100));
+    return query(collection(firestore, 'visits'), orderBy('timestamp', 'desc'), limit(500));
   }, [firestore]);
 
   const { data: recentVisits, isLoading } = useCollection(visitsQuery);
@@ -51,6 +49,14 @@ export function AdminOverview() {
       return acc;
     }, {})
   ).map(([name, value]) => ({ name, value })) : [];
+
+  const collegeData = allVisits ? Object.entries(
+    allVisits.reduce((acc: any, visit) => {
+      acc[visit.college] = (acc[visit.college] || 0) + 1;
+      return acc;
+    }, {})
+  ).map(([college, visits]) => ({ college, visits }))
+  .sort((a, b) => b.visits - a.visits) : [];
 
   const trendData = [
     { day: "Mon", visits: 12 },
@@ -77,7 +83,7 @@ export function AdminOverview() {
   };
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
+    <div className="space-y-8 animate-in fade-in duration-500 pb-12">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-3xl font-black text-primary mb-2 italic">DASHBOARD ANALYTICS</h2>
@@ -128,25 +134,33 @@ export function AdminOverview() {
         <Card className="neu-card-shadow border-none rounded-2xl bg-white overflow-hidden">
           <CardHeader>
             <CardTitle className="text-lg font-black text-primary flex items-center gap-2">
-              <BarChart3 className="h-5 w-5" />
-              WEEKLY TRAFFIC TREND
+              <Building2 className="h-5 w-5" />
+              COLLEGE TALLY
             </CardTitle>
-            <CardDescription>Daily visitation patterns for the current week.</CardDescription>
+            <CardDescription>Visitation counts grouped by academic department.</CardDescription>
           </CardHeader>
-          <CardContent className="h-[300px] pt-4">
-            <ChartContainer config={chartConfig}>
-              <BarChart data={trendData}>
-                <XAxis dataKey="day" axisLine={false} tickLine={false} />
-                <YAxis axisLine={false} tickLine={false} />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Bar 
-                  dataKey="visits" 
-                  fill="hsl(var(--primary))" 
-                  radius={[4, 4, 0, 0]} 
-                  barSize={40}
-                />
-              </BarChart>
-            </ChartContainer>
+          <CardContent className="h-[350px] pt-4">
+            {collegeData.length > 0 ? (
+              <ChartContainer config={chartConfig}>
+                <BarChart data={collegeData} layout="vertical">
+                  <XAxis type="number" hide />
+                  <YAxis dataKey="college" type="category" axisLine={false} tickLine={false} width={80} className="text-[10px] font-black" />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Bar 
+                    dataKey="visits" 
+                    fill="hsl(var(--primary))" 
+                    radius={[0, 4, 4, 0]} 
+                    barSize={20}
+                  >
+                    {collegeData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={index % 2 === 0 ? "hsl(var(--primary))" : "hsl(var(--secondary))"} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ChartContainer>
+            ) : (
+              <div className="flex items-center justify-center h-full text-muted-foreground italic text-sm">Waiting for logs...</div>
+            )}
           </CardContent>
         </Card>
 
@@ -158,7 +172,7 @@ export function AdminOverview() {
             </CardTitle>
             <CardDescription>Distribution of library usage by activity type.</CardDescription>
           </CardHeader>
-          <CardContent className="h-[300px] flex items-center justify-center">
+          <CardContent className="h-[350px] flex items-center justify-center">
             {purposeData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <RePieChart>
