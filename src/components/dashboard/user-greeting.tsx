@@ -18,7 +18,8 @@ import {
   RefreshCcw,
   Sparkles,
   TrendingUp,
-  Globe
+  Globe,
+  Building2
 } from "lucide-react";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
@@ -29,6 +30,7 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { useFirebase } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
@@ -40,7 +42,9 @@ export function UserGreeting() {
   const { logout, profile, switchRole } = useAuth();
   const { firestore } = useFirebase();
   const { toast } = useToast();
+  
   const [purpose, setPurpose] = useState<string>("");
+  const [currentCollege, setCurrentCollege] = useState<string>(profile?.college || "");
   const [isLogging, setIsLogging] = useState(false);
   const [academicYear, setAcademicYear] = useState("");
 
@@ -48,18 +52,25 @@ export function UserGreeting() {
   const logoImage = PlaceHolderImages.find(img => img.id === 'neu-logo');
 
   useEffect(() => {
-    // Avoid hydration mismatch by setting dynamic value on mount
     setAcademicYear(getAcademicYear());
   }, []);
 
   const handleLogVisit = async () => {
-    if (!purpose || !profile || !firestore) return;
+    if (!purpose || !profile || !firestore || !currentCollege) {
+      toast({
+        title: "Missing Information",
+        description: "Please select both a department and a purpose for your visit.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsLogging(true);
     try {
       await addDoc(collection(firestore, 'visits'), {
         userId: profile.id,
         userName: profile.displayName,
-        college: profile.college || 'Guest',
+        college: currentCollege,
         roleAtTime: profile.role,
         purpose: purpose,
         timestamp: serverTimestamp(),
@@ -67,7 +78,7 @@ export function UserGreeting() {
       });
       toast({
         title: "Log Recorded",
-        description: "Your visit has been successfully registered.",
+        description: `Visit for ${currentCollege} successfully registered.`,
       });
       setPurpose("");
     } catch (error) {
@@ -161,41 +172,38 @@ export function UserGreeting() {
                 </h1>
               </div>
             </div>
-            
-            <div className="flex flex-wrap justify-center sm:justify-start gap-3 md:gap-5 pt-4">
-                <div className="bg-white p-3 md:p-5 rounded-[1.5rem] md:rounded-[2rem] flex items-center gap-3 md:gap-5 shadow-xl border border-muted hover:scale-[1.03] transition-all cursor-default group flex-1 min-w-[140px] md:min-w-[180px]">
-                    <div className="bg-primary/5 p-2 md:p-3 rounded-xl md:rounded-2xl group-hover:bg-primary group-hover:text-white transition-all"><User className="h-4 w-4 md:h-6 md:w-6 text-primary group-hover:text-white" /></div>
-                    <div className="overflow-hidden">
-                        <p className="text-[7px] md:text-[10px] font-black text-muted-foreground uppercase tracking-widest opacity-60">Status</p>
-                        <p className="font-mono text-xs md:text-base font-black text-primary tracking-tight truncate uppercase">{profile?.role}</p>
-                    </div>
-                </div>
-                <div className="bg-white p-3 md:p-5 rounded-[1.5rem] md:rounded-[2rem] flex items-center gap-3 md:gap-5 shadow-xl border border-muted hover:scale-[1.03] transition-all cursor-default group flex-1 min-w-[140px] md:min-w-[180px]">
-                    <div className="bg-secondary/5 p-2 md:p-3 rounded-xl md:rounded-2xl group-hover:bg-secondary group-hover:text-primary transition-all"><MapPin className="h-4 w-4 md:h-6 md:w-6 text-secondary" /></div>
-                    <div className="overflow-hidden">
-                        <p className="text-[7px] md:text-[10px] font-black text-muted-foreground uppercase tracking-widest opacity-60">Location</p>
-                        <p className="text-xs md:text-base font-black text-primary italic uppercase truncate">{profile?.college || 'External'}</p>
-                    </div>
-                </div>
-            </div>
           </div>
 
           <Card className="neu-card-shadow border-none overflow-hidden rounded-[2rem] md:rounded-[3rem] bg-white relative">
-            <div className="absolute top-0 right-0 p-6 md:p-10 opacity-[0.03] pointer-events-none">
-                <Library className="h-24 w-24 md:h-48 md:w-48" />
-            </div>
             <CardHeader className="p-6 md:p-12 border-b bg-muted/30">
               <CardTitle className="text-2xl md:text-4xl font-black text-primary flex items-center gap-3 md:gap-5 italic tracking-tighter">
                 <CheckCircle2 className="h-6 w-6 md:h-10 md:w-10 text-secondary" />
                 VISITOR LOG ENTRY
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-6 md:p-12 lg:p-16 space-y-8 md:space-y-12">
-              <div className="space-y-6 md:space-y-10">
+            <CardContent className="p-6 md:p-12 lg:p-16 space-y-10">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
                 <div className="space-y-4 md:space-y-6">
-                  <label className="text-[8px] md:text-xs font-black text-muted-foreground uppercase tracking-[0.3em] md:tracking-[0.5em] ml-2 md:ml-3 opacity-70">Reason for visit</label>
+                  <label className="text-[8px] md:text-xs font-black text-muted-foreground uppercase tracking-[0.3em] md:tracking-[0.5em] ml-2 md:ml-3 opacity-70 flex items-center gap-2">
+                    <Building2 className="h-3.5 w-3.5" />
+                    Confirm Department
+                  </label>
+                  <Input 
+                    value={currentCollege} 
+                    onChange={(e) => setCurrentCollege(e.target.value)}
+                    placeholder="e.g. CICS, CEA, or External"
+                    className="h-16 md:h-20 text-lg md:text-xl font-bold rounded-[1.5rem] md:rounded-[2rem] border-2 md:border-4 border-muted focus:ring-primary shadow-inner px-6 md:px-10 bg-muted/10"
+                  />
+                  <p className="text-[10px] text-muted-foreground italic px-4">Verify your department for this specific visit.</p>
+                </div>
+
+                <div className="space-y-4 md:space-y-6">
+                  <label className="text-[8px] md:text-xs font-black text-muted-foreground uppercase tracking-[0.3em] md:tracking-[0.5em] ml-2 md:ml-3 opacity-70 flex items-center gap-2">
+                    <BookOpen className="h-3.5 w-3.5" />
+                    Reason for visit
+                  </label>
                   <Select value={purpose} onValueChange={setPurpose}>
-                    <SelectTrigger className="h-16 md:h-24 text-lg md:text-2xl font-bold rounded-[1.5rem] md:rounded-[2rem] border-2 md:border-4 border-muted focus:ring-primary focus:border-primary transition-all bg-muted/10 shadow-inner px-6 md:px-10">
+                    <SelectTrigger className="h-16 md:h-20 text-lg md:text-xl font-bold rounded-[1.5rem] md:rounded-[2rem] border-2 md:border-4 border-muted focus:ring-primary shadow-inner px-6 md:px-10 bg-muted/10">
                       <SelectValue placeholder="Select Purpose" />
                     </SelectTrigger>
                     <SelectContent className="rounded-[1.5rem] md:rounded-[2.5rem] p-2 md:p-3 shadow-2xl border-none max-h-[300px]">
@@ -211,25 +219,26 @@ export function UserGreeting() {
                     </SelectContent>
                   </Select>
                 </div>
-                <Button 
-                  onClick={handleLogVisit} 
-                  variant="neu"
-                  disabled={!purpose || isLogging}
-                  className="w-full h-16 md:h-24 text-xl md:text-3xl font-black rounded-[1.5rem] md:rounded-[2rem] py-6 md:py-10 gap-3 md:gap-5 group overflow-hidden relative shadow-2xl"
-                >
-                  {isLogging ? (
-                    <div className="flex items-center gap-3 md:gap-4">
-                        <div className="h-6 w-6 md:h-8 md:w-8 border-3 md:border-4 border-white border-t-transparent animate-spin rounded-full" />
-                        RECORDING...
-                    </div>
-                  ) : (
-                    <>
-                        <CheckCircle2 className="h-6 w-6 md:h-10 md:w-10 text-secondary group-hover:scale-125 transition-transform" />
-                        REGISTER ENTRY
-                    </>
-                  )}
-                </Button>
               </div>
+
+              <Button 
+                onClick={handleLogVisit} 
+                variant="neu"
+                disabled={!purpose || !currentCollege || isLogging}
+                className="w-full h-16 md:h-24 text-xl md:text-3xl font-black rounded-[1.5rem] md:rounded-[2rem] py-6 md:py-10 gap-3 md:gap-5 group overflow-hidden relative shadow-2xl mt-4"
+              >
+                {isLogging ? (
+                  <div className="flex items-center gap-3 md:gap-4">
+                      <div className="h-6 w-6 md:h-8 md:w-8 border-3 md:border-4 border-white border-t-transparent animate-spin rounded-full" />
+                      RECORDING...
+                  </div>
+                ) : (
+                  <>
+                      <CheckCircle2 className="h-6 w-6 md:h-10 md:w-10 text-secondary group-hover:scale-125 transition-transform" />
+                      REGISTER ENTRY
+                  </>
+                )}
+              </Button>
             </CardContent>
           </Card>
         </div>
@@ -248,17 +257,10 @@ export function UserGreeting() {
                 </div>
                 <div className="h-px bg-white/10 w-full" />
                 <p className="text-xs md:text-sm font-bold text-white/70 leading-relaxed italic">
-                  Institutional access logs are required for all visitors entering the library premises.
+                  Institutional access logs are required for all visitors entering the library premises. Verify your department per entry.
                 </p>
             </CardContent>
           </Card>
-          
-          <div className="bg-secondary/5 border-4 border-secondary/10 p-6 md:p-10 rounded-[1.5rem] md:rounded-[3rem] text-center space-y-3 md:space-y-5 shadow-inner relative overflow-hidden group">
-             <p className="text-[9px] md:text-[11px] font-black text-primary uppercase tracking-[0.3em] md:tracking-[0.5em] opacity-80">Official Protocol</p>
-             <p className="text-xs md:text-sm font-bold text-primary/70 leading-relaxed italic px-2">
-                Your entry is being recorded as a {profile?.role?.toUpperCase()}. Please observe library policies during your stay.
-             </p>
-          </div>
         </div>
       </main>
 

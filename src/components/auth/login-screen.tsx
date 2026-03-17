@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -12,10 +13,12 @@ import {
   Mail, 
   ShieldCheck, 
   User as UserIcon,
-  Search
+  Search,
+  Loader2
 } from "lucide-react";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
+import { useToast } from "@/hooks/use-toast";
 
 interface LoginScreenProps {
   onBack: () => void;
@@ -24,12 +27,28 @@ interface LoginScreenProps {
 export function LoginScreen({ onBack }: LoginScreenProps) {
   const { login } = useAuth();
   const [activeTab, setActiveTab] = useState("user");
+  const [isScanning, setIsScanning] = useState(false);
+  const { toast } = useToast();
   
   const bgImage = PlaceHolderImages.find(img => img.id === 'neu-campus');
   const logoImage = PlaceHolderImages.find(img => img.id === 'neu-logo');
 
   const handleLogin = async () => {
     await login(activeTab as 'user' | 'admin');
+  };
+
+  const handleRFIDTap = () => {
+    setIsScanning(true);
+    // Simulate RFID scanning and department detection
+    setTimeout(() => {
+      setIsScanning(false);
+      toast({
+        title: "RFID Detected",
+        description: "Institutional ID: 24-1XXX-1XX detected. Syncing Department: CICS...",
+      });
+      // In a real app, this would trigger a specialized login flow
+      handleLogin();
+    }, 2000);
   };
 
   return (
@@ -121,10 +140,22 @@ export function LoginScreen({ onBack }: LoginScreenProps) {
                       <Button 
                           variant="neuSecondary"
                           size="lg"
-                          className="w-full h-16 gap-3 rounded-2xl group"
+                          onClick={handleRFIDTap}
+                          disabled={isScanning}
+                          className="w-full h-16 gap-3 rounded-2xl group relative overflow-hidden"
                       >
-                          <Fingerprint className="h-6 w-6 group-hover:scale-110 transition-transform" />
-                          Tap RFID School ID
+                          {isScanning ? (
+                            <>
+                              <Loader2 className="h-6 w-6 animate-spin" />
+                              DETECTING DEPARTMENT...
+                            </>
+                          ) : (
+                            <>
+                              <Fingerprint className="h-6 w-6 group-hover:scale-110 transition-transform" />
+                              Tap RFID School ID
+                            </>
+                          )}
+                          {isScanning && <div className="absolute inset-x-0 bottom-0 h-1 bg-primary/20 animate-shimmer" />}
                       </Button>
                     </div>
 
