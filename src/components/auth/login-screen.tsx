@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -73,7 +74,7 @@ export function LoginScreen({ onBack }: LoginScreenProps) {
             
             <div className="mx-auto w-28 h-28 relative rounded-full overflow-hidden border-4 border-secondary shadow-2xl bg-white p-3">
                 <Image 
-                    src={logoImage?.imageUrl || "https://picsum.photos/seed/neu/200/200"} 
+                    src={logoImage?.imageUrl || "https://placehold.co/400x400/004d26/ffffff?text=NEU+CEA"} 
                     alt="NEU Logo" 
                     fill 
                     className="object-contain p-3"

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -83,7 +84,7 @@ export function DashboardLayout() {
           <div className="flex items-center gap-3 md:gap-4">
             <div className="bg-white p-1 rounded-xl shadow-lg w-8 h-8 md:w-10 md:h-10 relative overflow-hidden flex items-center justify-center">
                 <Image 
-                  src={logoImage?.imageUrl || ""} 
+                  src={logoImage?.imageUrl || "https://placehold.co/400x400/004d26/ffffff?text=NEU+CEA"} 
                   alt="NEU Logo" 
                   fill 
                   className="object-contain p-0.5 md:p-1"
@@ -140,7 +141,7 @@ export function DashboardLayout() {
                     {profile?.isAuthorizedAdmin && (
                       <DropdownMenuItem onClick={() => switchRole(profile.role === 'admin' ? 'user' : 'admin')} className="rounded-xl h-12 gap-3 text-blue-600 focus:bg-blue-50 cursor-pointer">
                         <ShieldCheck className="h-4 w-4" />
-                        <span className="font-black">Switch to {profile.role === 'admin' ? 'User' : 'Admin'} Mode</span>
+                        <span className="font-black">Switch to {profile.role === 'admin' ? 'user' : 'admin'} Mode</span>
                       </DropdownMenuItem>
                     )}
                     <DropdownMenuSeparator />
@@ -198,7 +199,7 @@ export function DashboardLayout() {
       <footer className="p-6 md:p-10 bg-white border-t flex flex-col items-center gap-4 mt-auto">
         <div className="flex items-center gap-2 opacity-30 grayscale hover:grayscale-0 hover:opacity-100 transition-all cursor-default">
             <div className="relative w-5 h-5">
-                <Image src={logoImage?.imageUrl || ""} alt="NEU" fill className="object-contain" />
+                <Image src={logoImage?.imageUrl || "https://placehold.co/400x400/004d26/ffffff?text=NEU+CEA"} alt="NEU" fill className="object-contain" />
             </div>
             <span className="font-black text-[10px] md:text-xs uppercase tracking-[0.3em] text-primary text-center">New Era University Library System</span>
         </div>

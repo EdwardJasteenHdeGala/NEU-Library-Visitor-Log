@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -26,11 +27,12 @@ export function WelcomeScreen({ onLogin, onGuest }: WelcomeScreenProps) {
         <div className="flex items-center gap-3 text-white">
           <div className="bg-white p-1.5 md:p-2 rounded-xl shadow-lg border border-white/20">
             <Image 
-              src={logoImage?.imageUrl || ""} 
+              src={logoImage?.imageUrl || "https://placehold.co/400x400/004d26/ffffff?text=NEU+CEA"} 
               alt="NEU CEA" 
-              width={28} 
-              height={28} 
-              className="object-contain md:w-8 md:h-8"
+              width={32} 
+              height={32} 
+              className="object-contain md:w-10 md:h-10"
+              data-ai-hint={logoImage?.imageHint}
             />
           </div>
           <div className="flex flex-col -space-y-1">
