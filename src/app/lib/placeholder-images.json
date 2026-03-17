@@ -4,19 +4,19 @@
     {
       "id": "neu-campus",
       "description": "New Era University Main Campus",
-      "imageUrl": "https://picsum.photos/seed/neu-main-campus/1920/1080",
+      "imageUrl": "https://picsum.photos/seed/neu-campus-main/1920/1080",
       "imageHint": "university campus"
     },
     {
       "id": "library-interior",
       "description": "Modern Library Interior",
-      "imageUrl": "https://picsum.photos/seed/neu-library/1920/1080",
+      "imageUrl": "https://picsum.photos/seed/neu-library-interior/1920/1080",
       "imageHint": "library study"
     },
     {
       "id": "neu-logo",
-      "description": "NEU CEA Official Logo",
-      "imageUrl": "https://picsum.photos/seed/neu-cea/400/400",
+      "description": "NEU College of Engineering and Architecture Logo",
+      "imageUrl": "https://picsum.photos/seed/neu-cea-logo/400/400",
       "imageHint": "college logo"
     }
   ]
