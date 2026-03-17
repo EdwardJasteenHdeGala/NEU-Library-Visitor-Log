@@ -68,8 +68,8 @@
 .neu-mesh-gradient {
   background-color: hsl(var(--background));
   background-image: 
-    radial-gradient(at 0% 0%, hsla(153, 100%, 15%, 0.15) 0px, transparent 50%),
-    radial-gradient(at 100% 0%, hsla(45, 100%, 48%, 0.1) 0px, transparent 50%),
+    radial-gradient(at 0% 0%, hsla(153, 100%, 15%, 0.12) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, hsla(45, 100%, 48%, 0.08) 0px, transparent 50%),
     radial-gradient(at 100% 100%, hsla(153, 100%, 10%, 0.05) 0px, transparent 50%),
     radial-gradient(at 0% 100%, hsla(45, 100%, 48%, 0.05) 0px, transparent 50%);
 }
@@ -82,9 +82,9 @@
   background-image: url('https://neu.edu.ph/main/img/mains.jfif');
   background-size: cover;
   background-position: center;
-  opacity: 0.07;
+  opacity: 0.05;
   mix-blend-mode: multiply;
-  filter: grayscale(100%) contrast(120%);
+  filter: grayscale(100%) contrast(110%);
 }
 
 .bg-dot-pattern {
@@ -92,53 +92,32 @@
   background-size: 24px 24px;
 }
 
-.neu-gradient {
-  background: linear-gradient(135deg, hsl(153 100% 15%) 0%, hsl(153 100% 10%) 100%);
-}
-
 .neu-card-shadow {
-  box-shadow: 0 20px 60px -10px rgba(0, 77, 38, 0.08), 0 4px 20px -2px rgba(0, 0, 0, 0.03);
-}
-
-.neu-button-shadow {
-  box-shadow: 0 10px 20px -5px rgba(0, 77, 38, 0.2);
-}
-
-.neu-button-shadow-secondary {
-  box-shadow: 0 10px 20px -5px rgba(184, 134, 11, 0.2);
+  box-shadow: 0 20px 50px -12px rgba(0, 77, 38, 0.08), 0 4px 12px -2px rgba(0, 0, 0, 0.02);
 }
 
 @keyframes blob {
   0% { transform: translate(0px, 0px) scale(1); }
-  33% { transform: translate(40px, -60px) scale(1.15); }
-  66% { transform: translate(-30px, 30px) scale(0.9); }
+  33% { transform: translate(30px, -50px) scale(1.1); }
+  66% { transform: translate(-20px, 20px) scale(0.95); }
   100% { transform: translate(0px, 0px) scale(1); }
 }
 
 .animate-blob {
-  animation: blob 10s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-@keyframes shimmer {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
-}
-
-.animate-shimmer {
-  animation: shimmer 2.5s infinite linear;
+  animation: blob 15s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .glass-panel {
-  @apply bg-white/70 backdrop-blur-2xl border border-white/30 shadow-2xl;
+  @apply bg-white/70 backdrop-blur-2xl border border-white/40 shadow-xl;
 }
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 10px;
+  width: 8px;
 }
 ::-webkit-scrollbar-track {
   @apply bg-transparent;
 }
 ::-webkit-scrollbar-thumb {
-  @apply bg-primary/20 rounded-full hover:bg-primary/40 transition-colors border-2 border-transparent bg-clip-padding;
+  @apply bg-primary/10 rounded-full hover:bg-primary/30 transition-colors;
 }

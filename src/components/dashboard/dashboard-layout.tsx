@@ -77,15 +77,19 @@ export function DashboardLayout() {
     .slice(0, 2) || 'AD';
 
   return (
-    <div className="min-h-screen bg-[#fcfcfc] flex flex-col overflow-hidden neu-mesh-gradient">
-      {/* Decorative background elements */}
-      <div className="fixed top-[-10%] right-[-5%] w-[400px] h-[400px] bg-primary/5 rounded-full blur-3xl animate-blob pointer-events-none" />
-      <div className="fixed bottom-[-10%] left-[-5%] w-[400px] h-[400px] bg-secondary/5 rounded-full blur-3xl animate-blob delay-2000 pointer-events-none" />
+    <div className="min-h-screen bg-background flex flex-col overflow-hidden neu-mesh-gradient">
+      {/* Dynamic background elements */}
+      <div className="fixed top-[-5%] right-[-5%] w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px] animate-blob pointer-events-none" />
+      <div className="fixed bottom-[-5%] left-[-5%] w-[500px] h-[500px] bg-secondary/5 rounded-full blur-[120px] animate-blob delay-2000 pointer-events-none" />
+      <div className="neu-bg-overlay" />
 
-      <nav className="bg-primary text-white p-4 shadow-xl sticky top-0 z-50 border-b border-white/5 backdrop-blur-md bg-primary/95">
+      <nav className="bg-primary text-white p-3 md:p-4 shadow-2xl sticky top-0 z-50 border-b border-white/5 backdrop-blur-xl bg-primary/95">
         <div className="max-w-[1600px] mx-auto flex justify-between items-center gap-4">
           <div className="flex items-center gap-4">
-            <div className="bg-white p-1.5 rounded-xl shadow-lg w-10 h-10 relative overflow-hidden flex items-center justify-center group cursor-pointer" onClick={() => setCurrentView('dashboard')}>
+            <div 
+              className="bg-white p-1.5 rounded-xl shadow-lg w-10 h-10 relative overflow-hidden flex items-center justify-center group cursor-pointer" 
+              onClick={() => setCurrentView('dashboard')}
+            >
                 <Image 
                   src={logoImage?.imageUrl || ""} 
                   alt="NEU Logo" 
@@ -99,7 +103,7 @@ export function DashboardLayout() {
             </div>
           </div>
 
-          <div className="hidden lg:flex items-center gap-2 p-1.5 bg-white/10 rounded-2xl border border-white/10 backdrop-blur-sm">
+          <div className="hidden lg:flex items-center gap-1.5 p-1 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-sm">
             {navItems.map((item) => (
                 <button
                     key={item.id}
@@ -122,20 +126,20 @@ export function DashboardLayout() {
             
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-4 hover:bg-white/10 p-1.5 pr-5 rounded-3xl transition-all border border-transparent hover:border-white/10 group">
-                  <Avatar className="h-11 w-11 border-2 border-secondary/50 shadow-2xl group-hover:scale-105 transition-transform duration-300">
+                <button className="flex items-center gap-4 hover:bg-white/10 p-1.5 pr-4 rounded-3xl transition-all border border-transparent hover:border-white/10 group">
+                  <Avatar className="h-10 w-10 border-2 border-secondary/50 shadow-xl group-hover:scale-105 transition-transform duration-300">
                     <AvatarImage src={profile?.photoURL} alt={profile?.displayName} />
                     <AvatarFallback className="bg-secondary text-primary font-black text-xs">
                       {userInitials}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="flex flex-col items-start hidden sm:flex">
+                  <div className="flex flex-col items-start hidden sm:flex text-left">
                     <span className="text-xs font-black uppercase tracking-tight leading-none max-w-[120px] truncate">{profile?.displayName?.split(' ')[0]}</span>
                     <span className="text-[9px] font-bold text-secondary uppercase tracking-widest opacity-80 italic">Administrator</span>
                   </div>
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-72 rounded-[2rem] p-3 shadow-2xl border-none mt-4 bg-white/95 backdrop-blur-xl animate-in slide-in-from-top-2 duration-300">
+              <DropdownMenuContent align="end" className="w-72 rounded-[2rem] p-3 shadow-2xl border-none mt-4 bg-white/95 backdrop-blur-2xl animate-in slide-in-from-top-2 duration-300">
                 <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-5 py-4">Account Management</DropdownMenuLabel>
                 <DropdownMenuSeparator className="mx-3" />
                 <DropdownMenuItem onClick={() => setCurrentView('profile')} className="rounded-2xl h-14 gap-4 focus:bg-primary/5 cursor-pointer px-5 transition-all">
@@ -163,10 +167,10 @@ export function DashboardLayout() {
             <Button 
                 variant="ghost" 
                 size="icon" 
-                className="lg:hidden text-white h-12 w-12 hover:bg-white/10 rounded-2xl"
+                className="lg:hidden text-white h-11 w-11 hover:bg-white/10 rounded-2xl"
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             >
-                {isMobileMenuOpen ? <X className="h-7 w-7" /> : <Menu className="h-7 w-7" />}
+                {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </Button>
           </div>
         </div>
@@ -199,7 +203,7 @@ export function DashboardLayout() {
         </div>
       </main>
 
-      <footer className="relative z-10 p-12 bg-white/50 backdrop-blur-md border-t flex flex-col items-center gap-8 mt-auto">
+      <footer className="relative z-10 p-12 bg-white/40 backdrop-blur-md border-t flex flex-col items-center gap-8 mt-auto">
         <div className="flex items-center gap-5 opacity-40 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-700 cursor-default group">
             <div className="relative w-10 h-10 group-hover:rotate-[360deg] transition-transform duration-1000">
                 <Image src={logoImage?.imageUrl || ""} alt="NEU" fill className="object-contain" />
