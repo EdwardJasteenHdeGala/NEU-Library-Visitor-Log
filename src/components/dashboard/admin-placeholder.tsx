@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useAuth } from "@/hooks/use-auth";
@@ -35,8 +34,8 @@ export function AdminPlaceholder() {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">124</div>
-              <p className="text-xs text-muted-foreground">+12% from yesterday</p>
+              <div className="text-3xl font-bold">0</div>
+              <p className="text-xs text-muted-foreground">Waiting for entries</p>
             </CardContent>
           </Card>
           <Card className="hover:shadow-lg transition-shadow border-l-4 border-l-accent">
@@ -45,7 +44,7 @@ export function AdminPlaceholder() {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">42</div>
+              <div className="text-3xl font-bold">0</div>
               <p className="text-xs text-muted-foreground">Capacity: 150</p>
             </CardContent>
           </Card>
@@ -55,8 +54,8 @@ export function AdminPlaceholder() {
               <History className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">1.5 hrs</div>
-              <p className="text-xs text-muted-foreground">Consistent with avg</p>
+              <div className="text-3xl font-bold">0 mins</div>
+              <p className="text-xs text-muted-foreground">No data available</p>
             </CardContent>
           </Card>
         </div>
@@ -68,7 +67,7 @@ export function AdminPlaceholder() {
               <CardDescription>Latest visitor log entries</CardDescription>
             </CardHeader>
             <CardContent className="flex items-center justify-center text-muted-foreground italic">
-              [Visitor Log Data Table Placeholder]
+              No recent activity to display.
             </CardContent>
           </Card>
           

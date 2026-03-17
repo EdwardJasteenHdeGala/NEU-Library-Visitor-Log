@@ -25,10 +25,10 @@ export function AdminOverview() {
   const { data: recentVisits, isLoading } = useCollection(visitsQuery);
 
   const stats = [
-    { title: "Daily Visits", value: "124", icon: Users, color: "bg-blue-600", trend: "+12%" },
-    { title: "Weekly Visits", value: "842", icon: TrendingUp, color: "bg-green-600", trend: "+5%" },
-    { title: "Monthly Visits", value: "3,241", icon: Users, color: "bg-orange-600", trend: "+18%" },
-    { title: "Pending Feedback", value: "5", icon: MessageSquare, color: "bg-red-600", trend: "" },
+    { title: "Daily Visits", value: "0", icon: Users, color: "bg-blue-600", trend: "0% from yesterday" },
+    { title: "Weekly Visits", value: "0", icon: TrendingUp, color: "bg-green-600", trend: "0% from last week" },
+    { title: "Monthly Visits", value: "0", icon: Users, color: "bg-orange-600", trend: "0% from last month" },
+    { title: "Pending Feedback", value: "0", icon: MessageSquare, color: "bg-red-600", trend: "" },
   ];
 
   return (
@@ -67,7 +67,7 @@ export function AdminOverview() {
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
                   <span className="text-4xl font-black text-primary">{stat.value}</span>
-                  {stat.trend && <p className="text-[10px] font-bold text-green-600">{stat.trend} from last period</p>}
+                  {stat.trend && <p className="text-[10px] font-bold text-muted-foreground">{stat.trend}</p>}
                 </div>
                 <div className={`p-3 rounded-2xl ${stat.color} text-white shadow-lg shadow-${stat.color.split('-')[1]}-200`}>
                     <stat.icon className="h-6 w-6" />
@@ -99,6 +99,8 @@ export function AdminOverview() {
               <TableBody>
                 {isLoading ? (
                   <TableRow><TableCell colSpan={4} className="text-center py-8">Loading logs...</TableCell></TableRow>
+                ) : recentVisits?.length === 0 ? (
+                  <TableRow><TableCell colSpan={4} className="text-center py-8 text-muted-foreground italic">No recent visits recorded.</TableCell></TableRow>
                 ) : recentVisits?.map((visit, i) => (
                   <TableRow key={i} className="hover:bg-muted/30 border-b">
                     <TableCell className="font-bold py-4">{visit.userName}</TableCell>
@@ -132,8 +134,10 @@ export function AdminOverview() {
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Purposes</SelectItem>
-                  <SelectItem value="reading">Reading Books</SelectItem>
-                  <SelectItem value="thesis">Thesis Research</SelectItem>
+                  <SelectItem value="reading books">Reading Books</SelectItem>
+                  <SelectItem value="research in thesis">Thesis Research</SelectItem>
+                  <SelectItem value="use of computer">Use of Computer</SelectItem>
+                  <SelectItem value="doing assignments">Doing Assignments</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -146,6 +150,7 @@ export function AdminOverview() {
                   <SelectItem value="cas">CAS</SelectItem>
                   <SelectItem value="cba">CBA</SelectItem>
                   <SelectItem value="coed">COED</SelectItem>
+                  <SelectItem value="cea">CEA</SelectItem>
                 </SelectContent>
               </Select>
             </div>

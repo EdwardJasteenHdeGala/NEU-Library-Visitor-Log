@@ -5,15 +5,27 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Search, Users } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { collection, query, orderBy } from "firebase/firestore";
+import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
+import { format } from "date-fns";
 
 export function VisitorLog() {
   const [searchTerm, setSearchTerm] = useState("");
+  const firestore = useFirestore();
 
-  const logs = [
-    { name: "Juan Dela Cruz", purpose: "Research", timestamp: "May 10, 2024" },
-    { name: "Maria Santos", purpose: "Studying", timestamp: "May 12, 2024" },
-    { name: "John Smith", purpose: "Thesis", timestamp: "May 15, 2024" },
-  ];
+  const visitsQuery = useMemoFirebase(() => {
+    return query(collection(firestore, 'visits'), orderBy('timestamp', 'desc'));
+  }, [firestore]);
+
+  const { data: visits, isLoading } = useCollection(visitsQuery);
+
+  const filteredVisits = visits?.filter(visit => 
+    visit.userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    visit.college.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    visit.purpose.toLowerCase().includes(searchTerm.toLowerCase())
+  ) || [];
+
+  const uniqueUserCount = new Set(visits?.map(v => v.userId)).size;
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -39,16 +51,28 @@ export function VisitorLog() {
             <TableHeader>
               <TableRow className="bg-primary text-white hover:bg-primary">
                 <TableHead className="font-bold text-white">Name</TableHead>
+                <TableHead className="font-bold text-white">College</TableHead>
                 <TableHead className="font-bold text-white">Purpose</TableHead>
                 <TableHead className="font-bold text-white">Timestamp</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {logs.map((log, i) => (
+              {isLoading ? (
+                <TableRow><TableCell colSpan={4} className="text-center py-8">Loading logs...</TableCell></TableRow>
+              ) : filteredVisits.length === 0 ? (
+                <TableRow><TableCell colSpan={4} className="text-center py-8 text-muted-foreground italic">No entries found.</TableCell></TableRow>
+              ) : filteredVisits.map((visit, i) => (
                 <TableRow key={i} className="hover:bg-muted/50 border-b">
-                  <TableCell className="font-bold">{log.name}</TableCell>
-                  <TableCell>{log.purpose}</TableCell>
-                  <TableCell className="text-muted-foreground">{log.timestamp}</TableCell>
+                  <TableCell className="font-bold">{visit.userName}</TableCell>
+                  <TableCell>{visit.college}</TableCell>
+                  <TableCell>
+                    <span className="text-xs font-bold uppercase tracking-widest bg-accent/10 text-accent px-2 py-1 rounded">
+                      {visit.purpose}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {visit.timestamp?.seconds ? format(visit.timestamp.seconds * 1000, 'MMM dd, yyyy h:mm a') : 'Just now'}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -58,11 +82,11 @@ export function VisitorLog() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-primary p-6 rounded-xl flex items-center justify-between text-white shadow-xl">
-            <span className="text-lg font-bold">Total Visits: 35</span>
+            <span className="text-lg font-bold">Total Visits: {visits?.length || 0}</span>
             <Users className="h-6 w-6 opacity-50" />
         </div>
         <div className="bg-primary p-6 rounded-xl flex items-center justify-between text-white shadow-xl">
-            <span className="text-lg font-bold">Unique Users: 12</span>
+            <span className="text-lg font-bold">Unique Users: {uniqueUserCount}</span>
             <Users className="h-6 w-6 opacity-50" />
         </div>
       </div>

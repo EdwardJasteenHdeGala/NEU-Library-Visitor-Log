@@ -5,13 +5,20 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, Download, Users } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { collection, query, orderBy } from "firebase/firestore";
+import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
 
 export function ReportsView() {
-  const reports = [
-    { name: "Weekly Summary", purpose: "Admin Audit", timestamp: "May 20, 2024" },
-    { name: "Monthly Usage", purpose: "Resource Planning", timestamp: "Jun 01, 2024" },
-    { name: "Semester Review", purpose: "Library Stats", timestamp: "Jun 15, 2024" },
-  ];
+  const firestore = useFirestore();
+  const visitsQuery = useMemoFirebase(() => {
+    return query(collection(firestore, 'visits'), orderBy('timestamp', 'desc'));
+  }, [firestore]);
+  const { data: visits } = useCollection(visitsQuery);
+
+  // We'll clear the hardcoded reports array to start fresh
+  const reports = [];
+
+  const uniqueUserCount = new Set(visits?.map(v => v.userId)).size;
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -22,7 +29,7 @@ export function ReportsView() {
 
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-        <Input placeholder="Search reports..." className="pl-12 h-14 text-lg neu-card-shadow" />
+        <Input placeholder="Search generated reports..." className="pl-12 h-14 text-lg neu-card-shadow" />
       </div>
 
       <Card className="neu-card-shadow border-none overflow-hidden rounded-xl">
@@ -35,7 +42,11 @@ export function ReportsView() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {reports.map((report, i) => (
+            {reports.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={3} className="text-center py-8 text-muted-foreground italic">No generated reports available.</TableCell>
+              </TableRow>
+            ) : reports.map((report, i) => (
               <TableRow key={i} className="hover:bg-muted/30">
                 <TableCell className="font-bold py-4">{report.name}</TableCell>
                 <TableCell className="py-4">{report.purpose}</TableCell>
@@ -49,10 +60,10 @@ export function ReportsView() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Button size="lg" className="h-16 bg-primary hover:bg-primary/90 text-white font-black text-xl gap-3 neu-card-shadow">
             <Download className="h-6 w-6" />
-            Export CSV
+            Export Live Data (CSV)
           </Button>
           <div className="bg-primary p-4 px-8 rounded-xl flex items-center justify-between text-white neu-card-shadow">
-            <span className="text-xl font-black">Unique Users: 12</span>
+            <span className="text-xl font-black">Unique Users: {uniqueUserCount}</span>
             <Users className="h-6 w-6 opacity-50" />
           </div>
       </div>
