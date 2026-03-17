@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
@@ -29,13 +28,15 @@ interface AuthContextType {
   verifyStudentId: (studentId: string) => Promise<boolean>;
   updateProfileData: (data: Partial<UserProfile>) => Promise<boolean>;
   switchRole: (newRole: 'user' | 'admin') => Promise<void>;
+  setUserRole: (userId: string, newRole: 'user' | 'admin' | 'guest') => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Authorized administrators with high-level access
+export const SUPER_ADMIN_EMAIL = 'edwardjasteen.degala@neu.edu.ph';
 const AUTHORIZED_ADMIN_EMAILS = [
-  'edwardjasteen.degala@neu.edu.ph',
+  SUPER_ADMIN_EMAIL,
   'jcesperanza@neu.edu.ph'
 ];
 
@@ -72,7 +73,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const isAuthorized = user.email && AUTHORIZED_ADMIN_EMAILS.includes(user.email);
       
       // CICS Department identification
-      const isCICS = user.email === 'edwardjasteen.degala@neu.edu.ph' || user.email === 'jcesperanza@neu.edu.ph';
+      const isCICS = user.email === SUPER_ADMIN_EMAIL || user.email === 'jcesperanza@neu.edu.ph';
       
       const defaultCollege = isInstitutional 
         ? (isCICS ? 'CICS' : 'General Education') 
@@ -214,8 +215,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const setUserRole = async (userId: string, newRole: 'user' | 'admin' | 'guest') => {
+    if (!profile?.isAuthorizedAdmin || !firestore) return;
+
+    try {
+      const docRef = doc(firestore, 'user_profiles', userId);
+      await updateDoc(docRef, {
+        role: newRole,
+        isAuthorizedAdmin: newRole === 'admin',
+        updatedAt: serverTimestamp()
+      });
+      toast({
+        title: "User Role Updated",
+        description: `User has been successfully updated to: ${newRole.toUpperCase()}`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Update Error",
+        description: "Failed to update user role.",
+        variant: "destructive"
+      });
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, profile, loading: loading || isUserLoading, login, logout, verifyStudentId, updateProfileData, switchRole }}>
+    <AuthContext.Provider value={{ user, profile, loading: loading || isUserLoading, login, logout, verifyStudentId, updateProfileData, switchRole, setUserRole }}>
       {children}
     </AuthContext.Provider>
   );

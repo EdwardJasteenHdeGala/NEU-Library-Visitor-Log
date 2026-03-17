@@ -1,19 +1,29 @@
-
 "use client";
 
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Search, UserCog, ShieldCheck, Mail, Globe } from "lucide-react";
+import { Search, UserCog, ShieldCheck, Mail, Globe, MoreVertical, ShieldAlert, UserCheck, ShieldOff } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { collection, query, orderBy } from "firebase/firestore";
 import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useAuth, SUPER_ADMIN_EMAIL } from "@/hooks/use-auth";
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuLabel, 
+  DropdownMenuSeparator, 
+  DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 
 export function UserManagement() {
   const [searchTerm, setSearchTerm] = useState("");
   const firestore = useFirestore();
+  const { setUserRole, profile: currentUserProfile } = useAuth();
 
   const usersQuery = useMemoFirebase(() => {
     return query(collection(firestore, 'user_profiles'), orderBy('displayName', 'asc'));
@@ -93,13 +103,14 @@ export function UserManagement() {
               <TableHead className="font-black text-primary py-4 uppercase text-[10px] tracking-widest">ID / Status</TableHead>
               <TableHead className="font-black text-primary py-4 uppercase text-[10px] tracking-widest">Origin</TableHead>
               <TableHead className="font-black text-primary py-4 uppercase text-[10px] tracking-widest">Access Role</TableHead>
+              <TableHead className="font-black text-primary py-4 uppercase text-[10px] tracking-widest text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              <TableRow><TableCell colSpan={4} className="text-center py-8">Loading directory...</TableCell></TableRow>
+              <TableRow><TableCell colSpan={5} className="text-center py-8">Loading directory...</TableCell></TableRow>
             ) : filteredUsers.length === 0 ? (
-              <TableRow><TableCell colSpan={4} className="text-center py-8 text-muted-foreground italic">No users matching search criteria.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={5} className="text-center py-8 text-muted-foreground italic">No users matching search criteria.</TableCell></TableRow>
             ) : filteredUsers.map((u, i) => {
               const userInitials = u.displayName
                 ?.split(' ')
@@ -107,6 +118,9 @@ export function UserManagement() {
                 .join('')
                 .toUpperCase()
                 .slice(0, 2) || 'V';
+
+              const isSuperAdmin = u.email === SUPER_ADMIN_EMAIL;
+              const isCurrentUser = u.id === currentUserProfile?.id;
 
               return (
                 <TableRow key={i} className="hover:bg-muted/30 border-b">
@@ -128,16 +142,69 @@ export function UserManagement() {
                   <TableCell className="text-sm font-medium">{u.college || 'External'}</TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-2">
-                      {u.role === 'admin' && (
+                      {isSuperAdmin && (
+                        <Badge className="bg-secondary text-primary text-[9px] uppercase font-black px-2.5 py-1 flex items-center gap-1 shadow-sm border border-primary/20">
+                          <ShieldAlert className="h-3 w-3" />
+                          Super Admin
+                        </Badge>
+                      )}
+                      {u.role === 'admin' && !isSuperAdmin && (
                         <Badge className="bg-primary text-white text-[9px] uppercase font-black px-2.5 py-1">Admin</Badge>
                       )}
                       {u.role === 'user' && (
                         <Badge variant="outline" className="text-primary text-[9px] uppercase font-black px-2.5 py-1">Institutional</Badge>
                       )}
                       {u.role === 'guest' && (
-                        <Badge className="bg-secondary text-primary text-[9px] uppercase font-black px-2.5 py-1">Guest</Badge>
+                        <Badge className="bg-muted text-muted-foreground text-[9px] uppercase font-black px-2.5 py-1">Guest</Badge>
                       )}
                     </div>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {!isSuperAdmin && !isCurrentUser && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
+                            <MoreVertical className="h-4 w-4 text-muted-foreground" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-56 rounded-2xl p-2 shadow-2xl border-none">
+                          <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-4 py-3">Access Control</DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          {u.role !== 'admin' ? (
+                            <DropdownMenuItem 
+                              onClick={() => setUserRole(u.id, 'admin')}
+                              className="rounded-xl h-11 gap-3 focus:bg-primary/5 cursor-pointer text-primary"
+                            >
+                              <ShieldCheck className="h-4 w-4" />
+                              <span className="font-black text-xs uppercase tracking-widest">Promote to Admin</span>
+                            </DropdownMenuItem>
+                          ) : (
+                            <DropdownMenuItem 
+                              onClick={() => setUserRole(u.id, 'user')}
+                              className="rounded-xl h-11 gap-3 focus:bg-destructive/5 cursor-pointer text-destructive"
+                            >
+                              <ShieldOff className="h-4 w-4" />
+                              <span className="font-black text-xs uppercase tracking-widest">Revoke Admin</span>
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem 
+                            onClick={() => setUserRole(u.id, 'user')}
+                            className="rounded-xl h-11 gap-3 focus:bg-muted cursor-pointer"
+                          >
+                            <UserCheck className="h-4 w-4 text-muted-foreground" />
+                            <span className="font-bold text-xs">Set as Regular User</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={() => setUserRole(u.id, 'guest')}
+                            className="rounded-xl h-11 gap-3 focus:bg-muted cursor-pointer"
+                          >
+                            <Globe className="h-4 w-4 text-muted-foreground" />
+                            <span className="font-bold text-xs">Set as External Guest</span>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
                   </TableCell>
                 </TableRow>
               );
