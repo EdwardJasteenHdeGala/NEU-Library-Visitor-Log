@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -34,6 +34,7 @@ import { useFirebase } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LiveClock } from "@/components/ui/live-clock";
+import { getAcademicYear } from "@/lib/utils";
 
 export function UserGreeting() {
   const { logout, profile, switchRole } = useAuth();
@@ -41,8 +42,15 @@ export function UserGreeting() {
   const { toast } = useToast();
   const [purpose, setPurpose] = useState<string>("");
   const [isLogging, setIsLogging] = useState(false);
+  const [academicYear, setAcademicYear] = useState("");
+
   const libraryImage = PlaceHolderImages.find(img => img.id === 'library-interior');
   const logoImage = PlaceHolderImages.find(img => img.id === 'neu-logo');
+
+  useEffect(() => {
+    // Avoid hydration mismatch by setting dynamic value on mount
+    setAcademicYear(getAcademicYear());
+  }, []);
 
   const handleLogVisit = async () => {
     if (!purpose || !profile || !firestore) return;
@@ -54,7 +62,8 @@ export function UserGreeting() {
         college: profile.college || 'Guest',
         roleAtTime: profile.role,
         purpose: purpose,
-        timestamp: serverTimestamp()
+        timestamp: serverTimestamp(),
+        academicYear: getAcademicYear()
       });
       toast({
         title: "Log Recorded",
@@ -144,7 +153,7 @@ export function UserGreeting() {
               <div className="space-y-2 md:space-y-3">
                 <div className="inline-flex items-center gap-2 bg-primary/10 text-primary border border-primary/20 px-4 py-1.5 md:px-5 md:py-2 rounded-2xl text-[8px] md:text-[10px] font-black uppercase tracking-widest">
                    {isGuest ? <Globe className="h-3.5 w-3.5 text-secondary" /> : <Sparkles className="h-3.5 w-3.5 text-secondary fill-secondary" />}
-                   {isGuest ? "External Visitor Access" : "Academic Year 2024-25"}
+                   {isGuest ? "External Visitor Access" : `Academic Year ${academicYear || "..."}`}
                 </div>
                 <h1 className="text-4xl md:text-6xl lg:text-8xl font-black text-primary tracking-tighter leading-[1.1] md:leading-[0.85]">
                   {isGuest ? "Hello, Visitor" : "Welcome,"} <br />

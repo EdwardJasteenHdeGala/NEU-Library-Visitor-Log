@@ -4,7 +4,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Search, Users, Trash2, Download, Filter } from "lucide-react";
+import { Search, Users, Trash2, Download, Filter, Calendar } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { collection, query, orderBy, doc } from "firebase/firestore";
 import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
@@ -38,7 +38,8 @@ export function VisitorLog() {
   const filteredVisits = visits?.filter(visit => 
     visit.userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     visit.college.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    visit.purpose.toLowerCase().includes(searchTerm.toLowerCase())
+    visit.purpose.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (visit.academicYear && visit.academicYear.includes(searchTerm))
   ) || [];
 
   const uniqueUserCount = new Set(visits?.map(v => v.userId)).size;
@@ -68,8 +69,8 @@ export function VisitorLog() {
             <div className="relative max-w-sm">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input 
-                    placeholder="Search logs..." 
-                    className="pl-10 h-12 rounded-xl shadow-sm border-2 w-[250px]"
+                    placeholder="Search name, college, or AY..." 
+                    className="pl-10 h-12 rounded-xl shadow-sm border-2 w-[280px]"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -137,19 +138,20 @@ export function VisitorLog() {
               <TableHead className="font-black text-primary py-4 uppercase text-[10px] tracking-widest">Name</TableHead>
               <TableHead className="font-black text-primary py-4 uppercase text-[10px] tracking-widest">College / Dept</TableHead>
               <TableHead className="font-black text-primary py-4 uppercase text-[10px] tracking-widest">Purpose</TableHead>
-              <TableHead className="font-black text-primary py-4 uppercase text-[10px] tracking-widest">Timestamp</TableHead>
+              <TableHead className="font-black text-primary py-4 uppercase text-[10px] tracking-widest">Academic Period</TableHead>
+              <TableHead className="font-black text-primary py-4 uppercase text-[10px] tracking-widest">Recorded Date</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              <TableRow><TableCell colSpan={4} className="text-center py-12">
+              <TableRow><TableCell colSpan={5} className="text-center py-12">
                 <div className="flex flex-col items-center gap-2">
                     <div className="h-8 w-8 border-4 border-primary border-t-transparent animate-spin rounded-full" />
                     <span className="text-xs font-bold text-muted-foreground animate-pulse">Syncing logs...</span>
                 </div>
               </TableCell></TableRow>
             ) : filteredVisits.length === 0 ? (
-              <TableRow><TableCell colSpan={4} className="text-center py-20 text-muted-foreground italic">
+              <TableRow><TableCell colSpan={5} className="text-center py-20 text-muted-foreground italic">
                 <div className="flex flex-col items-center gap-3">
                     <Filter className="h-10 w-10 opacity-10" />
                     <p className="font-medium text-sm">No visitor entries found in the current log.</p>
@@ -164,8 +166,14 @@ export function VisitorLog() {
                     {visit.purpose}
                   </span>
                 </TableCell>
+                <TableCell>
+                   <div className="flex items-center gap-2">
+                      <Calendar className="h-3 w-3 text-secondary" />
+                      <span className="text-xs font-bold text-primary italic">AY {visit.academicYear || "N/A"}</span>
+                   </div>
+                </TableCell>
                 <TableCell className="text-muted-foreground font-bold text-xs">
-                  {visit.timestamp?.seconds ? format(visit.timestamp.seconds * 1000, 'MMM dd, h:mm a') : 'Syncing...'}
+                  {visit.timestamp?.seconds ? format(visit.timestamp.seconds * 1000, 'MMM dd, yyyy • h:mm a') : 'Syncing...'}
                 </TableCell>
               </TableRow>
             ))}
