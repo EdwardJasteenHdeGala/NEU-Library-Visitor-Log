@@ -58,11 +58,25 @@
     @apply border-border;
   }
   html, body {
-    @apply h-full overflow-x-hidden;
+    @apply h-full overflow-x-hidden scroll-smooth;
   }
   body {
     @apply bg-background text-foreground font-body antialiased selection:bg-primary/10 selection:text-primary;
   }
+}
+
+.neu-mesh-gradient {
+  background-color: hsl(var(--background));
+  background-image: 
+    radial-gradient(at 0% 0%, hsla(153, 100%, 15%, 0.15) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, hsla(45, 100%, 48%, 0.1) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, hsla(153, 100%, 10%, 0.05) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, hsla(45, 100%, 48%, 0.05) 0px, transparent 50%);
+}
+
+.bg-dot-pattern {
+  background-image: radial-gradient(circle, hsl(var(--muted-foreground) / 0.1) 1px, transparent 1px);
+  background-size: 24px 24px;
 }
 
 .neu-gradient {
@@ -79,6 +93,17 @@
 
 .neu-button-shadow-secondary {
   box-shadow: 0 10px 20px -5px rgba(184, 134, 11, 0.15);
+}
+
+@keyframes blob {
+  0% { transform: translate(0px, 0px) scale(1); }
+  33% { transform: translate(30px, -50px) scale(1.1); }
+  66% { transform: translate(-20px, 20px) scale(0.9); }
+  100% { transform: translate(0px, 0px) scale(1); }
+}
+
+.animate-blob {
+  animation: blob 7s infinite alternate;
 }
 
 @keyframes shimmer {
