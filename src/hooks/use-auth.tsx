@@ -79,8 +79,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const docSnap = await getDoc(docRef);
       
       const isAuthorized = user.email && AUTHORIZED_ADMIN_EMAILS.includes(user.email);
-      const isEdward = user.email === 'edwardjasteen.degala@neu.edu.ph';
-      const defaultCollege = isEdward ? 'CICS' : 'General Education';
+      // Both Edward and Prof. Esperanza are from CICS
+      const isCICS = user.email === 'edwardjasteen.degala@neu.edu.ph' || user.email === 'jcesperanza@neu.edu.ph';
+      const defaultCollege = isCICS ? 'CICS' : 'General Education';
 
       if (docSnap.exists()) {
         const data = docSnap.data() as UserProfile;
@@ -94,7 +95,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           needsUpdate = true;
         }
 
-        if (isEdward && data.college !== 'CICS') {
+        if (isCICS && data.college !== 'CICS') {
           updates.college = 'CICS';
           needsUpdate = true;
         }
@@ -154,8 +155,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Check if the student ID matches the test account requirement
     const isTestId = studentId === '24-13347-177';
     const isAuthorized = user.email && AUTHORIZED_ADMIN_EMAILS.includes(user.email);
-    const isEdward = user.email === 'edwardjasteen.degala@neu.edu.ph';
-    const defaultCollege = isEdward ? 'CICS' : 'General Education';
+    const isCICS = user.email === 'edwardjasteen.degala@neu.edu.ph' || user.email === 'jcesperanza@neu.edu.ph';
+    const defaultCollege = isCICS ? 'CICS' : 'General Education';
 
     try {
       const profileData = {
