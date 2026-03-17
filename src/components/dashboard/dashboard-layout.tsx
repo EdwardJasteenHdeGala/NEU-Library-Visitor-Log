@@ -102,7 +102,7 @@ export function DashboardLayout() {
                 />
             </div>
             <div className="flex flex-col -space-y-0.5 hidden xs:flex">
-                <h1 className="text-sm font-black tracking-tighter italic uppercase leading-none">NEU HUB</h1>
+                <h1 className="text-sm font-black tracking-tighter italic uppercase leading-none text-white">NEU HUB</h1>
                 <span className="text-[6px] font-black text-secondary uppercase tracking-[0.2em] opacity-80">Institutional Admin</span>
             </div>
           </div>
@@ -138,7 +138,7 @@ export function DashboardLayout() {
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex flex-col items-start hidden xs:flex text-left">
-                    <span className="text-[10px] font-black uppercase tracking-tight leading-none max-w-[100px] truncate">{profile?.displayName?.split(' ')[0]}</span>
+                    <span className="text-[10px] font-black uppercase tracking-tight leading-none max-w-[100px] truncate text-white">{profile?.displayName?.split(' ')[0]}</span>
                     <span className="text-[7px] font-bold text-secondary uppercase tracking-widest opacity-80 italic">Admin</span>
                   </div>
                 </button>
@@ -195,7 +195,7 @@ export function DashboardLayout() {
         )}
       </nav>
 
-      <main className="relative flex-1 w-full max-w-7xl mx-auto p-4 md:p-8 animate-in fade-in duration-700 pb-20">
+      <main className="relative flex-1 w-full max-w-7xl mx-auto p-4 md:p-8 animate-in fade-in duration-500 pb-20">
         <div className="relative z-10 w-full">
           {renderView()}
         </div>
