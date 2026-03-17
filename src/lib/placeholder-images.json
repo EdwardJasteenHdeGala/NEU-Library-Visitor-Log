@@ -14,9 +14,9 @@
     },
     {
       "id": "neu-logo",
-      "description": "NEU Official Logo Seal",
-      "imageUrl": "https://picsum.photos/seed/neu-seal/400/400",
-      "imageHint": "university seal"
+      "description": "NEU CEA Official Logo",
+      "imageUrl": "https://picsum.photos/seed/neu-cea/400/400",
+      "imageHint": "college logo"
     }
   ]
 }
