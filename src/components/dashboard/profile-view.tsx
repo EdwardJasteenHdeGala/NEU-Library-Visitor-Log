@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -7,13 +6,37 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { User, Shield, Lock, ShieldAlert, ShieldCheck, RefreshCcw, LogOut, Camera, Save, Loader2 } from "lucide-react";
+import { 
+  User, 
+  Shield, 
+  Lock, 
+  ShieldAlert, 
+  ShieldCheck, 
+  RefreshCcw, 
+  LogOut, 
+  Camera, 
+  Save, 
+  Loader2,
+  ShieldOff,
+  AlertTriangle
+} from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export function ProfileView() {
-  const { profile, switchRole, logout, updateProfileData } = useAuth();
+  const { profile, switchRole, logout, updateProfileData, resignAdmin } = useAuth();
   const { toast } = useToast();
   
   const [isUpdating, setIsUpdating] = useState(false);
@@ -42,8 +65,12 @@ export function ProfileView() {
     }
   };
 
+  const handleResign = async () => {
+    await resignAdmin();
+  };
+
   return (
-    <div className="max-w-2xl mx-auto space-y-8 animate-in fade-in duration-500">
+    <div className="max-w-2xl mx-auto space-y-8 animate-in fade-in duration-500 pb-20">
       <div className="text-center space-y-4">
         <div className="relative inline-block">
           <Avatar className="h-32 w-32 border-4 border-white shadow-2xl">
@@ -136,17 +163,6 @@ export function ProfileView() {
                     />
                 </div>
             </div>
-            
-            <div className="relative py-4">
-                <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-card px-2 text-muted-foreground flex items-center gap-1 font-bold">
-                        <Shield className="h-3 w-3" /> Institutional Verification
-                    </span>
-                </div>
-            </div>
 
             <Button 
                 onClick={handleSave} 
@@ -170,6 +186,62 @@ export function ProfileView() {
           </div>
         </CardContent>
       </Card>
+
+      {profile?.isAuthorizedAdmin && (
+        <Card className="neu-card-shadow border-2 border-destructive/10 bg-destructive/5 overflow-hidden">
+          <CardHeader className="p-6 pb-2">
+            <CardTitle className="text-lg font-black text-destructive flex items-center gap-2">
+              <ShieldOff className="h-5 w-5" />
+              DANGER ZONE
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-6 space-y-4">
+            <div className="p-4 bg-white/50 rounded-xl border border-destructive/10 flex items-start gap-3">
+              <AlertTriangle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
+              <p className="text-[11px] font-medium text-muted-foreground leading-relaxed">
+                By resigning your admin access, you will lose the ability to manage users, view analytics, and access the administrator console. 
+                {profile.isSuperAdmin ? (
+                  <span className="block mt-2 font-black text-destructive uppercase tracking-widest">
+                    As Super Admin, you must transfer ownership before resigning.
+                  </span>
+                ) : (
+                  <span className="block mt-2">This action is permanent and cannot be undone without Super Admin approval.</span>
+                )}
+              </p>
+            </div>
+
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button 
+                  variant="destructive" 
+                  className="w-full h-12 gap-2 font-black uppercase text-xs tracking-widest shadow-lg"
+                  disabled={profile.isSuperAdmin}
+                >
+                  <ShieldOff className="h-4 w-4" />
+                  Resign Admin Privileges
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent className="rounded-2xl">
+                <AlertDialogHeader>
+                  <AlertDialogTitle className="text-2xl font-black text-primary italic uppercase tracking-tighter">Confirm Resignation</AlertDialogTitle>
+                  <AlertDialogDescription className="text-base font-medium">
+                    Are you absolutely sure? You will be demoted to a standard user and lose all administrative dashboard access immediately.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel className="rounded-xl font-bold">Cancel</AlertDialogCancel>
+                  <AlertDialogAction 
+                    onClick={handleResign}
+                    className="bg-destructive hover:bg-destructive/90 text-white rounded-xl font-black"
+                  >
+                    Confirm Resignation
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </CardContent>
+        </Card>
+      )}
       
       <div className="flex items-center justify-center gap-8 opacity-40">
         <div className="flex flex-col items-center gap-1">

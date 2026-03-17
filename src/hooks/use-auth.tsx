@@ -12,7 +12,7 @@ export interface UserProfile {
   studentId: string;
   role: 'guest' | 'user' | 'admin';
   isAuthorizedAdmin: boolean;
-  isSuperAdmin?: boolean; // Added dynamic super admin flag
+  isSuperAdmin?: boolean;
   displayName: string;
   photoURL?: string;
   college?: string;
@@ -31,11 +31,11 @@ interface AuthContextType {
   switchRole: (newRole: 'user' | 'admin') => Promise<void>;
   setUserRole: (userId: string, newRole: 'user' | 'admin' | 'guest') => Promise<void>;
   transferSuperAdmin: (targetUserId: string) => Promise<void>;
+  resignAdmin: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Initial bootstrap Super Admin
 export const BOOTSTRAP_SUPER_ADMIN_EMAIL = 'edwardjasteen.degala@neu.edu.ph';
 const AUTHORIZED_ADMIN_EMAILS = [
   BOOTSTRAP_SUPER_ADMIN_EMAIL,
@@ -93,7 +93,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           needsUpdate = true;
         }
 
-        // Bootstrap logic: if this is the hardcoded email and isSuperAdmin isn't set, force it once
         if (isBootstrapAdmin && !data.isSuperAdmin) {
           updates.isSuperAdmin = true;
           updates.isAuthorizedAdmin = true;
@@ -259,13 +258,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const currentRef = doc(firestore, 'user_profiles', profile.id);
       const targetRef = doc(firestore, 'user_profiles', targetUserId);
 
-      // Remove super admin from self
       batch.update(currentRef, {
         isSuperAdmin: false,
         updatedAt: serverTimestamp()
       });
 
-      // Grant super admin to target and force admin role
       batch.update(targetRef, {
         isSuperAdmin: true,
         role: 'admin',
@@ -274,8 +271,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
       await batch.commit();
-
-      // Update local state
       setProfile({ ...profile, isSuperAdmin: false });
 
       toast({
@@ -286,6 +281,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       toast({
         title: "Transfer Error",
         description: "Failed to transfer Super Admin status.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const resignAdmin = async () => {
+    if (!profile || !profile.isAuthorizedAdmin) return;
+    
+    if (profile.isSuperAdmin) {
+      toast({
+        title: "Action Restricted",
+        description: "Super Admin cannot resign without transferring ownership first.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const docRef = doc(firestore, 'user_profiles', profile.id);
+      await updateDoc(docRef, {
+        role: 'user',
+        isAuthorizedAdmin: false,
+        updatedAt: serverTimestamp()
+      });
+      setProfile({ ...profile, role: 'user', isAuthorizedAdmin: false });
+      toast({
+        title: "Privileges Resigned",
+        description: "You have successfully resigned your administrative access.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Update Error",
+        description: "Failed to resign admin privileges.",
         variant: "destructive"
       });
     }
@@ -306,7 +334,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       updateProfileData, 
       switchRole, 
       setUserRole,
-      transferSuperAdmin
+      transferSuperAdmin,
+      resignAdmin
     }}>
       {children}
     </AuthContext.Provider>
