@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -29,7 +30,6 @@ export function LiveClock({ className, showSelector = true }: LiveClockProps) {
   const [timezone, setTimezone] = useState("Asia/Manila");
 
   useEffect(() => {
-    // Set initial time on mount to avoid hydration mismatch
     setTime(new Date());
     const timer = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(timer);
@@ -54,7 +54,7 @@ export function LiveClock({ className, showSelector = true }: LiveClockProps) {
   });
 
   return (
-    <div className={cn("flex flex-col md:flex-row items-center gap-4 p-3 rounded-2xl shadow-inner border transition-all", className)}>
+    <div className={cn("flex flex-col md:flex-row items-center gap-4 p-3 rounded-2xl shadow-inner border transition-all bg-background text-foreground", className)}>
       <div className="flex items-center gap-3">
         <div className="bg-secondary p-2 rounded-xl shadow-lg animate-pulse shrink-0">
           <Clock className="h-5 w-5 text-primary" />

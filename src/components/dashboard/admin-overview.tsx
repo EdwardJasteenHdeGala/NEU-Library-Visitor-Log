@@ -42,7 +42,6 @@ export function AdminOverview() {
   const { data: recentVisits, isLoading } = useCollection(visitsQuery);
   const { data: allVisits } = useCollection(allVisitsQuery);
 
-  // Process data for charts
   const purposeData = allVisits ? Object.entries(
     allVisits.reduce((acc: any, visit) => {
       acc[visit.purpose] = (acc[visit.purpose] || 0) + 1;
@@ -58,21 +57,11 @@ export function AdminOverview() {
   ).map(([college, visits]) => ({ college, visits }))
   .sort((a, b) => b.visits - a.visits) : [];
 
-  const trendData = [
-    { day: "Mon", visits: 12 },
-    { day: "Tue", visits: 18 },
-    { day: "Wed", visits: 15 },
-    { day: "Thu", visits: 25 },
-    { day: "Fri", visits: 32 },
-    { day: "Sat", visits: 8 },
-    { day: "Sun", visits: 4 },
-  ];
-
   const stats = [
     { title: "Today's Visits", value: allVisits?.length || "0", icon: Users, color: "bg-primary", trend: "+12% from yesterday" },
     { title: "Weekly Total", value: "114", icon: TrendingUp, color: "bg-secondary", trend: "+5% from last week" },
     { title: "Peak Hour", value: "14:00", icon: History, color: "bg-blue-600", trend: "Consistent with average" },
-    { title: "Active Hubs", value: "8", icon: BarChart3, color: "bg-orange-600", trend: "Across all colleges" },
+    { title: "Active Hubs", value: "8", icon: BarChart3, color: "bg-orange-600", trend: "Across all levels" },
   ];
 
   const chartConfig = {
@@ -135,9 +124,9 @@ export function AdminOverview() {
           <CardHeader>
             <CardTitle className="text-lg font-black text-primary flex items-center gap-2">
               <Building2 className="h-5 w-5" />
-              COLLEGE TALLY
+              DEPARTMENT TALLY
             </CardTitle>
-            <CardDescription>Visitation counts grouped by academic department.</CardDescription>
+            <CardDescription>Visitation counts grouped by academic department (including SHS/HS).</CardDescription>
           </CardHeader>
           <CardContent className="h-[350px] pt-4">
             {collegeData.length > 0 ? (
@@ -212,7 +201,7 @@ export function AdminOverview() {
               <TableHeader>
                 <TableRow className="bg-muted/50 border-none">
                   <TableHead className="font-black py-4 uppercase text-[10px] tracking-widest">Visitor Name</TableHead>
-                  <TableHead className="font-black py-4 uppercase text-[10px] tracking-widest">College</TableHead>
+                  <TableHead className="font-black py-4 uppercase text-[10px] tracking-widest">College / Level</TableHead>
                   <TableHead className="font-black py-4 uppercase text-[10px] tracking-widest">Purpose</TableHead>
                   <TableHead className="font-black py-4 uppercase text-[10px] tracking-widest">Time</TableHead>
                 </TableRow>
@@ -268,11 +257,11 @@ export function AdminOverview() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">By College</Label>
+              <Label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">By College / Level</Label>
               <Select defaultValue="all">
                 <SelectTrigger className="rounded-xl h-12 border-2 border-muted"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Colleges</SelectItem>
+                  <SelectItem value="all">All Levels</SelectItem>
                   <SelectItem value="CICS">CICS (Computer Studies)</SelectItem>
                   <SelectItem value="CEA">CEA (Engineering/Arch)</SelectItem>
                   <SelectItem value="CAS">CAS (Arts/Sciences)</SelectItem>
@@ -282,8 +271,8 @@ export function AdminOverview() {
                   <SelectItem value="CON">CON (Nursing)</SelectItem>
                   <SelectItem value="COL">COL (Law)</SelectItem>
                   <SelectItem value="GRAD">Graduate School</SelectItem>
-                  <SelectItem value="SHS">Senior High School</SelectItem>
-                  <SelectItem value="HS">High School</SelectItem>
+                  <SelectItem value="SHS">Senior High School (SHS)</SelectItem>
+                  <SelectItem value="HS">High School (HS)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
