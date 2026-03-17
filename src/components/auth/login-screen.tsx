@@ -1,53 +1,92 @@
-
 "use client";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/use-auth";
-import { LogIn, GraduationCap } from "lucide-react";
+import { LogIn, GraduationCap, ArrowLeft, Fingerprint, Mail } from "lucide-react";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 
-export function LoginScreen() {
+interface LoginScreenProps {
+  onBack: () => void;
+}
+
+export function LoginScreen({ onBack }: LoginScreenProps) {
   const { login } = useAuth();
-  const heroImage = PlaceHolderImages.find(img => img.id === 'neu-logo');
+  const bgImage = PlaceHolderImages.find(img => img.id === 'neu-campus');
+  const logoImage = PlaceHolderImages.find(img => img.id === 'neu-logo');
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-[url('https://picsum.photos/seed/neu-bg/1920/1080')] bg-cover bg-center bg-no-repeat">
-      <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" />
-      <Card className="w-full max-w-md relative z-10 shadow-2xl border-primary/20">
-        <CardHeader className="text-center space-y-4">
-          <div className="mx-auto w-24 h-24 relative rounded-full overflow-hidden border-4 border-primary shadow-lg">
-            <Image 
-                src={heroImage?.imageUrl || "https://picsum.photos/seed/neu/200/200"} 
-                alt="NEU Hub" 
-                fill 
-                className="object-cover"
-            />
-          </div>
-          <div className="space-y-1">
-            <CardTitle className="text-3xl font-headline font-bold text-primary tracking-tight">NEU Access Hub</CardTitle>
-            <CardDescription className="text-muted-foreground font-medium">
-              Library Visitor Management System
-            </CardDescription>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="p-4 bg-muted rounded-lg text-sm text-muted-foreground flex items-start gap-3">
-            <GraduationCap className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-            <p>Access is exclusively for students and staff with an active <strong>@neu.edu.ph</strong> institutional account.</p>
-          </div>
+    <div 
+      className="min-h-screen flex items-center justify-center p-4 bg-cover bg-center"
+      style={{ backgroundImage: `url(${bgImage?.imageUrl})` }}
+    >
+      <div className="absolute inset-0 bg-primary/40 backdrop-blur-md" />
+      
+      <Card className="w-full max-w-lg relative z-10 shadow-2xl border-none overflow-hidden rounded-2xl">
+        <div className="bg-primary p-6 text-center space-y-2">
+            <Button 
+                variant="ghost" 
+                size="sm" 
+                className="absolute left-4 top-4 text-white hover:bg-white/10"
+                onClick={onBack}
+            >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back
+            </Button>
+            <div className="mx-auto w-20 h-20 relative rounded-full overflow-hidden border-4 border-secondary shadow-lg bg-white">
+                <Image 
+                    src={logoImage?.imageUrl || "https://picsum.photos/seed/neu/200/200"} 
+                    alt="NEU Logo" 
+                    fill 
+                    className="object-contain p-2"
+                />
+            </div>
+            <CardTitle className="text-2xl font-bold text-white tracking-tight">Login to NEU Library Visitor Log</CardTitle>
+        </div>
+        
+        <CardContent className="p-8 space-y-6">
           <Button 
             onClick={login} 
-            className="w-full h-12 text-lg font-semibold gap-3 transition-all active:scale-95"
+            variant="outline"
+            className="w-full h-12 text-base font-semibold gap-3 border-2 hover:bg-muted transition-all"
           >
-            <LogIn className="h-5 w-5" />
-            Sign in with Google
+            <Image src="https://www.google.com/favicon.ico" alt="Google" width={20} height={20} />
+            Continue with Google
           </Button>
-          <div className="text-center">
-            <p className="text-xs text-muted-foreground">
-              By signing in, you agree to follow the NEU Library policies.
-            </p>
+
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-card px-2 text-muted-foreground">Or with Student ID</span>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <Button className="w-full h-12 gap-2 bg-secondary hover:bg-secondary/90 text-primary font-bold">
+                <Fingerprint className="h-5 w-5" />
+                Login with RFID Card
+            </Button>
+            
+            <div className="grid grid-cols-2 gap-4">
+                <Button variant="ghost" className="text-xs">Guest Visit</Button>
+                <Button variant="ghost" className="text-xs">Forgot Password?</Button>
+            </div>
+          </div>
+
+          <div className="pt-4 text-center border-t">
+            <button className="text-sm font-bold text-primary hover:underline">
+              Create an Account
+            </button>
+          </div>
+          
+          <div className="p-3 bg-muted/50 rounded-lg flex items-center gap-3 text-xs text-muted-foreground">
+            <Mail className="h-4 w-4 text-primary" />
+            Use your @neu.edu.ph institutional email to sign in.
           </div>
         </CardContent>
       </Card>
