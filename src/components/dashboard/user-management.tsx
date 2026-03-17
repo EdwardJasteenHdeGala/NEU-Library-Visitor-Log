@@ -36,6 +36,7 @@ import {
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -143,32 +144,35 @@ export function UserManagement() {
               <DialogTrigger asChild>
                 <Button className="h-12 gap-2 rounded-xl font-black text-xs uppercase shadow-lg hover:scale-105 transition-transform">
                   <UserPlus className="h-4 w-4" />
-                  Add User
+                  Grant Access
                 </Button>
               </DialogTrigger>
               <DialogContent className="rounded-[2rem] sm:max-w-[425px]">
                 <DialogHeader>
-                  <DialogTitle className="text-2xl font-black text-primary italic uppercase tracking-tighter">Register New Access</DialogTitle>
+                  <DialogTitle className="text-2xl font-black text-primary italic uppercase tracking-tighter">Authorize Access</DialogTitle>
                   <DialogDescription>
-                    Configure institutional access for a specific email. The user will inherit these settings upon their first login.
+                    Invite an email to the system with a pre-defined role and department, similar to sharing a folder.
                   </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-6 py-4">
                   <div className="space-y-2">
-                    <Label htmlFor="email" className="text-[10px] font-black uppercase tracking-widest text-primary/70">Google / NEU Email</Label>
-                    <Input 
-                        id="email" 
-                        placeholder="user@neu.edu.ph" 
-                        value={newEmail}
-                        onChange={(e) => setNewEmail(e.target.value)}
-                        className="h-12 rounded-xl border-2 font-bold"
-                    />
+                    <Label htmlFor="email" className="text-[10px] font-black uppercase tracking-widest text-primary/70 ml-1">Email Address</Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input 
+                          id="email" 
+                          placeholder="user@gmail.com or @neu.edu.ph" 
+                          value={newEmail}
+                          onChange={(e) => setNewEmail(e.target.value)}
+                          className="h-12 rounded-xl border-2 pl-10 font-bold focus:ring-primary"
+                      />
+                    </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="role" className="text-[10px] font-black uppercase tracking-widest text-primary/70">Default Role</Label>
+                      <Label htmlFor="role" className="text-[10px] font-black uppercase tracking-widest text-primary/70 ml-1">Assigned Role</Label>
                       <Select value={newRole} onValueChange={setNewRole}>
-                        <SelectTrigger className="h-12 rounded-xl border-2 font-bold">
+                        <SelectTrigger className="h-12 rounded-xl border-2 font-bold focus:ring-primary">
                           <SelectValue placeholder="Role" />
                         </SelectTrigger>
                         <SelectContent className="rounded-xl border-none shadow-2xl">
@@ -179,9 +183,9 @@ export function UserManagement() {
                       </Select>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="college" className="text-[10px] font-black uppercase tracking-widest text-primary/70">Department</Label>
+                      <Label htmlFor="college" className="text-[10px] font-black uppercase tracking-widest text-primary/70 ml-1">Department</Label>
                       <Select value={newCollege} onValueChange={setNewCollege}>
-                        <SelectTrigger className="h-12 rounded-xl border-2 font-bold">
+                        <SelectTrigger className="h-12 rounded-xl border-2 font-bold focus:ring-primary">
                           <SelectValue placeholder="College" />
                         </SelectTrigger>
                         <SelectContent className="rounded-xl border-none shadow-2xl max-h-[300px]">
@@ -193,13 +197,23 @@ export function UserManagement() {
                     </div>
                   </div>
                 </div>
-                <DialogFooter>
+                <DialogFooter className="pt-2">
                   <Button 
                     onClick={handleAddUser} 
                     disabled={isAdding || !newEmail.includes('@') || !newCollege}
-                    className="w-full h-14 text-lg font-black italic uppercase rounded-2xl shadow-xl"
+                    className="w-full h-14 text-lg font-black italic uppercase rounded-2xl shadow-xl gap-2"
                   >
-                    {isAdding ? <Loader2 className="h-5 w-5 animate-spin" /> : "Authorize User Email"}
+                    {isAdding ? (
+                      <>
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                        SYNCHRONIZING...
+                      </>
+                    ) : (
+                      <>
+                        <ShieldCheck className="h-5 w-5" />
+                        GRANT ACCESS
+                      </>
+                    )}
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -280,20 +294,29 @@ export function UserManagement() {
                 <TableRow key={i} className="hover:bg-muted/30 border-b">
                   <TableCell className="py-4">
                     <div className="flex items-center gap-3">
-                      <Avatar className={cn("h-10 w-10 border-2 shadow-sm", isPending ? "border-dashed border-muted-foreground/30 opacity-50" : "border-muted")}>
+                      <Avatar className={cn("h-10 w-10 border-2 shadow-sm transition-opacity", isPending ? "border-dashed border-muted-foreground/30 opacity-60" : "border-muted")}>
                         <AvatarImage src={u.photoURL} alt={u.displayName} />
                         <AvatarFallback className="bg-muted text-primary font-black text-xs">
                           {userInitials}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex flex-col">
-                        <span className={cn("font-bold text-primary", isPending && "italic text-muted-foreground")}>{u.displayName} {isCurrentUser && <span className="text-[8px] bg-primary/10 px-2 py-0.5 rounded text-primary uppercase ml-1">You</span>}</span>
+                        <span className={cn("font-bold text-primary", isPending && "italic text-muted-foreground flex items-center gap-1.5")}>
+                          {u.displayName} 
+                          {isPending && <Badge className="text-[8px] bg-secondary/10 text-secondary border-none px-2 h-4 font-black">INVITED</Badge>}
+                          {isCurrentUser && <span className="text-[8px] bg-primary/10 px-2 py-0.5 rounded text-primary uppercase">You</span>}
+                        </span>
                         <span className="text-[10px] text-muted-foreground font-medium truncate max-w-[150px]">{u.email}</span>
                       </div>
                     </div>
                   </TableCell>
                   <TableCell className="font-mono text-xs font-bold text-muted-foreground">
-                    {isPending ? <span className="text-[10px] uppercase font-black text-secondary">Awaiting Login</span> : u.studentId}
+                    {isPending ? (
+                      <span className="text-[10px] uppercase font-black text-secondary flex items-center gap-1">
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                        Awaiting Sync
+                      </span>
+                    ) : u.studentId}
                   </TableCell>
                   <TableCell className="text-sm font-medium">{u.college || 'External'}</TableCell>
                   <TableCell>
@@ -308,7 +331,7 @@ export function UserManagement() {
                         <Badge className="bg-primary text-white text-[9px] uppercase font-black px-2.5 py-1">Admin</Badge>
                       )}
                       {u.role === 'user' && (
-                        <Badge variant="outline" className="text-primary text-[9px] uppercase font-black px-2.5 py-1">Institutional</Badge>
+                        <Badge variant="outline" className="text-primary text-[9px] uppercase font-black px-2.5 py-1 border-primary/20">Institutional</Badge>
                       )}
                       {u.role === 'guest' && (
                         <Badge className="bg-muted text-muted-foreground text-[9px] uppercase font-black px-2.5 py-1">Guest</Badge>
