@@ -1,8 +1,23 @@
+
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
-import { doc, getDoc, setDoc, updateDoc, serverTimestamp, writeBatch } from 'firebase/firestore';
+import { 
+  doc, 
+  getDoc, 
+  setDoc, 
+  updateDoc, 
+  serverTimestamp, 
+  writeBatch, 
+  query, 
+  collection, 
+  where, 
+  getDocs, 
+  limit, 
+  deleteDoc,
+  addDoc
+} from 'firebase/firestore';
 import { useFirebase, useUser } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 
@@ -32,6 +47,7 @@ interface AuthContextType {
   setUserRole: (userId: string, newRole: 'user' | 'admin' | 'guest') => Promise<void>;
   transferSuperAdmin: (targetUserId: string) => Promise<void>;
   resignAdmin: () => Promise<void>;
+  addUserByEmail: (email: string, role: 'user' | 'admin' | 'guest', college: string) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -69,8 +85,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!user || !firestore) return;
     try {
       const docRef = doc(firestore, 'user_profiles', uid);
-      const docSnap = await getDoc(docRef);
+      let docSnap = await getDoc(docRef);
       
+      // CHECK FOR PRE-ADDED USER BY EMAIL
+      if (!docSnap.exists() && user.email) {
+        const q = query(collection(firestore, 'user_profiles'), where('email', '==', user.email), limit(1));
+        const qSnap = await getDocs(q);
+        if (!qSnap.empty) {
+          const preDoc = qSnap.docs[0];
+          const preData = preDoc.data() as UserProfile;
+          
+          // Migrate pre-added profile to UID-indexed profile
+          const migratedData = {
+            ...preData,
+            id: user.uid,
+            displayName: user.displayName || preData.displayName,
+            photoURL: user.photoURL || preData.photoURL,
+            updatedAt: serverTimestamp()
+          };
+          
+          await setDoc(docRef, migratedData);
+          await deleteDoc(preDoc.ref);
+          setProfile(migratedData as any);
+          setLoading(false);
+          return;
+        }
+      }
+
       const isInstitutional = user.email && user.email.endsWith('@neu.edu.ph');
       const isBootstrapAdmin = user.email === BOOTSTRAP_SUPER_ADMIN_EMAIL;
       const isAuthorized = user.email && AUTHORIZED_ADMIN_EMAILS.includes(user.email);
@@ -319,6 +360,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const addUserByEmail = async (email: string, role: 'user' | 'admin' | 'guest', college: string) => {
+    if (!profile?.isAuthorizedAdmin || !firestore) return false;
+    try {
+      const q = query(collection(firestore, 'user_profiles'), where('email', '==', email), limit(1));
+      const qSnap = await getDocs(q);
+      if (!qSnap.empty) {
+        toast({
+          title: "Duplicate User",
+          description: "A user with this email already exists in the directory.",
+          variant: "destructive"
+        });
+        return false;
+      }
+
+      await addDoc(collection(firestore, 'user_profiles'), {
+        email,
+        role,
+        isAuthorizedAdmin: role === 'admin',
+        college,
+        displayName: 'New User (Pending)',
+        studentId: 'PENDING-ID',
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+
+      toast({
+        title: "User Pre-Registered",
+        description: `Access for ${email} has been configured.`,
+      });
+      return true;
+    } catch (error: any) {
+      toast({
+        title: "Error Adding User",
+        description: "Failed to pre-register the user email.",
+        variant: "destructive"
+      });
+      return false;
+    }
+  };
+
   const verifyStudentId = async (studentId: string) => {
     return updateProfileData({ studentId });
   };
@@ -335,7 +416,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       switchRole, 
       setUserRole,
       transferSuperAdmin,
-      resignAdmin
+      resignAdmin,
+      addUserByEmail
     }}>
       {children}
     </AuthContext.Provider>

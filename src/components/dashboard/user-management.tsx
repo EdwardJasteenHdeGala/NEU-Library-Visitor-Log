@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -15,7 +16,10 @@ import {
   ShieldOff, 
   ArrowRightLeft,
   User as UserIcon,
-  AlertTriangle
+  AlertTriangle,
+  UserPlus,
+  Loader2,
+  Building2
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { collection, query, orderBy } from "firebase/firestore";
@@ -43,11 +47,54 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+
+const NEU_COLLEGES = [
+  { id: "CICS", name: "Computer & Info Sciences" },
+  { id: "CEA", name: "Engineering & Architecture" },
+  { id: "CAS", name: "Arts & Sciences" },
+  { id: "CBA", name: "Business Administration" },
+  { id: "COED", name: "Education" },
+  { id: "CON", name: "Nursing" },
+  { id: "COM", name: "Medicine" },
+  { id: "COL", name: "Law" },
+  { id: "GRAD", name: "Graduate School" },
+  { id: "SHS", name: "Senior High School" },
+  { id: "EXTERNAL", name: "External / Guest" },
+];
 
 export function UserManagement() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [isAddUserOpen, setIsAddUserOpen] = useState(false);
+  const [newEmail, setNewEmail] = useState("");
+  const [newRole, setNewRole] = useState<any>("user");
+  const [newCollege, setNewCollege] = useState("");
+  const [isAdding, setIsAdding] = useState(false);
+
   const firestore = useFirestore();
-  const { setUserRole, transferSuperAdmin, resignAdmin, profile: currentUserProfile } = useAuth();
+  const { 
+    setUserRole, 
+    transferSuperAdmin, 
+    resignAdmin, 
+    addUserByEmail,
+    profile: currentUserProfile 
+  } = useAuth();
 
   const usersQuery = useMemoFirebase(() => {
     return query(collection(firestore, 'user_profiles'), orderBy('displayName', 'asc'));
@@ -61,6 +108,19 @@ export function UserManagement() {
     (u.studentId && u.studentId.toLowerCase().includes(searchTerm.toLowerCase()))
   ) || [];
 
+  const handleAddUser = async () => {
+    if (!newEmail.trim() || !newCollege) return;
+    setIsAdding(true);
+    const success = await addUserByEmail(newEmail.trim(), newRole, newCollege);
+    setIsAdding(false);
+    if (success) {
+      setIsAddUserOpen(false);
+      setNewEmail("");
+      setNewCollege("");
+      setNewRole("user");
+    }
+  };
+
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -68,14 +128,82 @@ export function UserManagement() {
           <h2 className="text-3xl font-black text-primary mb-2 italic uppercase">User Directory</h2>
           <p className="text-muted-foreground font-medium">Audit institutional and guest access privileges.</p>
         </div>
-        <div className="relative max-w-sm w-full">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input 
-            placeholder="Search users..." 
-            className="pl-10 h-12 rounded-xl shadow-sm border-2"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+        <div className="flex items-center gap-3">
+            <div className="relative max-w-sm hidden sm:block">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input 
+                    placeholder="Search users..." 
+                    className="pl-10 h-12 rounded-xl shadow-sm border-2 w-[240px]"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                />
+            </div>
+
+            <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
+              <DialogTrigger asChild>
+                <Button className="h-12 gap-2 rounded-xl font-black text-xs uppercase shadow-lg hover:scale-105 transition-transform">
+                  <UserPlus className="h-4 w-4" />
+                  Add User
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="rounded-[2rem] sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle className="text-2xl font-black text-primary italic uppercase tracking-tighter">Register New Access</DialogTitle>
+                  <DialogDescription>
+                    Configure institutional access for a specific email. The user will inherit these settings upon their first login.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-6 py-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="email" className="text-[10px] font-black uppercase tracking-widest text-primary/70">Google / NEU Email</Label>
+                    <Input 
+                        id="email" 
+                        placeholder="user@neu.edu.ph" 
+                        value={newEmail}
+                        onChange={(e) => setNewEmail(e.target.value)}
+                        className="h-12 rounded-xl border-2 font-bold"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="role" className="text-[10px] font-black uppercase tracking-widest text-primary/70">Default Role</Label>
+                      <Select value={newRole} onValueChange={setNewRole}>
+                        <SelectTrigger className="h-12 rounded-xl border-2 font-bold">
+                          <SelectValue placeholder="Role" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl border-none shadow-2xl">
+                          <SelectItem value="user" className="font-bold">User</SelectItem>
+                          <SelectItem value="admin" className="font-bold">Admin</SelectItem>
+                          <SelectItem value="guest" className="font-bold">Guest</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="college" className="text-[10px] font-black uppercase tracking-widest text-primary/70">Department</Label>
+                      <Select value={newCollege} onValueChange={setNewCollege}>
+                        <SelectTrigger className="h-12 rounded-xl border-2 font-bold">
+                          <SelectValue placeholder="College" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl border-none shadow-2xl max-h-[300px]">
+                          {NEU_COLLEGES.map(c => (
+                            <SelectItem key={c.id} value={c.id} className="font-bold">{c.id}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button 
+                    onClick={handleAddUser} 
+                    disabled={isAdding || !newEmail.includes('@') || !newCollege}
+                    className="w-full h-14 text-lg font-black italic uppercase rounded-2xl shadow-xl"
+                  >
+                    {isAdding ? <Loader2 className="h-5 w-5 animate-spin" /> : "Authorize User Email"}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
         </div>
       </div>
 
@@ -146,24 +274,27 @@ export function UserManagement() {
               const isSuperAdmin = u.isSuperAdmin === true;
               const isCurrentUser = u.id === currentUserProfile?.id;
               const iAmSuperAdmin = currentUserProfile?.isSuperAdmin === true;
+              const isPending = u.displayName === 'New User (Pending)';
 
               return (
                 <TableRow key={i} className="hover:bg-muted/30 border-b">
                   <TableCell className="py-4">
                     <div className="flex items-center gap-3">
-                      <Avatar className="h-10 w-10 border-2 border-muted shadow-sm">
+                      <Avatar className={cn("h-10 w-10 border-2 shadow-sm", isPending ? "border-dashed border-muted-foreground/30 opacity-50" : "border-muted")}>
                         <AvatarImage src={u.photoURL} alt={u.displayName} />
                         <AvatarFallback className="bg-muted text-primary font-black text-xs">
                           {userInitials}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex flex-col">
-                        <span className="font-bold text-primary">{u.displayName} {isCurrentUser && <span className="text-[8px] bg-primary/10 px-2 py-0.5 rounded text-primary uppercase ml-1">You</span>}</span>
+                        <span className={cn("font-bold text-primary", isPending && "italic text-muted-foreground")}>{u.displayName} {isCurrentUser && <span className="text-[8px] bg-primary/10 px-2 py-0.5 rounded text-primary uppercase ml-1">You</span>}</span>
                         <span className="text-[10px] text-muted-foreground font-medium truncate max-w-[150px]">{u.email}</span>
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className="font-mono text-xs font-bold text-muted-foreground">{u.studentId}</TableCell>
+                  <TableCell className="font-mono text-xs font-bold text-muted-foreground">
+                    {isPending ? <span className="text-[10px] uppercase font-black text-secondary">Awaiting Login</span> : u.studentId}
+                  </TableCell>
                   <TableCell className="text-sm font-medium">{u.college || 'External'}</TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-2">
