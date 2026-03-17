@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -17,7 +18,6 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
-import { Progress } from "@/components/ui/progress";
 
 interface GuestViewProps {
   onBack: () => void;
@@ -25,7 +25,7 @@ interface GuestViewProps {
 }
 
 export function GuestView({ onBack, onLogin }: GuestViewProps) {
-  const libraryImage = PlaceHolderImages.find(img => img.id === 'library-interior');
+  const coverImage = PlaceHolderImages.find(img => img.id === 'neu-cover');
   const logoImage = PlaceHolderImages.find(img => img.id === 'neu-logo');
 
   const currentOccupancy = 42;
@@ -102,8 +102,8 @@ export function GuestView({ onBack, onLogin }: GuestViewProps) {
             <Card className="neu-card-shadow border-none rounded-[4rem] bg-white overflow-hidden shadow-[0_40px_100px_-20px_rgba(0,0,0,0.15)] group">
               <div className="aspect-[21/9] relative overflow-hidden">
                 <Image 
-                  src={libraryImage?.imageUrl || ""} 
-                  alt="Library Interior" 
+                  src={coverImage?.imageUrl || ""} 
+                  alt="NEU Campus Cover" 
                   fill 
                   className="object-cover group-hover:scale-105 transition-transform duration-[4000ms] ease-out"
                 />
