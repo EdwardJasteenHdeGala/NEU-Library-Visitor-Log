@@ -47,12 +47,12 @@ export function DashboardLayout() {
   const logoImage = PlaceHolderImages.find(img => img.id === 'neu-logo');
 
   const navItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'visitor-log', label: 'Visitor Log', icon: Users },
-    { id: 'users', label: 'User Mgmt', icon: UserCog },
-    { id: 'reports', label: 'Reports', icon: FileText },
-    { id: 'feedback', label: 'Feedback', icon: MessageSquare },
-    { id: 'help', label: 'Help', icon: HelpCircle },
+    { id: 'dashboard', label: 'Overview', icon: LayoutDashboard },
+    { id: 'visitor-log', label: 'Registry', icon: Users },
+    { id: 'users', label: 'Users', icon: UserCog },
+    { id: 'reports', label: 'Analytics', icon: FileText },
+    { id: 'feedback', label: 'Sentiments', icon: MessageSquare },
+    { id: 'help', label: 'Resources', icon: HelpCircle },
     { id: 'profile', label: 'Settings', icon: Settings },
   ];
 
@@ -77,98 +77,98 @@ export function DashboardLayout() {
     .slice(0, 2) || 'AD';
 
   return (
-    <div className="min-h-screen bg-[#f1f3f5] flex flex-col overflow-x-hidden">
-      <nav className="bg-primary text-white p-3 md:p-4 shadow-2xl sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto flex justify-between items-center gap-4">
-          <div className="flex items-center gap-3 md:gap-4">
-            <div className="bg-white p-1 rounded-xl shadow-lg w-8 h-8 md:w-10 md:h-10 relative overflow-hidden flex items-center justify-center">
+    <div className="min-h-screen bg-[#f8f9fa] flex flex-col overflow-x-hidden">
+      <nav className="bg-primary text-white p-4 shadow-xl sticky top-0 z-50 border-b border-white/5">
+        <div className="max-w-[1600px] mx-auto flex justify-between items-center gap-4">
+          <div className="flex items-center gap-4">
+            <div className="bg-white p-1.5 rounded-xl shadow-lg w-10 h-10 relative overflow-hidden flex items-center justify-center group cursor-pointer" onClick={() => setCurrentView('dashboard')}>
                 <Image 
-                  src={logoImage?.imageUrl || "https://placehold.co/400x400/004d26/ffffff?text=NEU+CEA"} 
+                  src={logoImage?.imageUrl || "https://upload.wikimedia.org/wikipedia/en/c/c6/New_Era_University.svg"} 
                   alt="NEU Logo" 
                   fill 
-                  className="object-contain p-0.5 md:p-1"
+                  className="object-contain p-1 group-hover:scale-110 transition-transform duration-300"
                 />
             </div>
             <div className="flex flex-col -space-y-1 hidden sm:flex">
-                <h1 className="text-base md:text-xl font-black tracking-tighter italic">NEU ADMIN</h1>
-                <span className="text-[7px] md:text-[8px] font-black text-secondary uppercase tracking-[0.3em]">Institutional Control</span>
+                <h1 className="text-xl font-black tracking-tighter italic uppercase leading-tight">NEU HUB</h1>
+                <span className="text-[9px] font-black text-secondary uppercase tracking-[0.3em] opacity-90">Institutional Admin</span>
             </div>
           </div>
 
-          <LiveClock className="hidden lg:flex scale-90 text-white bg-white/10 border-white/20" />
-          
-          <div className="flex items-center gap-2 md:gap-4 lg:gap-6">
-            <div className="hidden lg:flex items-center gap-6">
-                {navItems.map((item) => (
-                    <button
-                        key={item.id}
-                        onClick={() => setCurrentView(item.id as View)}
-                        className={cn(
-                            "text-[10px] font-black uppercase tracking-widest transition-all hover:text-secondary flex items-center gap-1.5 group whitespace-nowrap",
-                            currentView === item.id ? "text-secondary border-b-2 border-secondary pb-1" : "text-white/70"
-                        )}
-                    >
-                        <item.icon className={cn("h-3.5 w-3.5 group-hover:scale-110 transition-transform", currentView === item.id ? "text-secondary" : "text-white/50")} />
-                        {item.label}
-                    </button>
-                ))}
-            </div>
-            
-            <div className="flex items-center gap-2 md:gap-4">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button className="flex items-center gap-2 md:gap-3 hover:bg-white/10 p-1 md:p-1.5 md:pr-3 rounded-2xl transition-colors border border-transparent hover:border-white/10 group">
-                      <Avatar className="h-8 w-8 md:h-9 md:w-9 border-2 border-secondary shadow-xl group-hover:scale-105 transition-transform">
-                        <AvatarImage src={profile?.photoURL} alt={profile?.displayName} />
-                        <AvatarFallback className="bg-secondary text-primary font-black text-[10px] md:text-xs">
-                          {userInitials}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex flex-col items-start hidden sm:flex">
-                        <span className="text-[10px] md:text-xs font-black uppercase tracking-tighter leading-none truncate max-w-[80px] md:max-w-[100px]">{profile?.displayName?.split(' ')[0]}</span>
-                        <span className="text-[8px] md:text-[9px] font-bold text-secondary/70 uppercase">Master Admin</span>
-                      </div>
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-64 rounded-2xl p-2 shadow-2xl border-none">
-                    <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-4 py-3">Management</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => setCurrentView('profile')} className="rounded-xl h-12 gap-3 focus:bg-primary/5 cursor-pointer">
-                      <Settings className="h-4 w-4 text-primary" />
-                      <span className="font-bold">System Settings</span>
-                    </DropdownMenuItem>
-                    {profile?.isAuthorizedAdmin && (
-                      <DropdownMenuItem onClick={() => switchRole(profile.role === 'admin' ? 'user' : 'admin')} className="rounded-xl h-12 gap-3 text-blue-600 focus:bg-blue-50 cursor-pointer">
-                        <ShieldCheck className="h-4 w-4" />
-                        <span className="font-black">Switch to {profile.role === 'admin' ? 'user' : 'admin'} Mode</span>
-                      </DropdownMenuItem>
+          <div className="hidden lg:flex items-center gap-1.5 p-1.5 bg-white/10 rounded-2xl border border-white/10">
+            {navItems.map((item) => (
+                <button
+                    key={item.id}
+                    onClick={() => setCurrentView(item.id as View)}
+                    className={cn(
+                        "px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 rounded-xl",
+                        currentView === item.id 
+                          ? "bg-secondary text-primary shadow-lg" 
+                          : "text-white/70 hover:bg-white/5 hover:text-white"
                     )}
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={logout} className="rounded-xl h-12 gap-3 focus:bg-muted cursor-pointer">
-                      <RefreshCcw className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-bold text-muted-foreground">Switch Account</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={logout} className="rounded-xl h-12 gap-3 text-destructive focus:bg-destructive/5 cursor-pointer">
-                      <LogOut className="h-4 w-4" />
-                      <span className="font-black uppercase text-xs tracking-widest">Terminate Session</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                
-                <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="lg:hidden text-white h-9 w-9"
-                    onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 >
-                    {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-                </Button>
-            </div>
+                    <item.icon className={cn("h-3.5 w-3.5", currentView === item.id ? "text-primary" : "text-white/40")} />
+                    {item.label}
+                </button>
+            ))}
+          </div>
+          
+          <div className="flex items-center gap-4">
+            <LiveClock className="hidden xl:flex bg-white/5 border-white/10 text-white !py-1 !px-4" />
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center gap-3 hover:bg-white/10 p-1.5 pr-4 rounded-2xl transition-all border border-transparent hover:border-white/10 group">
+                  <Avatar className="h-10 w-10 border-2 border-secondary/50 shadow-xl group-hover:scale-105 transition-transform duration-300">
+                    <AvatarImage src={profile?.photoURL} alt={profile?.displayName} />
+                    <AvatarFallback className="bg-secondary text-primary font-black text-xs">
+                      {userInitials}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-col items-start hidden sm:flex">
+                    <span className="text-xs font-black uppercase tracking-tight leading-none max-w-[120px] truncate">{profile?.displayName?.split(' ')[0]}</span>
+                    <span className="text-[9px] font-bold text-secondary uppercase tracking-widest opacity-80 italic">Administrator</span>
+                  </div>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-64 rounded-3xl p-3 shadow-2xl border-none mt-2">
+                <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-4 py-3">Management</DropdownMenuLabel>
+                <DropdownMenuSeparator className="mx-2" />
+                <DropdownMenuItem onClick={() => setCurrentView('profile')} className="rounded-2xl h-12 gap-3 focus:bg-primary/5 cursor-pointer px-4">
+                  <Settings className="h-4 w-4 text-primary" />
+                  <span className="font-bold">System Settings</span>
+                </DropdownMenuItem>
+                {profile?.isAuthorizedAdmin && (
+                  <DropdownMenuItem onClick={() => switchRole(profile.role === 'admin' ? 'user' : 'admin')} className="rounded-2xl h-12 gap-3 text-blue-600 focus:bg-blue-50 cursor-pointer px-4">
+                    <ShieldCheck className="h-4 w-4" />
+                    <span className="font-black">Switch to {profile.role === 'admin' ? 'user' : 'admin'} Mode</span>
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuSeparator className="mx-2" />
+                <DropdownMenuItem onClick={logout} className="rounded-2xl h-12 gap-3 focus:bg-muted cursor-pointer px-4">
+                  <RefreshCcw className="h-4 w-4 text-muted-foreground" />
+                  <span className="font-bold text-muted-foreground">Switch Account</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={logout} className="rounded-2xl h-12 gap-3 text-destructive focus:bg-destructive/5 cursor-pointer px-4">
+                  <LogOut className="h-4 w-4" />
+                  <span className="font-black uppercase text-xs tracking-widest">Sign Out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            
+            <Button 
+                variant="ghost" 
+                size="icon" 
+                className="lg:hidden text-white h-10 w-10 hover:bg-white/10"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+                {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </Button>
           </div>
         </div>
         
         {isMobileMenuOpen && (
-            <div className="lg:hidden bg-primary/95 backdrop-blur-md absolute inset-x-0 top-full p-4 border-t border-white/10 shadow-2xl space-y-2 animate-in slide-in-from-top-4 duration-300 max-h-[calc(100vh-80px)] overflow-y-auto">
+            <div className="lg:hidden bg-primary/95 backdrop-blur-xl absolute inset-x-0 top-full p-4 border-t border-white/10 shadow-2xl space-y-2 animate-in slide-in-from-top-4 duration-300">
                 {navItems.map((item) => (
                     <button
                         key={item.id}
@@ -177,7 +177,7 @@ export function DashboardLayout() {
                             setIsMobileMenuOpen(false);
                         }}
                         className={cn(
-                            "w-full flex items-center gap-4 p-4 rounded-xl font-black text-xs uppercase tracking-[0.2em] transition-all",
+                            "w-full flex items-center gap-4 p-4 rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all",
                             currentView === item.id ? "bg-secondary text-primary shadow-lg" : "text-white/70 hover:bg-white/10"
                         )}
                     >
@@ -189,20 +189,23 @@ export function DashboardLayout() {
         )}
       </nav>
 
-      <main className="flex-1 w-full max-w-7xl mx-auto p-4 md:p-8 lg:p-10 animate-in fade-in duration-1000">
-        <div className="w-full overflow-x-hidden">
+      <main className="flex-1 w-full max-w-[1600px] mx-auto p-6 md:p-10 animate-in fade-in duration-700">
+        <div className="w-full">
           {renderView()}
         </div>
       </main>
 
-      <footer className="p-6 md:p-10 bg-white border-t flex flex-col items-center gap-4 mt-auto">
-        <div className="flex items-center gap-2 opacity-30 grayscale hover:grayscale-0 hover:opacity-100 transition-all cursor-default">
-            <div className="relative w-5 h-5">
-                <Image src={logoImage?.imageUrl || "https://placehold.co/400x400/004d26/ffffff?text=NEU+CEA"} alt="NEU" fill className="object-contain" />
+      <footer className="p-10 bg-white border-t flex flex-col items-center gap-6 mt-auto">
+        <div className="flex items-center gap-4 opacity-40 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-500 cursor-default group">
+            <div className="relative w-8 h-8 group-hover:rotate-[360deg] transition-transform duration-700">
+                <Image src={logoImage?.imageUrl || "https://upload.wikimedia.org/wikipedia/en/c/c6/New_Era_University.svg"} alt="NEU" fill className="object-contain" />
             </div>
-            <span className="font-black text-[10px] md:text-xs uppercase tracking-[0.3em] text-primary text-center">New Era University Library System</span>
+            <div className="flex flex-col items-start -space-y-1">
+              <span className="font-black text-sm uppercase tracking-[0.3em] text-primary">New Era University</span>
+              <span className="text-[9px] font-bold uppercase tracking-[0.2em]">Institutional Access Management</span>
+            </div>
         </div>
-        <p className="text-[8px] md:text-[9px] font-black uppercase tracking-[0.3em] md:tracking-[0.4em] text-muted-foreground/60 text-center">
+        <p className="text-[9px] font-black uppercase tracking-[0.5em] text-muted-foreground/40 text-center">
           &copy; {new Date().getFullYear()} INTEGRITY • EXCELLENCE • DISCIPLINE
         </p>
       </footer>

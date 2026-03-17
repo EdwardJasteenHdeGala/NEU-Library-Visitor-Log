@@ -23,7 +23,7 @@
     --border: 210 20% 90%;
     --input: 210 20% 90%;
     --ring: 153 100% 15%;
-    --radius: 1rem;
+    --radius: 1.25rem;
     --chart-1: 153 100% 15%;
     --chart-2: 45 100% 48%;
     --chart-3: 197 37% 24%;
@@ -61,7 +61,7 @@
     @apply h-full overflow-x-hidden;
   }
   body {
-    @apply bg-background text-foreground font-body antialiased;
+    @apply bg-background text-foreground font-body antialiased selection:bg-primary/10 selection:text-primary;
   }
 }
 
@@ -70,15 +70,15 @@
 }
 
 .neu-card-shadow {
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05), 0 2px 10px -2px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 10px 40px -10px rgba(0, 77, 38, 0.08), 0 2px 10px -2px rgba(0, 0, 0, 0.02);
 }
 
 .neu-button-shadow {
-  box-shadow: 0 10px 15px -3px rgba(0, 77, 38, 0.1), 0 4px 6px -2px rgba(0, 77, 38, 0.05);
+  box-shadow: 0 10px 20px -5px rgba(0, 77, 38, 0.15);
 }
 
 .neu-button-shadow-secondary {
-  box-shadow: 0 10px 15px -3px rgba(184, 134, 11, 0.1), 0 4px 6px -2px rgba(184, 134, 11, 0.05);
+  box-shadow: 0 10px 20px -5px rgba(184, 134, 11, 0.15);
 }
 
 @keyframes shimmer {
@@ -87,5 +87,20 @@
 }
 
 .animate-shimmer {
-  animation: shimmer 2s infinite;
+  animation: shimmer 2.5s infinite linear;
+}
+
+.glass-panel {
+  @apply bg-white/70 backdrop-blur-xl border border-white/20;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-muted-foreground/20 rounded-full hover:bg-muted-foreground/30 transition-colors;
 }
