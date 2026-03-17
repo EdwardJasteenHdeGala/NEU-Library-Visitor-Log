@@ -32,6 +32,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Authorized administrators with high-level access
 const AUTHORIZED_ADMIN_EMAILS = [
   'edwardjasteen.degala@neu.edu.ph',
   'jcesperanza@neu.edu.ph'
@@ -58,7 +59,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     checkProfile();
-  }, [user, isUserLoading, auth, toast]);
+  }, [user, isUserLoading, auth]);
 
   const fetchOrCreateProfile = async (uid: string) => {
     if (!user || !firestore) return;
@@ -68,6 +69,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       const isInstitutional = user.email && user.email.endsWith('@neu.edu.ph');
       const isAuthorized = user.email && AUTHORIZED_ADMIN_EMAILS.includes(user.email);
+      
+      // CICS Department identification (for Professor Esperanza and authorized developers)
       const isCICS = user.email === 'edwardjasteen.degala@neu.edu.ph' || user.email === 'jcesperanza@neu.edu.ph';
       
       // Determine base status
@@ -94,13 +97,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           needsUpdate = true;
         }
 
-        // Department sync for CICS
+        // Department/College sync
         if (isCICS && data.college !== 'CICS') {
           updates.college = 'CICS';
           needsUpdate = true;
         }
 
-        // Role switching for authorized admins
+        // Handle Role Logic
+        // If an authorized admin clicks "User Login", we respect that choice (intendedRole will be 'user')
+        // If they click "Admin Login", we set their role to 'admin' (intendedRole will be 'admin')
         if (isAuthorized && intendedRole && data.role !== intendedRole) {
           updates.role = intendedRole;
           needsUpdate = true;
@@ -113,7 +118,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setProfile(data);
         }
       } else {
-        // Create new profile
+        // Create new profile for first-time login
         const initialRole = (isAuthorized && intendedRole === 'admin') ? 'admin' : defaultRole;
         
         const profileData = {
@@ -136,7 +141,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error("Error managing profile:", error);
     } finally {
       setLoading(false);
-      setIntendedRole(null);
+      setIntendedRole(null); // Reset intended role after processing
     }
   };
 
@@ -146,8 +151,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setIntendedRole(requestedRole);
       }
       const provider = new GoogleAuthProvider();
-      // Only force select account, don't restrict domain at the provider level 
-      // so Gmail users can sign in as guests.
+      // Ensure Google account selector always appears for switching
       provider.setCustomParameters({ 
         prompt: 'select_account'
       });
@@ -168,7 +172,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const verifyStudentId = async (studentId: string) => {
     if (!user || !firestore || !profile) return false;
     
-    // Non-institutional users cannot verify a student ID
     if (!user.email?.endsWith('@neu.edu.ph')) {
       toast({
         title: "Restricted Action",
