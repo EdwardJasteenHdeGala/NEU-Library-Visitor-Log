@@ -146,69 +146,70 @@ export function UserGreeting() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col overflow-x-hidden neu-mesh-gradient">
-      <div className="fixed top-[-5%] left-[-5%] w-[300px] h-[300px] bg-primary/5 rounded-full blur-[60px] animate-blob pointer-events-none" />
-      <div className="fixed bottom-[-5%] right-[-5%] w-[300px] h-[300px] bg-secondary/5 rounded-full blur-[60px] animate-blob delay-1000 pointer-events-none" />
+      {/* Dynamic Blobs for Background Life */}
+      <div className="fixed top-[-10%] left-[-5%] w-[400px] h-[400px] bg-primary/8 rounded-full blur-[100px] animate-blob pointer-events-none" />
+      <div className="fixed bottom-[-10%] right-[-5%] w-[400px] h-[400px] bg-secondary/8 rounded-full blur-[100px] animate-blob delay-5000 pointer-events-none" />
       <div className="neu-bg-overlay" />
 
-      <header className="relative z-[70] p-3 bg-primary text-white sticky top-0 shadow-xl border-b border-white/10 backdrop-blur-xl bg-primary/95 h-[60px] flex items-center">
+      <header className="relative z-[70] p-3 bg-primary text-white sticky top-0 shadow-2xl border-b border-white/10 backdrop-blur-2xl bg-primary/95 h-[60px] flex items-center">
         <div className="max-w-7xl mx-auto flex justify-between items-center gap-4 w-full">
           <div className="flex items-center gap-3">
             <div 
-              className="bg-white p-1 rounded-lg shadow-lg w-8 h-8 relative overflow-hidden flex items-center justify-center group cursor-pointer" 
+              className="bg-white p-1 rounded-xl shadow-2xl w-9 h-9 relative overflow-hidden flex items-center justify-center group cursor-pointer border border-white/20" 
               onClick={() => handleSubViewChange('log-entry')}
             >
-                <Image src={logoImage?.imageUrl || ""} alt="NEU" fill priority className="object-contain p-1 group-hover:scale-110 transition-transform duration-300" />
+                <Image src={logoImage?.imageUrl || ""} alt="NEU" fill priority className="object-contain p-1.5 group-hover:scale-110 transition-transform duration-500" />
             </div>
             <div className="flex flex-col -space-y-0.5">
-              <h1 className="text-sm font-black tracking-tighter italic uppercase leading-none text-white">NEU ACCESS</h1>
-              <span className="text-[6px] font-black text-secondary uppercase tracking-[0.2em] opacity-80">Institutional Hub</span>
+              <h1 className="text-sm font-black tracking-tighter italic uppercase leading-none text-white">NEU HUB</h1>
+              <span className="text-[7px] font-black text-secondary uppercase tracking-[0.3em] opacity-80">Institutional Portal</span>
             </div>
           </div>
 
-          <div className="hidden lg:flex items-center gap-0.5 p-1 bg-white/10 rounded-xl backdrop-blur-sm">
+          <div className="hidden lg:flex items-center gap-1 p-1 bg-white/5 rounded-[1rem] backdrop-blur-3xl border border-white/10">
             {navItems.map((item) => (
                 <button
                     key={item.id}
                     onClick={() => handleSubViewChange(item.id as UserSubView)}
                     className={cn(
-                        "px-5 py-2 text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2 rounded-lg whitespace-nowrap",
-                        subView === item.id ? "bg-secondary text-primary shadow-lg" : "text-white/60 hover:bg-white/5 hover:text-white"
+                        "px-6 py-2 text-[9px] font-black uppercase tracking-[0.3em] transition-all flex items-center gap-2.5 rounded-xl whitespace-nowrap",
+                        subView === item.id ? "bg-secondary text-primary shadow-2xl" : "text-white/60 hover:bg-white/5 hover:text-white"
                     )}
                 >
-                    <item.icon className="h-3.5 w-3.5" />
+                    <item.icon className={cn("h-3.5 w-3.5", subView === item.id ? "text-primary" : "text-white/30")} />
                     {item.label}
                 </button>
             ))}
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             {profile?.isAuthorizedAdmin && (
               <Button 
                 variant="neuSecondary" 
                 size="sm" 
                 onClick={() => switchRole('admin')} 
-                className="h-8 px-4 gap-2 font-black text-[8px] uppercase rounded-lg hover:scale-105 transition-all shadow-lg"
+                className="h-9 px-5 gap-2.5 font-black text-[9px] uppercase rounded-xl hover:scale-105 transition-all shadow-2xl"
               >
-                <ShieldCheck className="h-3 w-3" />
-                <span className="hidden xs:inline">Admin Mode</span>
+                <ShieldCheck className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Admin Mode</span>
               </Button>
             )}
             
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Avatar className="h-8 w-8 border-2 border-secondary/50 shadow-xl cursor-pointer hover:scale-105 transition-all">
+                <Avatar className="h-9 w-9 border-2 border-secondary/50 shadow-2xl cursor-pointer hover:scale-110 transition-all duration-500 ring-4 ring-white/5">
                   <AvatarImage src={profile?.photoURL} />
-                  <AvatarFallback className="bg-secondary text-primary font-black text-[9px]">{userInitials}</AvatarFallback>
+                  <AvatarFallback className="bg-secondary text-primary font-black text-[10px]">{userInitials}</AvatarFallback>
                 </Avatar>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 rounded-2xl p-2 mt-2 border-none shadow-2xl bg-white/95 backdrop-blur-xl animate-in slide-in-from-top-2">
-                <DropdownMenuItem onClick={() => handleSubViewChange('profile')} className="rounded-xl h-11 gap-3 cursor-pointer focus:bg-primary/5">
-                  <Settings className="h-4 w-4 text-primary" />
-                  <span className="font-bold text-xs text-primary">Profile Settings</span>
+              <DropdownMenuContent align="end" className="w-60 rounded-[1.5rem] p-2.5 mt-2 border-none shadow-3xl bg-white/98 backdrop-blur-3xl animate-in slide-in-from-top-3">
+                <DropdownMenuItem onClick={() => handleSubViewChange('profile')} className="rounded-xl h-12 gap-4 cursor-pointer focus:bg-primary/5 px-4">
+                  <Settings className="h-4.5 w-4.5 text-primary" />
+                  <span className="font-bold text-sm text-primary">Security Settings</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={logout} className="rounded-xl h-11 gap-3 text-destructive focus:bg-destructive/5 cursor-pointer">
-                  <LogOut className="h-4 w-4" />
-                  <span className="font-black uppercase text-[9px] tracking-widest">Sign Out</span>
+                <DropdownMenuItem onClick={logout} className="rounded-xl h-12 gap-4 text-destructive focus:bg-destructive/5 cursor-pointer px-4">
+                  <LogOut className="h-4.5 w-4.5" />
+                  <span className="font-black uppercase text-[10px] tracking-widest">Terminate Session</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -216,27 +217,27 @@ export function UserGreeting() {
             <Button 
                 variant="ghost" 
                 size="icon" 
-                className="lg:hidden text-white h-9 w-9 hover:bg-white/10 rounded-lg"
+                className="lg:hidden text-white h-10 w-10 hover:bg-white/10 rounded-xl"
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             >
-                {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </Button>
           </div>
         </div>
         
-        {/* Mobile Nav */}
+        {/* Mobile Nav Overlay */}
         {isMobileMenuOpen && (
-            <div className="lg:hidden fixed inset-x-0 top-[60px] bg-primary p-4 border-t border-white/10 shadow-2xl space-y-1 animate-in slide-in-from-top-4 duration-300 z-[70]">
+            <div className="lg:hidden fixed inset-x-0 top-[60px] bg-primary/98 backdrop-blur-3xl p-5 border-t border-white/10 shadow-3xl space-y-2 animate-in slide-in-from-top-6 duration-500 z-[70]">
                 {navItems.map((item) => (
                     <button
                         key={item.id}
                         onClick={() => handleSubViewChange(item.id as UserSubView)}
                         className={cn(
-                            "w-full flex items-center gap-4 p-3 rounded-xl font-black text-[9px] uppercase tracking-widest transition-all",
-                            subView === item.id ? "bg-secondary text-primary shadow-lg" : "text-white/70 hover:bg-white/10"
+                            "w-full flex items-center gap-5 p-4 rounded-2xl font-black text-[11px] uppercase tracking-[0.4em] transition-all",
+                            subView === item.id ? "bg-secondary text-primary shadow-2xl" : "text-white/70 hover:bg-white/10"
                         )}
                     >
-                        <item.icon className="h-4 w-4" />
+                        <item.icon className="h-5 w-5" />
                         {item.label}
                     </button>
                 ))}
@@ -244,138 +245,139 @@ export function UserGreeting() {
         )}
       </header>
 
-      <main className="relative flex-1 w-full max-w-7xl mx-auto p-4 md:p-8 animate-in fade-in duration-500 pb-20">
+      <main className="relative flex-1 w-full max-w-7xl mx-auto p-4 md:p-10 animate-in fade-in duration-700 pb-24">
         <div className="relative z-10 w-full">
           {subView === 'log-entry' && (
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-              <div className="lg:col-span-8 space-y-8">
-                <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 text-center sm:text-left">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+              <div className="lg:col-span-8 space-y-10">
+                <div className="flex flex-col sm:flex-row items-center sm:items-start gap-8 text-center sm:text-left">
                   <div className="relative shrink-0">
-                    <Avatar className="h-24 w-24 md:h-32 md:w-32 border-4 border-white shadow-2xl animate-in zoom-in-50 duration-500">
+                    <Avatar className="h-28 w-28 md:h-40 md:w-40 border-[6px] border-white shadow-3xl animate-in zoom-in-75 duration-700 ring-8 ring-primary/5">
                       <AvatarImage src={profile?.photoURL} alt={profile?.displayName} />
-                      <AvatarFallback className="bg-secondary text-primary font-black text-2xl md:text-3xl">
+                      <AvatarFallback className="bg-secondary text-primary font-black text-3xl md:text-5xl italic">
                         {userInitials}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="absolute -bottom-1 -right-1 bg-white p-1.5 rounded-xl shadow-lg border border-muted">
-                       {isGuest ? <Globe className="h-4 w-4 text-primary" /> : <Sparkles className="h-4 w-4 text-primary" />}
+                    <div className="absolute -bottom-2 -right-2 bg-white p-2.5 rounded-[1.25rem] shadow-2xl border border-muted ring-4 ring-primary/5">
+                       {isGuest ? <Globe className="h-5 w-5 text-primary" /> : <Sparkles className="h-5 w-5 text-primary animate-pulse" />}
                     </div>
                   </div>
-                  <div className="space-y-1 md:space-y-2 pt-1">
-                    <div className="inline-flex items-center gap-2 bg-primary/5 text-primary border border-primary/10 px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-[0.2em] shadow-sm">
-                       {isGuest ? "GUEST VISITOR ACCESS" : `ACADEMIC YEAR ${academicYear || "2024-25"}`}
+                  <div className="space-y-3 pt-2">
+                    <div className="inline-flex items-center gap-3 bg-primary/5 text-primary border border-primary/15 px-5 py-1.5 rounded-full text-[9px] font-black uppercase tracking-[0.3em] shadow-sm">
+                       {isGuest ? "GUEST VISITOR ACCESS" : `ACADEMIC CYCLE ${academicYear || "2024-25"}`}
                     </div>
-                    <h1 className="text-3xl md:text-5xl lg:text-6xl font-black text-primary tracking-tighter leading-tight">
-                      {isGuest ? "Hello," : "Welcome,"} <br className="hidden xs:block" />
-                      <span className="text-secondary italic">{profile?.displayName?.split(' ')[0]}!</span>
+                    <h1 className="text-4xl md:text-6xl lg:text-7xl font-black text-primary tracking-[-0.03em] leading-tight uppercase">
+                      {isGuest ? "Hello," : "Welcome,"}<br className="hidden xs:block" />
+                      <span className="text-secondary italic">Researcher {profile?.displayName?.split(' ')[0]}</span>
                     </h1>
                   </div>
                 </div>
 
                 {!hasLoggedThisSession ? (
-                  <Card className="neu-card-shadow border-none overflow-hidden rounded-[1.5rem] bg-white relative animate-in slide-in-from-bottom-4 duration-500">
-                      <CardHeader className="p-6 border-b bg-muted/20">
-                      <CardTitle className="text-xl md:text-2xl font-black text-primary flex items-center gap-3 italic tracking-tighter uppercase">
-                          <History className="h-5 w-5 text-secondary" />
-                          Log Your Entry
-                      </CardTitle>
+                  <Card className="neu-card-shadow border-none overflow-hidden rounded-[2.5rem] bg-white relative animate-in slide-in-from-bottom-8 duration-700 group">
+                      <CardHeader className="p-8 border-b bg-muted/30">
+                        <CardTitle className="text-2xl md:text-3xl font-black text-primary flex items-center gap-4 italic tracking-tighter uppercase">
+                            <History className="h-7 w-7 text-secondary" />
+                            Synchronize Presence
+                        </CardTitle>
                       </CardHeader>
-                      <CardContent className="p-6 md:p-8 space-y-8">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <div className="space-y-2">
-                          <label className="text-[8px] font-black text-muted-foreground uppercase tracking-[0.3em] ml-2 opacity-60 flex items-center gap-1.5">
-                              <Building2 className="h-3 w-3" />
-                              Department
-                          </label>
-                          <Select value={currentCollege} onValueChange={setCurrentCollege}>
-                              <SelectTrigger className="h-12 text-sm font-black rounded-xl border-2 border-muted focus:ring-primary shadow-inner bg-muted/10">
-                                  <SelectValue placeholder="Target" />
-                              </SelectTrigger>
-                              <SelectContent className="rounded-xl p-2 shadow-2xl border-none max-h-[250px]">
-                                  {NEU_COLLEGES.map((college) => (
-                                      <SelectItem key={college.id} value={college.id} className="rounded-lg h-10 font-bold text-xs italic">
-                                          {college.name} ({college.id})
-                                      </SelectItem>
-                                  ))}
-                              </SelectContent>
-                          </Select>
-                          </div>
+                      <CardContent className="p-8 md:p-12 space-y-10">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div className="space-y-3">
+                              <label className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.4em] ml-2 opacity-60 flex items-center gap-2">
+                                  <Building2 className="h-4 w-4" />
+                                  Institutional Unit
+                              </label>
+                              <Select value={currentCollege} onValueChange={setCurrentCollege}>
+                                  <SelectTrigger className="h-16 text-base font-black rounded-2xl border-2 border-muted focus:ring-primary shadow-inner bg-muted/5 group-hover:bg-white transition-all">
+                                      <SelectValue placeholder="Target Department" />
+                                  </SelectTrigger>
+                                  <SelectContent className="rounded-2xl p-2 shadow-3xl border-none max-h-[300px]">
+                                      {NEU_COLLEGES.map((college) => (
+                                          <SelectItem key={college.id} value={college.id} className="rounded-xl h-12 font-black text-xs italic">
+                                              {college.name} • {college.id}
+                                          </SelectItem>
+                                      ))}
+                                  </SelectContent>
+                              </Select>
+                            </div>
 
-                          <div className="space-y-2">
-                          <label className="text-[8px] font-black text-muted-foreground uppercase tracking-[0.3em] ml-2 opacity-60 flex items-center gap-1.5">
-                              <BookOpen className="h-3 w-3" />
-                              Core Purpose
-                          </label>
-                          <Select value={purpose} onValueChange={setPurpose}>
-                              <SelectTrigger className="h-12 text-sm font-black rounded-xl border-2 border-muted focus:ring-primary shadow-inner bg-muted/10">
-                              <SelectValue placeholder="Activity" />
-                              </SelectTrigger>
-                              <SelectContent className="rounded-xl p-2 shadow-2xl border-none max-h-[250px]">
-                              <SelectItem value="reading books" className="rounded-lg h-10 font-bold text-xs">📖 Research Reading</SelectItem>
-                              <SelectItem value="research in thesis" className="rounded-lg h-10 font-bold text-xs">🔬 Capstone Study</SelectItem>
-                              <SelectItem value="use of computer" className="rounded-lg h-10 font-bold text-xs">💻 Computer Access</SelectItem>
-                              <SelectItem value="doing assignments" className="rounded-lg h-10 font-bold text-xs">📝 Task Completion</SelectItem>
-                              <SelectItem value="group study" className="rounded-lg h-10 font-bold text-xs">🤝 Group Sessions</SelectItem>
-                              {!isGuest && <SelectItem value="consultation" className="rounded-lg h-10 font-bold text-xs">💬 Faculty Consult</SelectItem>}
-                              <SelectItem value="charging device" className="rounded-lg h-10 font-bold text-xs">⚡ Device Charging</SelectItem>
-                              <SelectItem value="resting/waiting" className="rounded-lg h-10 font-bold text-xs">⌛ Hub Waiting</SelectItem>
-                              <SelectItem value="purpose of visit" className="rounded-lg h-10 font-bold text-xs">📍 Facility Hub</SelectItem>
-                              <SelectItem value="printing/scanning" className="rounded-lg h-10 font-bold text-xs">🖨️ Document Lab</SelectItem>
-                              </SelectContent>
-                          </Select>
-                          </div>
-                      </div>
+                            <div className="space-y-3">
+                              <label className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.4em] ml-2 opacity-60 flex items-center gap-2">
+                                  <BookOpen className="h-4 w-4" />
+                                  Utilization Purpose
+                              </label>
+                              <Select value={purpose} onValueChange={setPurpose}>
+                                  <SelectTrigger className="h-16 text-base font-black rounded-2xl border-2 border-muted focus:ring-primary shadow-inner bg-muted/5 group-hover:bg-white transition-all">
+                                  <SelectValue placeholder="Access Activity" />
+                                  </SelectTrigger>
+                                  <SelectContent className="rounded-2xl p-2 shadow-3xl border-none max-h-[300px]">
+                                  <SelectItem value="reading books" className="rounded-xl h-12 font-black text-xs">📖 Knowledge Retrieval</SelectItem>
+                                  <SelectItem value="research in thesis" className="rounded-xl h-12 font-black text-xs">🔬 Advanced Research</SelectItem>
+                                  <SelectItem value="use of computer" className="rounded-xl h-12 font-black text-xs">💻 Digital Workspace</SelectItem>
+                                  <SelectItem value="doing assignments" className="rounded-xl h-12 font-black text-xs">📝 Task Execution</SelectItem>
+                                  <SelectItem value="group study" className="rounded-xl h-12 font-black text-xs">🤝 Collaborative Study</SelectItem>
+                                  {!isGuest && <SelectItem value="consultation" className="rounded-xl h-12 font-black text-xs">💬 Faculty Consultation</SelectItem>}
+                                  <SelectItem value="charging device" className="rounded-xl h-12 font-black text-xs">⚡ Resource Charging</SelectItem>
+                                  <SelectItem value="resting/waiting" className="rounded-xl h-12 font-black text-xs">⌛ Scheduled Transition</SelectItem>
+                                  <SelectItem value="printing/scanning" className="rounded-xl h-12 font-black text-xs">🖨️ Media Services</SelectItem>
+                                  </SelectContent>
+                              </Select>
+                            </div>
+                        </div>
 
-                      <Button 
-                          onClick={handleLogVisit} 
-                          variant="neu"
-                          disabled={!purpose || !currentCollege || isLogging}
-                          className="w-full h-16 text-lg md:text-xl font-black rounded-xl gap-3 shadow-xl transition-all active:scale-[0.98]"
-                      >
-                          {isLogging ? (
-                          <div className="flex items-center gap-3">
-                              <Loader2 className="h-5 w-5 animate-spin" />
-                              Transmitting...
-                          </div>
-                          ) : (
-                          <>
-                              <CheckCircle2 className="h-6 w-6 text-secondary" />
-                              Authorize Entry
-                          </>
-                          )}
-                      </Button>
+                        <Button 
+                            onClick={handleLogVisit} 
+                            variant="neu"
+                            disabled={!purpose || !currentCollege || isLogging}
+                            className="w-full h-20 text-xl md:text-2xl font-black rounded-2xl gap-4 shadow-3xl transition-all active:scale-[0.98] group relative overflow-hidden"
+                        >
+                            <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                            {isLogging ? (
+                              <div className="flex items-center gap-4">
+                                  <Loader2 className="h-7 w-7 animate-spin" />
+                                  SYCHRONIZING...
+                              </div>
+                            ) : (
+                              <>
+                                  <CheckCircle2 className="h-7 w-7 text-secondary" />
+                                  AUTHORIZE ENTRY
+                              </>
+                            )}
+                        </Button>
                       </CardContent>
                   </Card>
                 ) : (
-                  <Card className="neu-card-shadow border-none overflow-hidden rounded-[2rem] bg-primary relative animate-in zoom-in duration-500">
-                     <div className="p-10 md:p-16 flex flex-col items-center text-center gap-6 relative z-10">
-                        <div className="h-20 w-20 md:h-24 md:h-24 bg-white/10 rounded-2xl flex items-center justify-center border-2 border-dashed border-secondary/30">
-                           <Trophy className="h-10 w-10 md:h-12 md:w-12 text-secondary" />
+                  <Card className="neu-card-shadow border-none overflow-hidden rounded-[3rem] bg-primary relative animate-in zoom-in duration-700 shadow-3xl">
+                     <div className="absolute inset-0 bg-dot-pattern opacity-10 pointer-events-none" />
+                     <div className="p-12 md:p-24 flex flex-col items-center text-center gap-8 relative z-10">
+                        <div className="h-24 w-24 md:h-32 md:w-32 bg-white/10 rounded-3xl flex items-center justify-center border-2 border-dashed border-secondary/40 shadow-inner">
+                           <Trophy className="h-12 w-12 md:h-16 md:w-16 text-secondary animate-bounce" />
                         </div>
-                        <div className="space-y-2">
-                           <h2 className="text-2xl md:text-4xl font-black text-white italic tracking-tighter uppercase">Entry Synced!</h2>
-                           <p className="text-white/60 text-sm md:text-base font-medium max-w-sm mx-auto leading-relaxed">
-                              Academic record secured. You are now authorized for institutional facility access.
+                        <div className="space-y-4">
+                           <h2 className="text-3xl md:text-5xl font-black text-white italic tracking-tighter uppercase leading-none">Record Secured!</h2>
+                           <p className="text-white/70 text-base md:text-xl font-medium max-w-md mx-auto leading-relaxed">
+                              Your presence has been successfully synchronized. You are now authorized for institutional hub access.
                            </p>
                         </div>
-                        <div className="flex flex-col sm:flex-row gap-3 w-full max-w-xs pt-4">
+                        <div className="flex flex-col sm:flex-row gap-5 w-full max-w-sm pt-6">
                             <Button 
                               variant="outline" 
-                              size="lg" 
+                              size="xl" 
                               onClick={logout}
-                              className="flex-1 h-12 border-white/20 bg-white/5 text-white hover:bg-white/10 gap-2 rounded-xl font-black uppercase text-[8px] tracking-widest"
+                              className="flex-1 h-16 border-white/20 bg-white/5 text-white hover:bg-white/10 gap-3 rounded-2xl font-black uppercase text-[10px] tracking-widest"
                             >
-                               <LogOut className="h-4 w-4" />
+                               <LogOut className="h-5 w-5" />
                                Sign Out
                             </Button>
                             <Button 
                               variant="neuSecondary" 
-                              size="lg" 
+                              size="xl" 
                               onClick={() => setHasLoggedThisSession(false)}
-                              className="flex-1 h-12 gap-2 rounded-xl font-black uppercase text-[8px] tracking-widest shadow-xl"
+                              className="flex-1 h-16 gap-3 rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-3xl"
                             >
-                               <RefreshCcw className="h-4 w-4" />
-                               Repeat Log
+                               <RefreshCcw className="h-5 w-5" />
+                               New Log
                             </Button>
                         </div>
                      </div>
@@ -383,38 +385,38 @@ export function UserGreeting() {
                 )}
               </div>
 
-              <div className="lg:col-span-4 space-y-6 lg:sticky lg:top-24">
-                <Card className="neu-card-shadow border-none rounded-[1.5rem] bg-white overflow-hidden shadow-xl">
-                  <div className="bg-primary p-6 text-center space-y-2">
-                    <div className="inline-flex items-center gap-2 bg-white/10 text-white border border-white/20 px-4 py-1.5 rounded-full text-[8px] font-black uppercase tracking-[0.2em]">
-                      <Library className="h-3.5 w-3.5 text-secondary" />
-                      Live Status
+              <div className="lg:col-span-4 space-y-8 lg:sticky lg:top-28">
+                <Card className="neu-card-shadow border-none rounded-[2rem] bg-white overflow-hidden shadow-2xl transition-transform hover:scale-[1.02] duration-500">
+                  <div className="bg-primary p-8 text-center space-y-3">
+                    <div className="inline-flex items-center gap-2.5 bg-white/10 text-white border border-white/20 px-5 py-2 rounded-full text-[9px] font-black uppercase tracking-[0.3em] shadow-inner">
+                      <Library className="h-4 w-4 text-secondary" />
+                      Institutional Status
                     </div>
-                    <h3 className="text-xl font-black text-white italic tracking-tighter uppercase leading-none">Library Hub</h3>
+                    <h3 className="text-2xl font-black text-white italic tracking-tighter uppercase leading-none">Library Hub</h3>
                   </div>
-                  <CardContent className="p-6 space-y-6">
-                      <div className="flex items-center gap-4 p-4 bg-muted/30 rounded-xl border-2 border-muted transition-all">
-                          <div className="bg-primary p-2.5 rounded-lg shadow-lg">
-                              <Clock className="h-5 w-5 text-secondary" />
+                  <CardContent className="p-8 space-y-8">
+                      <div className="flex items-center gap-5 p-5 bg-muted/40 rounded-2xl border-2 border-muted/50 transition-all hover:border-primary/20 shadow-inner">
+                          <div className="bg-primary p-3 rounded-xl shadow-xl">
+                              <Clock className="h-6 w-6 text-secondary" />
                           </div>
                           <div>
-                              <p className="text-[7px] font-black text-muted-foreground uppercase tracking-[0.3em] mb-0.5">Operational</p>
-                              <p className="text-lg font-black italic tracking-tight text-primary">08:00 - 17:00</p>
+                              <p className="text-[8px] font-black text-muted-foreground uppercase tracking-[0.4em] mb-1">Operational</p>
+                              <p className="text-xl font-black italic tracking-tight text-primary">08:00 - 17:00</p>
                           </div>
                       </div>
-                      <div className="space-y-3 pt-1">
-                        <div className="flex items-center gap-2 text-green-600">
-                          <div className="h-2 w-2 bg-green-600 rounded-full animate-pulse shadow-[0_0_8px_rgba(22,163,74,0.4)]" />
-                          <span className="font-black text-[9px] uppercase tracking-widest">Connectivity Online</span>
+                      <div className="space-y-4 pt-2">
+                        <div className="flex items-center gap-3 text-green-600">
+                          <div className="h-2.5 w-2.5 bg-green-600 rounded-full animate-pulse shadow-[0_0_12px_rgba(22,163,74,0.5)]" />
+                          <span className="font-black text-[10px] uppercase tracking-widest">Connectivity Valid</span>
                         </div>
-                        <p className="text-[11px] font-medium text-muted-foreground leading-relaxed italic opacity-80">
-                          Real-time logging is strictly mandatory for all institutional visitors.
+                        <p className="text-xs font-medium text-muted-foreground leading-relaxed italic opacity-80">
+                          Logging is mandatory for all institutional visitors to maintain academic audit trails.
                         </p>
                       </div>
                   </CardContent>
                 </Card>
                 
-                <LiveClock className="bg-white border-none shadow-xl p-6 !flex-col text-primary rounded-[1.5rem] scale-95" showSelector={false} />
+                <LiveClock className="bg-white/80 backdrop-blur-2xl border-none shadow-3xl p-8 !flex-col text-primary rounded-[2rem] scale-95 ring-1 ring-white/50" showSelector={false} />
               </div>
             </div>
           )}
@@ -425,14 +427,14 @@ export function UserGreeting() {
         </div>
       </main>
 
-      <footer className="relative z-10 p-8 text-center bg-white/30 backdrop-blur-md border-t mt-auto">
-        <div className="max-w-7xl auto flex flex-col md:flex-row justify-between items-center gap-4">
-            <div className="flex items-center gap-3 opacity-40 group cursor-default">
-                <Library className="h-4 w-4 text-primary" />
-                <span className="font-black text-sm uppercase tracking-[0.2em] text-primary italic">NEU ACCESS HUB</span>
+      <footer className="relative z-10 p-10 text-center bg-white/40 backdrop-blur-3xl border-t mt-auto">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+            <div className="flex items-center gap-4 opacity-40 group cursor-default grayscale hover:grayscale-0 transition-all duration-700">
+                <Library className="h-5 w-5 text-primary" />
+                <span className="font-black text-base uppercase tracking-[0.3em] text-primary italic">NEU ACCESS HUB</span>
             </div>
-            <p className="text-[8px] font-black uppercase tracking-[0.4em] text-muted-foreground/30 text-center">
-                &copy; {new Date().getFullYear()} NEW ERA UNIVERSITY • THE HUB
+            <p className="text-[9px] font-black uppercase tracking-[0.6em] text-muted-foreground/40 text-center">
+                &copy; {new Date().getFullYear()} NEW ERA UNIVERSITY • EXCELLENCE • DISCIPLINE
             </p>
         </div>
       </footer>
