@@ -86,7 +86,18 @@
         "purpose": {
           "type": "string",
           "description": "Purpose of visit.",
-          "enum": ["reading books", "research in thesis", "use of computer", "doing assignments"]
+          "enum": [
+            "reading books",
+            "research in thesis",
+            "use of computer",
+            "doing assignments",
+            "group study",
+            "consultation",
+            "charging device",
+            "resting/waiting",
+            "printing/scanning",
+            "resource borrowing"
+          ]
         },
         "timestamp": {
           "type": "string",

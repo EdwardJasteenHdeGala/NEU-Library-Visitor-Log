@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,7 +14,7 @@ export function FeedbackView() {
         <h2 className="text-3xl font-black text-primary mb-2">Feedback</h2>
         <div className="flex items-center justify-center gap-2 text-secondary font-bold">
             <Star className="h-5 w-5 fill-current" />
-            <span>Average Rating: 4.2/5 (18 entities)</span>
+            <span>Average Rating: 4.2/5 (18 entries)</span>
         </div>
       </div>
 
@@ -45,6 +46,9 @@ export function FeedbackView() {
                         <SelectItem value="study">Studying</SelectItem>
                         <SelectItem value="research">Research</SelectItem>
                         <SelectItem value="borrow">Borrowing Books</SelectItem>
+                        <SelectItem value="computer">Computer Use</SelectItem>
+                        <SelectItem value="facility">Facility Use</SelectItem>
+                        <SelectItem value="printing">Printing/Scanning</SelectItem>
                     </SelectContent>
                 </Select>
             </div>
@@ -53,7 +57,7 @@ export function FeedbackView() {
           <div className="space-y-2">
             <label className="text-sm font-bold text-muted-foreground">Your Message</label>
             <Textarea 
-                placeholder="Enter your feedback..." 
+                placeholder="Share your experience or suggestions for improvement..." 
                 className="min-h-[150px] text-lg p-4"
             />
           </div>

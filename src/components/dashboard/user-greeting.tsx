@@ -46,7 +46,7 @@ export function UserGreeting() {
         userId: profile.id,
         userName: profile.displayName,
         college: profile.college || 'General Education',
-        roleAtTime: 'student', // Defaulting based on requirements context
+        roleAtTime: 'student',
         purpose: purpose,
         timestamp: serverTimestamp()
       });
@@ -90,7 +90,6 @@ export function UserGreeting() {
       </header>
 
       <main className="flex-1 max-w-5xl mx-auto w-full p-4 md:p-8 grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-        {/* Left: Greeting & Visit Logging */}
         <div className="lg:col-span-2 space-y-8">
           <div className="space-y-2 animate-in fade-in slide-in-from-bottom-4 duration-700">
             <h1 className="text-4xl md:text-5xl font-black text-primary">
@@ -124,6 +123,12 @@ export function UserGreeting() {
                       <SelectItem value="research in thesis">Research in Thesis</SelectItem>
                       <SelectItem value="use of computer">Use of Computer</SelectItem>
                       <SelectItem value="doing assignments">Doing Assignments</SelectItem>
+                      <SelectItem value="group study">Group Study</SelectItem>
+                      <SelectItem value="consultation">Faculty/Staff Consultation</SelectItem>
+                      <SelectItem value="charging device">Charging Device</SelectItem>
+                      <SelectItem value="resting/waiting">Resting/Waiting</SelectItem>
+                      <SelectItem value="printing/scanning">Printing/Scanning</SelectItem>
+                      <SelectItem value="resource borrowing">Borrowing/Returning Resources</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -153,7 +158,6 @@ export function UserGreeting() {
           </div>
         </div>
 
-        {/* Right: Info & Status */}
         <div className="space-y-6">
           <Card className="neu-card-shadow border-none">
             <CardContent className="p-6 flex items-center gap-4">
@@ -163,6 +167,7 @@ export function UserGreeting() {
                 <div>
                     <p className="text-xs text-muted-foreground uppercase tracking-widest font-bold">Library Hours</p>
                     <p className="text-lg font-black text-primary">08:00 AM - 05:00 PM</p>
+                    <p className="text-[10px] text-muted-foreground italic">Mon - Fri (Full Service)</p>
                 </div>
             </CardContent>
           </Card>
@@ -177,7 +182,7 @@ export function UserGreeting() {
             <CardContent className="space-y-4">
               <div className="p-4 bg-muted/50 rounded-xl space-y-1">
                 <p className="text-sm font-bold">Location: Main Building</p>
-                <p className="text-xs text-muted-foreground">Successfully authenticated via School ID.</p>
+                <p className="text-xs text-muted-foreground">Authenticated via @neu.edu.ph</p>
               </div>
               <Button variant="outline" className="w-full gap-2 border-accent text-accent hover:bg-accent/10">
                 <BookOpen className="h-4 w-4" />

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -50,6 +51,8 @@ export function AdminOverview() {
                 <SelectItem value="today">Today</SelectItem>
                 <SelectItem value="week">This Week</SelectItem>
                 <SelectItem value="month">This Month</SelectItem>
+                <SelectItem value="semester">This Semester</SelectItem>
+                <SelectItem value="year">This Year</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -138,6 +141,11 @@ export function AdminOverview() {
                   <SelectItem value="research in thesis">Thesis Research</SelectItem>
                   <SelectItem value="use of computer">Use of Computer</SelectItem>
                   <SelectItem value="doing assignments">Doing Assignments</SelectItem>
+                  <SelectItem value="group study">Group Study</SelectItem>
+                  <SelectItem value="consultation">Consultation</SelectItem>
+                  <SelectItem value="charging device">Charging Device</SelectItem>
+                  <SelectItem value="resting/waiting">Resting/Waiting</SelectItem>
+                  <SelectItem value="printing/scanning">Printing/Scanning</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -147,10 +155,16 @@ export function AdminOverview() {
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Colleges</SelectItem>
-                  <SelectItem value="cas">CAS</SelectItem>
-                  <SelectItem value="cba">CBA</SelectItem>
-                  <SelectItem value="coed">COED</SelectItem>
-                  <SelectItem value="cea">CEA</SelectItem>
+                  <SelectItem value="cea">CEA (Engineering/Arch)</SelectItem>
+                  <SelectItem value="cas">CAS (Arts/Sciences)</SelectItem>
+                  <SelectItem value="cba">CBA (Business)</SelectItem>
+                  <SelectItem value="coed">COED (Education)</SelectItem>
+                  <SelectItem value="ccis">CCIS (Computer Studies)</SelectItem>
+                  <SelectItem value="com">COM (Medicine)</SelectItem>
+                  <SelectItem value="con">CON (Nursing)</SelectItem>
+                  <SelectItem value="col">COL (Law)</SelectItem>
+                  <SelectItem value="grad">Graduate School</SelectItem>
+                  <SelectItem value="shs">Senior High School</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -163,6 +177,8 @@ export function AdminOverview() {
                   <SelectItem value="student">Student</SelectItem>
                   <SelectItem value="faculty">Faculty</SelectItem>
                   <SelectItem value="staff">Staff</SelectItem>
+                  <SelectItem value="alumni">Alumnus</SelectItem>
+                  <SelectItem value="guest">Guest/Visitor</SelectItem>
                 </SelectContent>
               </Select>
             </div>
