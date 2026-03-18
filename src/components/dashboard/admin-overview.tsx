@@ -29,10 +29,9 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
   const status = useLibraryStatus();
   
   // Robust admin check - strictly prevent unauthorized telemetry access
-  const isAdmin = !authLoading && profile && (profile.role === 'admin' || profile.isSuperAdmin);
+  const isAdmin = !authLoading && profile && (profile.role === 'admin' || profile.isAuthorizedAdmin);
 
   // Real-time queries for telemetry - strictly guarded to avoid permission errors
-  // If the user is not an admin, these return null, preventing any unauthorized list attempts.
   const recentVisitsQuery = useMemoFirebase(() => {
     if (!isAdmin || !firestore) return null;
     return query(collection(firestore, 'visits'), orderBy('timestamp', 'desc'), limit(15));

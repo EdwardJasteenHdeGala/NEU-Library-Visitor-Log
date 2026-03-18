@@ -97,8 +97,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if ((isAuthorized || isBootstrapAdmin) && (!data.isAuthorizedAdmin || (isBootstrapAdmin && !data.isSuperAdmin))) {
           updates.isAuthorizedAdmin = true;
           updates.isSuperAdmin = isBootstrapAdmin;
-          // Ensure they are actually in the admin role for the UI
-          if (data.role !== 'admin') updates.role = 'admin';
+          // Ensure they are actually in the admin role for the UI if they are an admin
+          if (data.role !== 'admin' && !intendedRole) updates.role = 'admin';
           needsUpdate = true;
         }
 
