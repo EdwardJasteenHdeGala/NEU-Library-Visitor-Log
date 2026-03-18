@@ -1,7 +1,6 @@
-
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Users, History, TrendingUp, Filter, BarChart3, PieChart, Building2, LayoutDashboard, Loader2, ArrowRight, Clock } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { 
@@ -41,6 +40,7 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
   
   const isAdmin = profile?.role === 'admin';
 
+  // Increased limit to support deeper scrollable registry in overview
   const recentVisitsQuery = useMemoFirebase(() => {
     if (!isAdmin || !firestore) return null;
     return query(collection(firestore, 'visits'), orderBy('timestamp', 'desc'), limit(15));

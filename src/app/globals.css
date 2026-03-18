@@ -23,7 +23,7 @@
     --border: 210 20% 90%;
     --input: 210 20% 90%;
     --ring: 153 100% 15%;
-    --radius: 0.75rem;
+    --radius: 0.5rem;
     --chart-1: 153 100% 15%;
     --chart-2: 45 100% 48%;
     --chart-3: 197 37% 24%;
@@ -34,6 +34,7 @@
 
 @layer base {
   html {
+    /* Prevents the 'jump' or 'twitch' when switching pages or when scrollbars appear */
     scrollbar-gutter: stable;
     @apply h-full overflow-x-hidden scroll-smooth;
   }
@@ -41,7 +42,7 @@
     @apply border-border;
   }
   body {
-    @apply h-full overflow-x-hidden bg-background text-foreground font-body antialiased;
+    @apply h-full overflow-x-hidden bg-slate-50 text-foreground font-body antialiased;
   }
 }
 
@@ -57,7 +58,7 @@
   }
 
   .neu-card {
-    @apply bg-white border border-border shadow-sm rounded-xl overflow-hidden;
+    @apply bg-white border border-border shadow-sm rounded-lg overflow-hidden;
   }
 
   .neu-button-primary {
@@ -69,13 +70,23 @@
   }
 }
 
-/* Slim professional scrollbar */
+/* Formal Slim Scrollbar - Prevents layout shifts and is unobtrusive */
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-track {
   @apply bg-transparent;
 }
 ::-webkit-scrollbar-thumb {
-  @apply bg-muted-foreground/20 rounded-full hover:bg-muted-foreground/30 transition-all;
+  @apply bg-muted-foreground/10 rounded-full hover:bg-muted-foreground/30 transition-all;
+}
+
+/* Ensure Radix ScrollArea doesn't shift content */
+[data-radix-scroll-area-viewport] {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+[data-radix-scroll-area-viewport]::-webkit-scrollbar {
+  display: none;
 }
