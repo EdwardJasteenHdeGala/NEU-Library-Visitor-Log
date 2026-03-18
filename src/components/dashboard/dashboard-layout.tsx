@@ -57,14 +57,14 @@ export function DashboardLayout() {
 
   const renderView = () => {
     switch (currentView) {
-      case 'dashboard': return <AdminOverview />;
+      case 'dashboard': return <AdminOverview onNavigate={(view: View) => setCurrentView(view)} />;
       case 'visitor-log': return <VisitorLog />;
       case 'users': return <UserManagement />;
       case 'reports': return <ReportsView />;
       case 'feedback': return <FeedbackView />;
       case 'help': return <HelpView />;
       case 'profile': return <ProfileView />;
-      default: return <AdminOverview />;
+      default: return <AdminOverview onNavigate={(view: View) => setCurrentView(view)} />;
     }
   };
 

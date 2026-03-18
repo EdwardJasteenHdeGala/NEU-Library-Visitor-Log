@@ -1,8 +1,7 @@
-
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Users, History, TrendingUp, Filter, BarChart3, PieChart, Building2, LayoutDashboard, Loader2 } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { Users, History, TrendingUp, Filter, BarChart3, PieChart, Building2, LayoutDashboard, Loader2, ArrowRight } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { 
   Select, 
@@ -27,17 +26,24 @@ import {
 } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { useAuth } from "@/hooks/use-auth";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button";
 
-export function AdminOverview() {
+interface AdminOverviewProps {
+  onNavigate?: (view: any) => void;
+}
+
+export function AdminOverview({ onNavigate }: AdminOverviewProps) {
   const firestore = useFirestore();
   const { profile } = useAuth();
   
   // Ensure we only fetch if the user has confirmed admin role to prevent permission errors
   const isAdmin = profile?.role === 'admin';
 
-  const visitsQuery = useMemoFirebase(() => {
+  const recentVisitsQuery = useMemoFirebase(() => {
     if (!isAdmin || !firestore) return null;
-    return query(collection(firestore, 'visits'), orderBy('timestamp', 'desc'), limit(5));
+    // Increased limit for scrollable history
+    return query(collection(firestore, 'visits'), orderBy('timestamp', 'desc'), limit(15));
   }, [firestore, isAdmin]);
 
   const allVisitsQuery = useMemoFirebase(() => {
@@ -45,7 +51,7 @@ export function AdminOverview() {
     return query(collection(firestore, 'visits'), orderBy('timestamp', 'desc'), limit(500));
   }, [firestore, isAdmin]);
 
-  const { data: recentVisits, isLoading: isLoadingRecent } = useCollection(visitsQuery);
+  const { data: recentVisits, isLoading: isLoadingRecent } = useCollection(recentVisitsQuery);
   const { data: allVisits, isLoading: isLoadingAll } = useCollection(allVisitsQuery);
 
   const isLoading = isLoadingRecent || isLoadingAll;
@@ -212,48 +218,61 @@ export function AdminOverview() {
       </div>
 
       <Card className="neu-card-shadow border-none overflow-hidden rounded-[2.5rem] bg-white shadow-2xl">
-        <CardHeader className="border-b bg-muted/20 p-8 flex flex-row items-center justify-between">
+        <CardHeader className="bg-muted/20 p-8 flex flex-row items-center justify-between border-b">
             <div className="space-y-1">
               <CardTitle className="text-xl font-black text-primary flex items-center gap-4 uppercase italic tracking-tighter">
                 <History className="h-6 w-6 text-secondary" />
                 Live Registry
               </CardTitle>
-              <CardDescription className="text-[9px] font-black uppercase tracking-[0.4em] opacity-60">Real-time Telemetry Stream</CardDescription>
+              <CardDescription className="text-[9px] font-black uppercase tracking-[0.4em] opacity-60">Real-time Telemetry Stream (Recent 15)</CardDescription>
             </div>
             <div className="h-3 w-3 bg-green-600 rounded-full animate-pulse shadow-[0_0_15px_rgba(22,163,74,0.5)] border-2 border-white" />
         </CardHeader>
-        <CardContent className="p-0 overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-muted/30 border-none hover:bg-muted/30">
-                <TableHead className="font-black py-5 uppercase text-[9px] tracking-[0.3em] px-8">Institutional Visitor</TableHead>
-                <TableHead className="font-black py-5 uppercase text-[9px] tracking-[0.3em] hidden sm:table-cell">Unit</TableHead>
-                <TableHead className="font-black py-5 uppercase text-[9px] tracking-[0.3em]">Context</TableHead>
-                <TableHead className="font-black py-5 uppercase text-[9px] tracking-[0.3em] px-8 text-right">Timestamp</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoadingRecent ? (
-                <TableRow><TableCell colSpan={4} className="text-center py-20 text-sm font-bold text-muted-foreground animate-pulse">Syncing institutional records...</TableCell></TableRow>
-              ) : recentVisits?.length === 0 ? (
-                <TableRow><TableCell colSpan={4} className="text-center py-20 text-sm text-muted-foreground italic font-medium">No live telemetry detected.</TableCell></TableRow>
-              ) : recentVisits?.map((visit, i) => (
-                <TableRow key={i} className="hover:bg-muted/10 border-b transition-colors duration-300">
-                  <TableCell className="font-black py-6 text-primary px-8 text-base tracking-tight">{visit.userName}</TableCell>
-                  <TableCell className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground hidden sm:table-cell">{visit.college}</TableCell>
-                  <TableCell>
-                    <span className="text-[8px] font-black uppercase tracking-[0.3em] bg-secondary/10 text-primary px-4 py-1.5 rounded-full border border-secondary/20">
-                      {visit.purpose}
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground text-[10px] font-black uppercase tracking-widest px-8 italic text-right">
-                    {visit.timestamp?.seconds ? format(visit.timestamp.seconds * 1000, 'h:mm a') : 'Streaming'}
-                  </TableCell>
+        <CardContent className="p-0">
+          <ScrollArea className="h-[450px] w-full">
+            <Table>
+              <TableHeader className="sticky top-0 bg-white/95 backdrop-blur-md z-10 shadow-sm">
+                <TableRow className="bg-muted/30 border-none hover:bg-muted/30">
+                  <TableHead className="font-black py-5 uppercase text-[9px] tracking-[0.3em] px-8">Institutional Visitor</TableHead>
+                  <TableHead className="font-black py-5 uppercase text-[9px] tracking-[0.3em] hidden sm:table-cell">Unit</TableHead>
+                  <TableHead className="font-black py-5 uppercase text-[9px] tracking-[0.3em]">Context</TableHead>
+                  <TableHead className="font-black py-5 uppercase text-[9px] tracking-[0.3em] px-8 text-right">Timestamp</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {isLoadingRecent ? (
+                  <TableRow><TableCell colSpan={4} className="text-center py-20 text-sm font-bold text-muted-foreground animate-pulse">Syncing institutional records...</TableCell></TableRow>
+                ) : recentVisits?.length === 0 ? (
+                  <TableRow><TableCell colSpan={4} className="text-center py-20 text-sm text-muted-foreground italic font-medium">No live telemetry detected.</TableCell></TableRow>
+                ) : recentVisits?.map((visit, i) => (
+                  <TableRow key={i} className="hover:bg-muted/10 border-b transition-colors duration-300">
+                    <TableCell className="font-black py-6 text-primary px-8 text-base tracking-tight">{visit.userName}</TableCell>
+                    <TableCell className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground hidden sm:table-cell">{visit.college}</TableCell>
+                    <TableCell>
+                      <span className="text-[8px] font-black uppercase tracking-[0.3em] bg-secondary/10 text-primary px-4 py-1.5 rounded-full border border-secondary/20">
+                        {visit.purpose}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-[10px] font-black uppercase tracking-widest px-8 italic text-right">
+                      {visit.timestamp?.seconds ? format(visit.timestamp.seconds * 1000, 'h:mm a') : 'Streaming'}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </ScrollArea>
         </CardContent>
+        <CardFooter className="p-4 bg-muted/5 flex justify-center border-t">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => onNavigate?.('visitor-log')}
+            className="text-[10px] font-black uppercase tracking-[0.3em] text-primary/60 hover:text-primary gap-3 rounded-xl h-10 px-8 group transition-all"
+          >
+            Explore Full Registry History
+            <ArrowRight className="h-4 w-4 group-hover:translate-x-2 transition-transform" />
+          </Button>
+        </CardFooter>
       </Card>
     </div>
   );
