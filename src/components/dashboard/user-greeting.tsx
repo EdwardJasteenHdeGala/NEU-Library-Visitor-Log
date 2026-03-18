@@ -16,12 +16,8 @@ import {
   X, 
   Settings, 
   Loader2,
-  Clock,
   ShieldAlert,
   Users,
-  Megaphone,
-  AlertTriangle,
-  Info,
   DoorOpen,
   DoorClosed,
   Activity
@@ -53,7 +49,6 @@ import { FeedbackView } from "./feedback-view";
 import { HelpView } from "./help-view";
 import { ProfileView } from "./profile-view";
 import { useLibraryStatus } from "@/hooks/use-library-status";
-import { format } from "date-fns";
 
 const NEU_COLLEGES = [
   { id: "CICS", name: "Computer & Info Sciences" },
@@ -76,7 +71,7 @@ export function UserGreeting() {
   const { logout, profile, switchRole } = useAuth();
   const { firestore } = useFirebase();
   const { toast } = useToast();
-  const { isOpen, label, nextEvent, isManual, reason, category, updatedAt } = useLibraryStatus();
+  const { isOpen, label, nextEvent, isManual, reason } = useLibraryStatus();
   
   const [subView, setSubView] = useState<UserSubView>('log-entry');
   const [purpose, setPurpose] = useState<string>("");
@@ -101,7 +96,7 @@ export function UserGreeting() {
     );
   }, [profile, firestore]);
 
-  const { data: visits, isLoadingVisit } = useCollection(activeVisitQuery);
+  const { data: visits } = useCollection(activeVisitQuery);
   const activeVisit = visits && visits[0] && !visits[0].exitTimestamp ? visits[0] : null;
 
   const globalOccupancyQuery = useMemoFirebase(() => {
@@ -243,72 +238,66 @@ export function UserGreeting() {
                 </div>
               </div>
 
-              {!isLoadingVisit ? (
-                !activeVisit ? (
-                  <Card className={cn("shadow-xl border-border rounded-xl overflow-hidden", isManual && !isOpen && "border-amber-500 ring-2 ring-amber-500/10")}>
-                    <CardHeader className={cn("bg-slate-50 border-b p-6 flex flex-row items-center justify-between", isManual && !isOpen && "bg-amber-50 border-amber-100")}>
-                      <CardTitle className="text-xs font-bold flex items-center gap-2 uppercase tracking-widest"><History className="h-4 w-4 text-primary" /> Log Attendance</CardTitle>
-                      <div className={cn("px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border", isOpen ? "bg-green-50 text-green-700 border-green-200" : "bg-red-50 text-red-700 border-red-200")}>{label}</div>
-                    </CardHeader>
-                    <CardContent className="p-10 space-y-10">
-                      {!isOpen ? (
-                        <div className={cn("p-10 border-2 border-dashed rounded-xl flex flex-col items-center text-center gap-6", isManual ? "bg-amber-50 border-amber-200" : "bg-slate-50 border-slate-200")}>
-                          {isManual ? <ShieldAlert className="h-12 w-12 text-amber-500" /> : <DoorClosed className="h-12 w-12 text-slate-400" />}
-                          <div className="space-y-4">
-                            <h3 className="text-xl font-bold uppercase italic">{isManual ? "Institutional Suspension" : "Facility Closed"}</h3>
-                            {isManual && reason ? <p className="font-bold text-lg italic leading-relaxed bg-white p-6 rounded-lg border shadow-sm text-amber-700 border-amber-100">“{reason}”</p> : <p className="text-muted-foreground">{nextEvent}</p>}
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="animate-in slide-in-from-bottom-4 duration-500">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
-                            <div className="space-y-2">
-                              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Assigned Unit</label>
-                              <Select value={currentCollege} onValueChange={setCurrentCollege}>
-                                <SelectTrigger className="h-14 font-bold rounded-xl border-2"><SelectValue placeholder="Select Dept" /></SelectTrigger>
-                                <SelectContent className="rounded-xl">{NEU_COLLEGES.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
-                              </Select>
-                            </div>
-                            <div className="space-y-2">
-                              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Purpose of Access</label>
-                              <Select value={purpose} onValueChange={setPurpose}>
-                                <SelectTrigger className="h-14 font-bold rounded-xl border-2"><SelectValue placeholder="Select Purpose" /></SelectTrigger>
-                                <SelectContent className="rounded-xl">
-                                  <SelectItem value="reading books">Reading & Study</SelectItem>
-                                  <SelectItem value="research in thesis">Thesis Research</SelectItem>
-                                  <SelectItem value="use of computer">Computer Laboratory</SelectItem>
-                                  <SelectItem value="doing assignments">Assignments</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          </div>
-                          <Button onClick={handleCheckIn} disabled={!purpose || !currentCollege || isLogging} className="w-full h-16 text-lg font-bold gap-4 rounded-xl shadow-lg transition-all active:scale-95">
-                            {isLogging ? <Loader2 className="h-5 w-5 animate-spin" /> : <CheckCircle2 className="h-5 w-5 text-secondary" />}
-                            Confirm Attendance Entry
-                          </Button>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                ) : (
-                  <Card className="shadow-2xl border-none bg-primary text-white p-16 rounded-xl overflow-hidden relative">
-                    <div className="relative z-10 flex flex-col items-center text-center space-y-10">
-                      <div className="h-20 w-20 bg-white/10 rounded-full flex items-center justify-center border-2 border-white/20 animate-pulse shadow-xl">
-                        <Activity className="h-10 w-10 text-secondary" />
-                      </div>
+              <Card className={cn("shadow-xl border-border rounded-xl overflow-hidden", isManual && !isOpen && "border-amber-500 ring-2 ring-amber-500/10")}>
+                <CardHeader className={cn("bg-slate-50 border-b p-6 flex flex-row items-center justify-between", isManual && !isOpen && "bg-amber-50 border-amber-100")}>
+                  <CardTitle className="text-xs font-bold flex items-center gap-2 uppercase tracking-widest"><History className="h-4 w-4 text-primary" /> Log Attendance</CardTitle>
+                  <div className={cn("px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border", isOpen ? "bg-green-50 text-green-700 border-green-200" : "bg-red-50 text-red-700 border-red-200")}>{label}</div>
+                </CardHeader>
+                <CardContent className="p-10 space-y-10">
+                  {!isOpen ? (
+                    <div className={cn("p-10 border-2 border-dashed rounded-xl flex flex-col items-center text-center gap-6", isManual ? "bg-amber-50 border-amber-200" : "bg-slate-50 border-slate-200")}>
+                      {isManual ? <ShieldAlert className="h-12 w-12 text-amber-500" /> : <DoorClosed className="h-12 w-12 text-slate-400" />}
                       <div className="space-y-4">
-                        <h2 className="text-3xl font-bold uppercase tracking-tighter italic">Active Session Confirmed</h2>
-                        <p className="text-white/80 text-lg">Arrival: <span className="text-secondary font-bold">{activeVisit.timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span></p>
+                        <h3 className="text-xl font-bold uppercase italic">{isManual ? "Institutional Suspension" : "Facility Closed"}</h3>
+                        {isManual && reason ? <p className="font-bold text-lg italic leading-relaxed bg-white p-6 rounded-lg border shadow-sm text-amber-700 border-amber-100">“{reason}”</p> : <p className="text-muted-foreground">{nextEvent}</p>}
                       </div>
-                      <Button onClick={handleCheckOut} disabled={isLogging} variant="secondary" className="w-full max-w-xs h-14 font-black uppercase text-xs tracking-widest shadow-xl rounded-xl">
-                        {isLogging ? <Loader2 className="h-4 w-4 animate-spin" /> : "Terminate Session"}
+                    </div>
+                  ) : activeVisit ? (
+                    <div className="shadow-2xl border-none bg-primary text-white p-16 rounded-xl overflow-hidden relative">
+                      <div className="relative z-10 flex flex-col items-center text-center space-y-10">
+                        <div className="h-20 w-20 bg-white/10 rounded-full flex items-center justify-center border-2 border-white/20 animate-pulse shadow-xl">
+                          <Activity className="h-10 w-10 text-secondary" />
+                        </div>
+                        <div className="space-y-4">
+                          <h2 className="text-3xl font-bold uppercase tracking-tighter italic">Active Session Confirmed</h2>
+                          <p className="text-white/80 text-lg">Arrival: <span className="text-secondary font-bold">{activeVisit.timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span></p>
+                        </div>
+                        <Button onClick={handleCheckOut} disabled={isLogging} variant="secondary" className="w-full max-w-xs h-14 font-black uppercase text-xs tracking-widest shadow-xl rounded-xl">
+                          {isLogging ? <Loader2 className="h-4 w-4 animate-spin" /> : "Terminate Session"}
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="animate-in slide-in-from-bottom-4 duration-500">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Assigned Unit</label>
+                          <Select value={currentCollege} onValueChange={setCurrentCollege}>
+                            <SelectTrigger className="h-14 font-bold rounded-xl border-2"><SelectValue placeholder="Select Dept" /></SelectTrigger>
+                            <SelectContent className="rounded-xl">{NEU_COLLEGES.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Purpose of Access</label>
+                          <Select value={purpose} onValueChange={setPurpose}>
+                            <SelectTrigger className="h-14 font-bold rounded-xl border-2"><SelectValue placeholder="Select Purpose" /></SelectTrigger>
+                            <SelectContent className="rounded-xl">
+                              <SelectItem value="reading books">Reading & Study</SelectItem>
+                              <SelectItem value="research in thesis">Thesis Research</SelectItem>
+                              <SelectItem value="use of computer">Computer Laboratory</SelectItem>
+                              <SelectItem value="doing assignments">Assignments</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      <Button onClick={handleCheckIn} disabled={!purpose || !currentCollege || isLogging} className="w-full h-16 text-lg font-bold gap-4 rounded-xl shadow-lg transition-all active:scale-95">
+                        {isLogging ? <Loader2 className="h-5 w-5 animate-spin" /> : <CheckCircle2 className="h-5 w-5 text-secondary" />}
+                        Confirm Attendance Entry
                       </Button>
                     </div>
-                  </Card>
-                )
-              ) : (
-                <div className="flex flex-col items-center justify-center py-24 gap-4"><Loader2 className="h-10 w-10 animate-spin text-primary opacity-20" /></div>
-              )}
+                  )}
+                </CardContent>
+              </Card>
             </div>
 
             <aside className="lg:col-span-4 space-y-8 lg:sticky lg:top-24">

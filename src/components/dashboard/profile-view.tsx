@@ -1,13 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth, UserProfile } from "@/hooks/use-auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { 
-  User, 
   ShieldCheck, 
   RefreshCcw, 
   LogOut, 
@@ -15,7 +14,6 @@ import {
   Save, 
   Loader2,
   ShieldOff,
-  AlertTriangle,
   IdCard,
   ArrowLeft,
   ShieldAlert
@@ -54,7 +52,7 @@ export function ProfileView({ onBack }: ProfileViewProps) {
 
   const handleSave = async () => {
     setIsUpdating(true);
-    const success = await updateProfileData(formData);
+    const success = await updateProfileData(formData as Partial<UserProfile>);
     setIsUpdating(false);
     if (success) toast({ title: "Profile Synchronized", description: "Identity updated." });
   };

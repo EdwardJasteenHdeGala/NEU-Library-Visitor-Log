@@ -1,15 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
   Users, 
   History, 
   LayoutDashboard, 
-  ArrowRight, 
   Clock, 
-  ShieldCheck, 
-  Settings, 
   ShieldAlert, 
   Power, 
   RotateCcw, 
@@ -67,7 +64,7 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
     return query(collection(firestore, 'visits'), where('exitTimestamp', '==', null));
   }, [firestore, isAdmin]);
 
-  const { data: recentVisits, isLoading: isLoadingRecent } = useCollection(recentVisitsQuery);
+  const { data: recentVisits } = useCollection(recentVisitsQuery);
   const { data: allVisits } = useCollection(allVisitsQuery);
 
   const effectiveOccupancy = isOpen ? (allVisits?.length || 0) : 0;

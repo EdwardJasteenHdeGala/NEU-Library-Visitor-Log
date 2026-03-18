@@ -35,7 +35,7 @@ service cloud.firestore {
     }
 
     match /visits/{visitId} {
-      // Allow read (get + list) for all institutional members to see occupancy telemetry
+      // Allow read (get + list) for all institutional members to see occupancy telemetry and personal history
       allow read: if isSignedIn();
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow update, delete: if isAnyAdmin();
