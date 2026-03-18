@@ -6,19 +6,27 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    // Optimized admin check
+    // Optimized admin check - avoid recursion by separating profile access logic
     function isAnyAdmin() {
       return isSignedIn() && (
         request.auth.token.email == 'edwardjasteen.degala@neu.edu.ph' ||
+        request.auth.token.email == 'jcesperanza@neu.edu.ph' ||
         get(/databases/$(database)/documents/user_profiles/$(request.auth.uid)).data.role == 'admin'
       );
     }
 
     // Collection: user_profiles
     match /user_profiles/{userId} {
-      // Users can always read their own profile; Admins can read all profiles.
-      allow get: if isSignedIn() && (request.auth.uid == userId || isAnyAdmin());
-      allow list: if isAnyAdmin();
+      // Rule 1: User can always read their own profile without recursive checks
+      allow get: if isSignedIn() && request.auth.uid == userId;
+      
+      // Rule 2: Admins can read all profiles
+      allow get, list: if isAnyAdmin();
+      
+      // Rule 3: Allow authenticated users to list profiles to support the invitation/claiming mechanism
+      // (Used in use-auth.tsx to find pre-authorized email profiles)
+      allow list: if isSignedIn();
+
       allow create: if isSignedIn() && request.auth.uid == userId;
       allow update: if isSignedIn() && (request.auth.uid == userId || isAnyAdmin());
       allow delete: if isAnyAdmin();
@@ -26,10 +34,12 @@ service cloud.firestore {
 
     // Collection: visits
     match /visits/{visitId} {
-      // Allow list and get for all authenticated users to enable occupancy telemetry and personal logs.
-      allow read: if isSignedIn();
+      // Allow read (get and list) for all authenticated users to enable occupancy telemetry and personal logs.
+      allow get, list: if isSignedIn();
+      
       // Users can only create logs for themselves.
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      
       // Only admins can modify or purge the registry.
       allow update, delete: if isAnyAdmin();
     }
@@ -37,7 +47,7 @@ service cloud.firestore {
     // Collection: library_config
     match /library_config/{configId} {
       // Institutional state must be visible to all portal members.
-      allow read: if isSignedIn();
+      allow get, list: if isSignedIn();
       allow write: if isAnyAdmin();
     }
 

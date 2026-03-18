@@ -28,6 +28,7 @@ export interface UserProfile {
   college?: string;
   createdAt: any;
   updatedAt: any;
+  theme?: 'light' | 'dark';
 }
 
 interface AuthContextType {
@@ -82,45 +83,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const docRef = doc(firestore, 'user_profiles', uid);
       let docSnap = await getDoc(docRef);
       
-      // 1. CLAIMING MECHANISM: Check if this email was pre-authorized (Invited)
+      // CLAIMING MECHANISM: Check if this email was pre-authorized
+      // Wrapped in try/catch to avoid permission errors if 'list' is restricted
       if (!docSnap.exists() && user.email) {
-        const q = query(collection(firestore, 'user_profiles'), where('email', '==', user.email.toLowerCase()), limit(1));
-        const qSnap = await getDocs(q);
-        
-        const pendingDoc = qSnap.docs.find(d => !d.data().id || d.data().displayName === 'New User (Pending)');
-        
-        if (pendingDoc) {
-          const preData = pendingDoc.data() as UserProfile;
-          const migratedData = {
-            ...preData,
-            id: user.uid,
-            displayName: user.displayName || 'Visitor',
-            photoURL: user.photoURL || '',
-            updatedAt: serverTimestamp()
-          };
+        try {
+          const q = query(collection(firestore, 'user_profiles'), where('email', '==', user.email.toLowerCase()), limit(1));
+          const qSnap = await getDocs(q);
           
-          // Non-blocking write
-          setDocumentNonBlocking(docRef, migratedData, { merge: true });
-          deleteDocumentNonBlocking(pendingDoc.ref);
+          const pendingDoc = qSnap.docs.find(d => !d.data().id || d.data().displayName === 'New User (Pending)');
           
-          setProfile(migratedData as any);
-          setLoading(false);
-          toast({
-            title: "Access Synchronized",
-            description: "Your pre-authorized role and department have been activated.",
-          });
-          return;
+          if (pendingDoc) {
+            const preData = pendingDoc.data() as UserProfile;
+            const migratedData = {
+              ...preData,
+              id: user.uid,
+              displayName: user.displayName || 'Visitor',
+              photoURL: user.photoURL || '',
+              updatedAt: serverTimestamp()
+            };
+            
+            setDocumentNonBlocking(docRef, migratedData, { merge: true });
+            deleteDocumentNonBlocking(pendingDoc.ref);
+            
+            setProfile(migratedData as any);
+            setLoading(false);
+            toast({
+              title: "Identity Synchronized",
+              description: "Institutional credentials have been successfully claimed.",
+            });
+            return;
+          }
+        } catch (e) {
+          // If listing is denied, fallback to default profile creation
         }
       }
 
       const isInstitutional = user.email && user.email.endsWith('@neu.edu.ph');
       const isBootstrapAdmin = user.email === BOOTSTRAP_SUPER_ADMIN_EMAIL;
       const isAuthorized = user.email && AUTHORIZED_ADMIN_EMAILS.includes(user.email);
-      const isProfessorEsperanza = user.email === 'jcesperanza@neu.edu.ph';
       
-      const defaultCollege = isInstitutional 
-        ? (isProfessorEsperanza || isBootstrapAdmin ? 'CICS' : 'General Education') 
-        : 'External (Guest)';
+      const defaultCollege = isInstitutional ? 'General Education' : 'External / Guest';
       const defaultRole = isInstitutional ? 'user' : 'guest';
 
       if (docSnap.exists()) {
@@ -169,14 +171,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           photoURL: user.photoURL || '',
           college: defaultCollege,
           createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp()
+          updatedAt: serverTimestamp(),
+          theme: 'light'
         };
         
         setDocumentNonBlocking(docRef, profileData, { merge: true });
         setProfile(profileData as any);
       }
     } catch (error) {
-      console.error("Error managing profile:", error);
+      console.error("Profile Sync Error:", error);
     } finally {
       setLoading(false);
       setIntendedRole(null);
@@ -193,7 +196,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await signInWithPopup(auth, provider);
     } catch (error: any) {
       toast({
-        title: "Login Error",
+        title: "Authentication Failed",
         description: error.message,
         variant: "destructive"
       });
@@ -229,8 +232,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
       setProfile({ ...profile, role: newRole });
       toast({
-        title: "Role Updated",
-        description: `Your active role is now: ${newRole.toUpperCase()}`,
+        title: "Role Switch Successful",
+        description: `Active role updated to ${newRole.toUpperCase()}.`,
       });
     } catch (error: any) {}
   };
@@ -245,8 +248,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         updatedAt: serverTimestamp()
       });
       toast({
-        title: "User Role Updated",
-        description: `User has been successfully updated to: ${newRole.toUpperCase()}`,
+        title: "Permission Updated",
+        description: "Institutional access levels have been synchronized.",
       });
     } catch (error: any) {}
   };
@@ -265,7 +268,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setProfile({ ...profile, isSuperAdmin: false });
       toast({
         title: "Ownership Transferred",
-        description: "Super Admin privileges have been successfully transferred.",
+        description: "Super Admin privileges successfully reassigned.",
       });
     } catch (error: any) {}
   };
@@ -291,7 +294,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const qSnap = await getDocs(q);
       
       if (!qSnap.empty) {
-        toast({ title: "User Exists", description: "This email is already registered.", variant: "destructive" });
+        toast({ title: "Conflict Detected", description: "Email already exists in registry.", variant: "destructive" });
         return false;
       }
 
@@ -307,7 +310,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         updatedAt: serverTimestamp()
       }, { merge: true });
 
-      toast({ title: "Invitation Sent", description: `${cleanEmail} pre-authorized.` });
+      toast({ title: "Invitation Recorded", description: "Identity pre-authorized for sync." });
       return true;
     } catch (error: any) {
       return false;
