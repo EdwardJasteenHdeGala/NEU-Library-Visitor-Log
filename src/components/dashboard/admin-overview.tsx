@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,7 +8,8 @@ import {
   LayoutDashboard, 
   Activity,
   Clock,
-  XCircle
+  XCircle,
+  AlertCircle
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { collection, limit, orderBy, query, where } from "firebase/firestore";
@@ -33,7 +35,7 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
 
   // Real-time queries for telemetry - strictly guarded by isAdmin
   const recentVisitsQuery = useMemoFirebase(() => {
-    // Only fetch if explicitly authorized. This prevents permission errors for non-admin users.
+    // Only fetch if explicitly authorized and profile is loaded.
     if (!isAdmin || !firestore) return null;
     return query(collection(firestore, 'visits'), orderBy('timestamp', 'desc'), limit(15));
   }, [firestore, isAdmin]);
@@ -51,11 +53,13 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
   // If not admin, show a simplified dashboard or restricted view
   if (!isAdmin) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
-        <XCircle className="h-12 w-12 text-destructive opacity-20" />
-        <h2 className="text-xl font-bold text-primary">Access Restricted</h2>
-        <p className="text-muted-foreground text-sm max-w-xs">
-          The institutional overview is reserved for authorized administrators. Please use your member portal.
+      <div className="flex flex-col items-center justify-center py-20 text-center space-y-4 animate-in fade-in duration-500">
+        <div className="p-4 bg-destructive/10 rounded-full">
+          <AlertCircle className="h-10 w-10 text-destructive" />
+        </div>
+        <h2 className="text-xl font-bold text-primary">Institutional Access Restricted</h2>
+        <p className="text-muted-foreground text-sm max-w-xs italic">
+          The administrative console is reserved for authorized personnel. Please use your member portal to manage your log entries.
         </p>
       </div>
     );
@@ -79,7 +83,7 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="shadow-sm border-border rounded-xl">
+        <Card className="shadow-sm border-border rounded-xl bg-white">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Occupancy</span>
             <Users className={cn("h-4 w-4", effectiveOccupancy > 0 ? "text-green-600" : "text-slate-400")} />
@@ -89,7 +93,7 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
           </CardContent>
         </Card>
         
-        <Card className="shadow-sm border-border rounded-xl">
+        <Card className="shadow-sm border-border rounded-xl bg-white">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Registry State</span>
             <Activity className="h-4 w-4 text-primary/60" />
@@ -99,17 +103,17 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
           </CardContent>
         </Card>
 
-        <Card className="shadow-sm border-border rounded-xl">
+        <Card className="shadow-sm border-border rounded-xl bg-white">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Next Shift</span>
+            <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Next Event</span>
             <Clock className="h-4 w-4 text-primary/60" />
           </CardHeader>
           <CardContent>
-            <div className="text-xs font-bold text-primary truncate">{status.nextEvent}</div>
+            <div className="text-xs font-bold text-primary truncate italic">{status.nextEvent}</div>
           </CardContent>
         </Card>
 
-        <Card className="shadow-sm border-border rounded-xl">
+        <Card className="shadow-sm border-border rounded-xl bg-white">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Academic Year</span>
             <History className="h-4 w-4 text-primary/60" />
@@ -120,9 +124,11 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
         </Card>
       </div>
 
-      <Card className="shadow-sm rounded-xl overflow-hidden">
+      <Card className="shadow-sm rounded-xl overflow-hidden bg-white">
         <CardHeader className="pb-4 border-b p-6 bg-slate-50/50 flex flex-row items-center justify-between">
-          <CardTitle className="text-[10px] font-bold flex items-center gap-2 uppercase tracking-widest"><History className="h-4 w-4 text-primary" /> Recent Registry Activity</CardTitle>
+          <CardTitle className="text-[10px] font-bold flex items-center gap-2 uppercase tracking-widest">
+            <History className="h-4 w-4 text-primary" /> Recent Registry Activity
+          </CardTitle>
           <Badge variant="outline" className="text-[9px] font-bold uppercase">{recentVisits?.length || 0} Recent</Badge>
         </CardHeader>
         <CardContent className="p-0">
@@ -141,7 +147,7 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
                   <TableRow><TableCell colSpan={4} className="text-center py-20 animate-pulse text-[10px] uppercase">Syncing Registry...</TableCell></TableRow>
                 ) : recentVisits?.length === 0 ? (
                   <TableRow><TableCell colSpan={4} className="text-center py-20 italic text-[10px] uppercase">No Logs Recorded</TableCell></TableRow>
-                ) : recentVisits?.map((visit, i) => (
+                ) : recentVisits?.map((visit) => (
                   <TableRow key={visit.id} className="hover:bg-slate-50 transition-colors">
                     <TableCell className="font-bold px-6 text-xs">{visit.userName}</TableCell>
                     <TableCell className="text-[9px] font-bold text-primary/70 uppercase">{visit.college}</TableCell>
