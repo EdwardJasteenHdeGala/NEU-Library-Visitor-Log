@@ -89,7 +89,9 @@ export function ProfileView({ onBack }: ProfileViewProps) {
             <div className="space-y-1 text-center sm:text-left"><p className="font-black text-primary uppercase text-sm">Active Duty Override</p><p className="text-[11px] font-medium text-muted-foreground italic">Toggle administrative privileges for this session.</p></div>
             <div className="flex items-center gap-5 p-3 bg-white/50 rounded-2xl border shadow-inner">
                <span className={cn("text-[10px] font-black uppercase tracking-widest transition-all", profile.role === 'user' ? 'text-primary' : 'text-muted-foreground opacity-40')}>User</span>
-               <Switch checked={profile.role === 'admin'} onCheckedChange={(checked) => switchRole(checked ? 'admin' : 'user')} />
+               <span className="flex items-center px-1">
+                 <Switch checked={profile.role === 'admin'} onCheckedChange={(checked) => switchRole(checked ? 'admin' : 'user')} />
+               </span>
                <span className={cn("text-[10px] font-black uppercase tracking-widest transition-all", profile.role === 'admin' ? 'text-primary' : 'text-muted-foreground opacity-40')}>Admin</span>
             </div>
           </CardContent>
