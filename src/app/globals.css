@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    --background: 0 0% 98%;
+    --background: 0 0% 100%;
     --foreground: 210 40% 10%;
     --card: 0 0% 100%;
     --card-foreground: 210 40% 10%;
@@ -23,39 +23,17 @@
     --border: 210 20% 90%;
     --input: 210 20% 90%;
     --ring: 153 100% 15%;
-    --radius: 1.5rem;
+    --radius: 0.75rem;
     --chart-1: 153 100% 15%;
     --chart-2: 45 100% 48%;
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
   }
-  .dark {
-    --background: 210 40% 5%;
-    --foreground: 210 15% 95%;
-    --card: 210 40% 8%;
-    --card-foreground: 210 15% 95%;
-    --popover: 210 40% 8%;
-    --popover-foreground: 210 15% 95%;
-    --primary: 153 100% 20%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 45 100% 40%;
-    --secondary-foreground: 0 0% 100%;
-    --muted: 210 30% 15%;
-    --muted-foreground: 210 20% 60%;
-    --accent: 45 100% 40%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 210 30% 20%;
-    --input: 210 30% 20%;
-    --ring: 153 100% 20%;
-  }
 }
 
 @layer base {
   html {
-    /* Prevent layout shift when scrollbar appears */
     scrollbar-gutter: stable;
     @apply h-full overflow-x-hidden scroll-smooth;
   }
@@ -63,81 +41,41 @@
     @apply border-border;
   }
   body {
-    @apply h-full overflow-x-hidden bg-background text-foreground font-body antialiased selection:bg-primary/10 selection:text-primary;
+    @apply h-full overflow-x-hidden bg-background text-foreground font-body antialiased;
   }
 }
 
 @layer components {
-  .neu-mesh-gradient {
-    @apply relative bg-background;
-    background-image: 
-      radial-gradient(at 0% 0%, hsla(153, 100%, 15%, 0.1) 0px, transparent 50%),
-      radial-gradient(at 100% 0%, hsla(45, 100%, 48%, 0.08) 0px, transparent 50%),
-      radial-gradient(at 100% 100%, hsla(153, 100%, 10%, 0.05) 0px, transparent 50%),
-      radial-gradient(at 0% 100%, hsla(45, 100%, 48%, 0.05) 0px, transparent 50%);
-  }
-
-  /* Grain Texture Polish */
-  .neu-mesh-gradient::before {
-    content: "";
-    @apply absolute inset-0 pointer-events-none z-0 opacity-[0.04];
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-    mix-blend-mode: overlay;
-  }
-
-  .neu-bg-overlay {
-    @apply fixed inset-0 pointer-events-none opacity-[0.07] grayscale contrast-[1.2] mix-blend-multiply;
-    background-image: url('https://neu.edu.ph/main/img/mains.jfif');
-    background-size: cover;
-    background-position: center;
-    z-index: -1;
-  }
-
-  .bg-dot-pattern {
-    @apply absolute inset-0 opacity-[0.08] pointer-events-none;
-    background-image: radial-gradient(circle, hsl(var(--primary) / 0.2) 1px, transparent 1px);
+  .neu-background {
+    @apply relative min-h-screen bg-slate-50/50;
+    background-image: radial-gradient(circle at 2px 2px, rgba(0, 77, 38, 0.05) 1px, transparent 0);
     background-size: 32px 32px;
   }
 
-  .glass-panel {
-    @apply bg-white/70 backdrop-blur-2xl border border-white/40 shadow-xl;
+  .neu-header {
+    @apply h-[60px] flex items-center bg-primary text-white sticky top-0 z-[70] shadow-sm border-b border-primary-foreground/10;
   }
 
-  .neu-card-shadow {
-    box-shadow: 
-      0 10px 15px -3px rgba(0, 0, 0, 0.04),
-      0 4px 6px -2px rgba(0, 0, 0, 0.01),
-      0 20px 25px -5px rgba(0, 77, 38, 0.03);
+  .neu-card {
+    @apply bg-white border border-border shadow-sm rounded-xl overflow-hidden;
   }
 
-  .neu-button-shadow {
-    box-shadow: 0 8px 25px -5px rgba(0, 77, 38, 0.2);
+  .neu-button-primary {
+    @apply bg-primary text-white hover:bg-primary/90 transition-all font-semibold shadow-sm;
   }
 
-  .neu-button-shadow-secondary {
-    box-shadow: 0 8px 25px -5px rgba(251, 191, 36, 0.25);
+  .neu-button-secondary {
+    @apply bg-secondary text-primary hover:bg-secondary/90 transition-all font-semibold shadow-sm;
   }
 }
 
-@keyframes blob {
-  0% { transform: translate(0, 0) scale(1); }
-  33% { transform: translate(30px, -50px) scale(1.1); }
-  66% { transform: translate(-20px, 20px) scale(0.9); }
-  100% { transform: translate(0, 0) scale(1); }
-}
-
-.animate-blob {
-  animation: blob 25s infinite alternate ease-in-out;
-  will-change: transform;
-}
-
-/* Custom Premium Scrollbar - Slim & Transparent-ish to avoid ratio shifts */
+/* Slim professional scrollbar */
 ::-webkit-scrollbar {
-  width: 5px;
+  width: 6px;
 }
 ::-webkit-scrollbar-track {
   @apply bg-transparent;
 }
 ::-webkit-scrollbar-thumb {
-  @apply bg-primary/10 rounded-full hover:bg-primary/30 transition-all duration-300;
+  @apply bg-muted-foreground/20 rounded-full hover:bg-muted-foreground/30 transition-all;
 }

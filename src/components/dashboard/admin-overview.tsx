@@ -37,12 +37,10 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
   const firestore = useFirestore();
   const { profile } = useAuth();
   
-  // Ensure we only fetch if the user has confirmed admin role to prevent permission errors
   const isAdmin = profile?.role === 'admin';
 
   const recentVisitsQuery = useMemoFirebase(() => {
     if (!isAdmin || !firestore) return null;
-    // Increased limit for scrollable history
     return query(collection(firestore, 'visits'), orderBy('timestamp', 'desc'), limit(15));
   }, [firestore, isAdmin]);
 
@@ -75,7 +73,7 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
     { title: "Today's Logs", value: allVisits?.length || "0", icon: Users, color: "bg-primary" },
     { title: "Peak Occupancy", value: "88%", icon: History, color: "bg-chart-3" },
     { title: "Active Depts", value: "12", icon: Building2, color: "bg-chart-4" },
-    { title: "Growth", value: "+12%", icon: TrendingUp, color: "bg-secondary" },
+    { title: "Growth Rate", value: "+12%", icon: TrendingUp, color: "bg-secondary" },
   ];
 
   const chartConfig = {
@@ -83,109 +81,89 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
   };
 
   return (
-    <div className="space-y-10 animate-in fade-in duration-700 pb-12 overflow-x-hidden">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div className="space-y-2">
-          <div className="flex items-center gap-3 text-primary font-black text-[9px] uppercase tracking-[0.4em] opacity-60">
-             <LayoutDashboard className="h-4 w-4" />
-             Institutional Dashboard
+    <div className="space-y-8 animate-in fade-in duration-500">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2 text-primary/60 text-[10px] font-bold uppercase tracking-widest">
+            <LayoutDashboard className="h-3.5 w-3.5" />
+            Institutional Overview
           </div>
-          <h2 className="text-4xl md:text-5xl font-black text-primary italic tracking-tighter uppercase leading-none">Intelligence</h2>
-          <p className="text-muted-foreground font-medium text-sm md:text-lg opacity-70">Real-time analytical data streaming.</p>
+          <h2 className="text-3xl font-bold tracking-tight text-slate-900">Administrative Dashboard</h2>
+          <p className="text-sm text-muted-foreground font-medium">Monitoring real-time access and facility utilization.</p>
         </div>
-        <div className="flex items-center">
-          <div className="bg-white/80 backdrop-blur-md p-2 rounded-2xl shadow-xl border flex items-center gap-4 text-[10px] font-black text-muted-foreground px-5">
-            <Filter className="h-4 w-4 text-primary" />
-            <Select defaultValue="today">
-              <SelectTrigger className="border-none bg-transparent h-8 w-[120px] shadow-none p-0 focus:ring-0 font-black text-primary text-[10px] uppercase tracking-widest">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="rounded-2xl border-none shadow-3xl p-2">
-                <SelectItem value="today" className="text-[10px] font-black uppercase tracking-widest rounded-xl">Today</SelectItem>
-                <SelectItem value="week" className="text-[10px] font-black uppercase tracking-widest rounded-xl">This Week</SelectItem>
-                <SelectItem value="month" className="text-[10px] font-black uppercase tracking-widest rounded-xl">This Month</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+        <div className="bg-white border rounded-lg p-1.5 px-3 flex items-center gap-3">
+          <Filter className="h-4 w-4 text-muted-foreground" />
+          <Select defaultValue="today">
+            <SelectTrigger className="border-none bg-transparent h-7 w-[110px] shadow-none p-0 focus:ring-0 font-bold text-[10px] uppercase tracking-widest">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="today" className="text-[10px] font-bold uppercase">Today</SelectItem>
+              <SelectItem value="week" className="text-[10px] font-bold uppercase">This Week</SelectItem>
+              <SelectItem value="month" className="text-[10px] font-bold uppercase">This Month</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, i) => (
-          <Card key={i} className="neu-card-shadow border-none overflow-hidden hover:scale-[1.03] transition-all duration-500 bg-white rounded-3xl group">
-            <div className={`h-1.5 ${stat.color} opacity-80`} />
-            <CardHeader className="flex flex-row items-center justify-between pb-2 p-6 md:p-8">
-              <CardTitle className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.4em] opacity-60">{stat.title}</CardTitle>
-              <stat.icon className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors duration-500" />
+          <Card key={i} className="shadow-sm border-border hover:shadow-md transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{stat.title}</span>
+              <stat.icon className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent className="p-6 md:p-8 pt-0">
-              <div className="flex items-end justify-between">
-                <span className="text-3xl md:text-5xl font-black text-primary leading-none tracking-tighter">{stat.value}</span>
-                <div className="p-3 md:p-4 rounded-2xl bg-muted/50 group-hover:bg-primary/5 transition-colors duration-500">
-                    <stat.icon className="h-5 w-5 text-primary" />
-                </div>
+            <CardContent>
+              <div className="flex items-baseline gap-2">
+                <span className="text-3xl font-bold tracking-tight text-primary">{stat.value}</span>
               </div>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-10">
-        <Card className="lg:col-span-7 neu-card-shadow border-none rounded-[2.5rem] bg-white overflow-hidden shadow-2xl">
-          <CardHeader className="p-8 md:p-10 pb-4">
-            <CardTitle className="text-xl md:text-2xl font-black text-primary flex items-center gap-4 uppercase italic tracking-tighter">
-              <Building2 className="h-6 w-6 text-secondary" />
-              Units
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <Card className="lg:col-span-7 shadow-sm">
+          <CardHeader className="pb-4 border-b">
+            <CardTitle className="text-base font-bold flex items-center gap-2">
+              <Building2 className="h-4 w-4 text-primary" />
+              Utilization by Department
             </CardTitle>
-            <CardDescription className="text-sm font-medium opacity-70">Utilization counts across institutional units.</CardDescription>
+            <CardDescription className="text-xs">Visitor distribution across institutional units.</CardDescription>
           </CardHeader>
-          <CardContent className="h-[300px] md:h-[350px] p-6 md:p-10 pt-4">
+          <CardContent className="h-[300px] pt-6">
             {isLoading ? (
-              <div className="flex flex-col items-center justify-center h-full text-muted-foreground gap-4 animate-pulse">
-                <Loader2 className="h-8 w-8 animate-spin" />
-                <span className="text-xs font-black uppercase tracking-widest">Synthesizing...</span>
+              <div className="flex items-center justify-center h-full">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
               </div>
             ) : collegeData.length > 0 ? (
               <ChartContainer config={chartConfig} className="h-full w-full">
                 <BarChart data={collegeData} layout="vertical" margin={{ left: 10, right: 10 }}>
                   <XAxis type="number" hide />
-                  <YAxis dataKey="college" type="category" axisLine={false} tickLine={false} width={80} className="text-[9px] font-black uppercase tracking-tighter" />
-                  <ChartTooltip content={<ChartTooltipContent className="rounded-2xl border-none shadow-3xl p-4" />} />
-                  <Bar 
-                    dataKey="visits" 
-                    fill="hsl(var(--primary))" 
-                    radius={[0, 8, 8, 0]} 
-                    barSize={14}
-                  >
-                    {collegeData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={index % 2 === 0 ? "hsl(var(--primary))" : "hsl(var(--secondary))"} className="hover:opacity-80 transition-opacity duration-500" />
-                    ))}
-                  </Bar>
+                  <YAxis dataKey="college" type="category" axisLine={false} tickLine={false} width={80} className="text-[10px] font-bold uppercase" />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Bar dataKey="visits" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} barSize={16} />
                 </BarChart>
               </ChartContainer>
             ) : (
-              <div className="flex flex-col items-center justify-center h-full text-muted-foreground gap-5 italic font-medium">
-                <BarChart3 className="h-10 w-10 opacity-10" />
-                <span className="text-sm">Awaiting synchronization...</span>
+              <div className="flex items-center justify-center h-full text-muted-foreground text-sm italic">
+                No data available for display.
               </div>
             )}
           </CardContent>
         </Card>
 
-        <Card className="lg:col-span-5 neu-card-shadow border-none rounded-[2.5rem] bg-white overflow-hidden shadow-2xl">
-          <CardHeader className="p-8 md:p-10 pb-4">
-            <CardTitle className="text-xl md:text-2xl font-black text-primary flex items-center gap-4 uppercase italic tracking-tighter">
-              <PieChart className="h-6 w-6 text-secondary" />
-              Core Use
+        <Card className="lg:col-span-5 shadow-sm">
+          <CardHeader className="pb-4 border-b">
+            <CardTitle className="text-base font-bold flex items-center gap-2">
+              <PieChart className="h-4 w-4 text-primary" />
+              Primary Purpose
             </CardTitle>
-            <CardDescription className="text-sm font-medium opacity-70">Contextual distribution of hub activities.</CardDescription>
+            <CardDescription className="text-xs">Activity distribution of library users.</CardDescription>
           </CardHeader>
-          <CardContent className="h-[300px] md:h-[350px] p-6 md:p-10 flex items-center justify-center">
+          <CardContent className="h-[300px] flex items-center justify-center pt-6">
             {isLoading ? (
-               <div className="flex flex-col items-center justify-center h-full text-muted-foreground gap-4 animate-pulse">
-                 <Loader2 className="h-8 w-8 animate-spin" />
-                 <span className="text-xs font-black uppercase tracking-widest">Analyzing...</span>
-               </div>
+               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             ) : purposeData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <RePieChart>
@@ -193,9 +171,9 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
                     data={purposeData}
                     cx="50%"
                     cy="50%"
-                    innerRadius={65}
-                    outerRadius={100}
-                    paddingAngle={8}
+                    innerRadius={60}
+                    outerRadius={90}
+                    paddingAngle={4}
                     dataKey="value"
                   >
                     {purposeData.map((entry, index) => (
@@ -203,58 +181,55 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
                     ))}
                   </Pie>
                   <Tooltip 
-                    contentStyle={{ borderRadius: '1.5rem', border: 'none', boxShadow: '0 20px 50px rgba(0,0,0,0.15)', fontSize: '11px', fontWeight: 'bold' }}
+                    contentStyle={{ borderRadius: '0.5rem', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', fontSize: '11px', fontWeight: '600' }}
                   />
                 </RePieChart>
               </ResponsiveContainer>
             ) : (
-              <div className="flex flex-col items-center justify-center h-full text-muted-foreground gap-5 italic font-medium">
-                 <PieChart className="h-10 w-10 opacity-10" />
-                 <span className="text-sm">No activity telemetry</span>
-              </div>
+              <div className="text-muted-foreground text-sm italic">No records found.</div>
             )}
           </CardContent>
         </Card>
       </div>
 
-      <Card className="neu-card-shadow border-none overflow-hidden rounded-[2.5rem] bg-white shadow-2xl">
-        <CardHeader className="bg-muted/20 p-8 flex flex-row items-center justify-between border-b">
-            <div className="space-y-1">
-              <CardTitle className="text-xl font-black text-primary flex items-center gap-4 uppercase italic tracking-tighter">
-                <History className="h-6 w-6 text-secondary" />
-                Live Registry
-              </CardTitle>
-              <CardDescription className="text-[9px] font-black uppercase tracking-[0.4em] opacity-60">Real-time Telemetry Stream (Recent 15)</CardDescription>
-            </div>
-            <div className="h-3 w-3 bg-green-600 rounded-full animate-pulse shadow-[0_0_15px_rgba(22,163,74,0.5)] border-2 border-white" />
+      <Card className="shadow-sm">
+        <CardHeader className="bg-slate-50 border-b p-6 flex flex-row items-center justify-between">
+          <div className="space-y-0.5">
+            <CardTitle className="text-base font-bold flex items-center gap-2">
+              <History className="h-4 w-4 text-primary" />
+              Recent Registry
+            </CardTitle>
+            <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Live Access Logs</CardDescription>
+          </div>
+          <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse ring-4 ring-green-50" />
         </CardHeader>
         <CardContent className="p-0">
-          <ScrollArea className="h-[450px] w-full">
+          <ScrollArea className="h-[400px]">
             <Table>
-              <TableHeader className="sticky top-0 bg-white/95 backdrop-blur-md z-10 shadow-sm">
-                <TableRow className="bg-muted/30 border-none hover:bg-muted/30">
-                  <TableHead className="font-black py-5 uppercase text-[9px] tracking-[0.3em] px-8">Institutional Visitor</TableHead>
-                  <TableHead className="font-black py-5 uppercase text-[9px] tracking-[0.3em] hidden sm:table-cell">Unit</TableHead>
-                  <TableHead className="font-black py-5 uppercase text-[9px] tracking-[0.3em]">Context</TableHead>
-                  <TableHead className="font-black py-5 uppercase text-[9px] tracking-[0.3em] px-8 text-right">Timestamp</TableHead>
+              <TableHeader className="sticky top-0 bg-white z-10">
+                <TableRow>
+                  <TableHead className="text-[10px] font-bold uppercase tracking-widest px-6">Name</TableHead>
+                  <TableHead className="text-[10px] font-bold uppercase tracking-widest hidden sm:table-cell">Dept</TableHead>
+                  <TableHead className="text-[10px] font-bold uppercase tracking-widest">Purpose</TableHead>
+                  <TableHead className="text-[10px] font-bold uppercase tracking-widest px-6 text-right">Time</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {isLoadingRecent ? (
-                  <TableRow><TableCell colSpan={4} className="text-center py-20 text-sm font-bold text-muted-foreground animate-pulse">Syncing institutional records...</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={4} className="text-center py-10">Syncing records...</TableCell></TableRow>
                 ) : recentVisits?.length === 0 ? (
-                  <TableRow><TableCell colSpan={4} className="text-center py-20 text-sm text-muted-foreground italic font-medium">No live telemetry detected.</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={4} className="text-center py-10 italic">No logs detected today.</TableCell></TableRow>
                 ) : recentVisits?.map((visit, i) => (
-                  <TableRow key={i} className="hover:bg-muted/10 border-b transition-colors duration-300">
-                    <TableCell className="font-black py-6 text-primary px-8 text-base tracking-tight">{visit.userName}</TableCell>
-                    <TableCell className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground hidden sm:table-cell">{visit.college}</TableCell>
+                  <TableRow key={i} className="hover:bg-slate-50 transition-colors">
+                    <TableCell className="font-semibold px-6">{visit.userName}</TableCell>
+                    <TableCell className="text-xs font-medium text-muted-foreground hidden sm:table-cell">{visit.college}</TableCell>
                     <TableCell>
-                      <span className="text-[8px] font-black uppercase tracking-[0.3em] bg-secondary/10 text-primary px-4 py-1.5 rounded-full border border-secondary/20">
+                      <span className="text-[10px] font-bold uppercase px-2 py-0.5 bg-muted rounded border">
                         {visit.purpose}
                       </span>
                     </TableCell>
-                    <TableCell className="text-muted-foreground text-[10px] font-black uppercase tracking-widest px-8 italic text-right">
-                      {visit.timestamp?.seconds ? format(visit.timestamp.seconds * 1000, 'h:mm a') : 'Streaming'}
+                    <TableCell className="text-muted-foreground text-[10px] font-bold px-6 text-right">
+                      {visit.timestamp?.seconds ? format(visit.timestamp.seconds * 1000, 'h:mm a') : 'Now'}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -262,15 +237,15 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
             </Table>
           </ScrollArea>
         </CardContent>
-        <CardFooter className="p-4 bg-muted/5 flex justify-center border-t">
+        <CardFooter className="bg-slate-50 border-t p-3 flex justify-center">
           <Button 
             variant="ghost" 
             size="sm" 
             onClick={() => onNavigate?.('visitor-log')}
-            className="text-[10px] font-black uppercase tracking-[0.3em] text-primary/60 hover:text-primary gap-3 rounded-xl h-10 px-8 group transition-all"
+            className="text-[10px] font-bold uppercase tracking-widest text-primary gap-2"
           >
-            Explore Full Registry History
-            <ArrowRight className="h-4 w-4 group-hover:translate-x-2 transition-transform" />
+            View Full Registry History
+            <ArrowRight className="h-3 w-3" />
           </Button>
         </CardFooter>
       </Card>
