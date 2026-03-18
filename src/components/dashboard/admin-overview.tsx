@@ -19,7 +19,6 @@ import {
   RotateCcw,
   MessageSquare,
   XCircle,
-  TrendingUp,
   Activity,
   AlertTriangle,
   DoorOpen,
@@ -28,7 +27,8 @@ import {
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { collection, limit, orderBy, query, doc, serverTimestamp } from "firebase/firestore";
-import { useFirestore, useCollection, useMemoFirebase, setDocumentNonBlocking } from "@/firebase";
+import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
+import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { format } from "date-fns";
 import { 
   Bar, 
