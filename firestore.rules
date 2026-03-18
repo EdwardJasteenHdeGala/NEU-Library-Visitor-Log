@@ -3,100 +3,42 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * NEU Library Visitor Log - Security Rules
-     *
-     * CORE PHILOSOPHY:
-     * This ruleset implements a strict identity-based security model. It distinguishes between 
-     * user profile management (User Ownership) and administrative data management (Admin Roles). 
-     * 
-     * DATA STRUCTURE:
-     * 1. /users/{userId}: Private user profiles containing institutional data.
-     * 2. /visits/{visitId}: A flat collection of library logs restricted to administrative staff.
-     * 3. /roles_admin/{userId}: A marker collection used for high-performance admin authorization.
-     *
-     * KEY SECURITY DECISIONS:
-     * - Authorization Independence: User "roles" stored in the /users collection are for UI logic. 
-     *   True administrative power is granted only if a document exists in the /roles_admin 
-     *   collection. This prevents users from escalating their own privileges by simply 
-     *   editing their profile document.
-     * - Path Consistency: Users are forced to provide an internal 'id' field that matches 
-     *   the document path during creation to ensure relational integrity.
-     * - Strict Admin Logs: The visitor log (visits) is treated as sensitive institutional 
-     *   data and is not listable or readable by standard users.
+     * NEU Library Visitor Log - Institutional Security Rules
      */
 
-    // --- Helper Functions ---
-
-    /** @description Checks if the request is from a signed-in user. */
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    /** @description Checks if the user's UID matches the provided ID. */
-    function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
-    }
-
-    /** @description Checks if the user is an owner and the document exists (for updates/deletes). */
-    function isExistingOwner(userId) {
-      return isOwner(userId) && resource != null;
-    }
-
-    /** 
-     * @description Checks if the user has an admin marker.
-     * Uses the 'roles_admin' collection to verify privileges independently of the user profile.
-     */
+    // Helper: Checks if the user is an admin based on the users collection
     function isAdmin() {
-      return isSignedIn() && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
+      return request.auth != null && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
     }
 
-    // --- Collection Rules ---
+    // Helper: Checks if the user owns the document
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
 
-    /**
-     * @description Rules for the User collection. Users manage their own profiles.
-     * @path /users/{userId}
-     * @allow get, list: if isOwner(userId) (User viewing their own profile)
-     * @allow create: if isOwner(userId) && request.resource.data.id == userId (User creating their profile with correct ID)
-     * @allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id (User updating profile while keeping ID immutable)
-     * @deny delete: if true (Users cannot delete their own profile to prevent orphaned data)
-     * @principle Ownership and Relational Integrity.
-     */
+    // USERS collection: Primary identity records
     match /users/{userId} {
-      allow get, list: if isOwner(userId);
-      allow create: if isOwner(userId) && request.resource.data.id == userId;
-      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
-      allow delete: if false;
+      // Allow authenticated users to read/write their own user document
+      allow read, write: if isOwner(userId);
+      
+      // Allow admins to manage all user records
+      allow read, write: if isAdmin();
     }
 
-    /**
-     * @description Rules for the Visits collection. Restricted to administrative access.
-     * @path /visits/{visitId}
-     * @allow get, list: if isAdmin() (Admins reviewing logs)
-     * @allow create, update, delete: if isAdmin() (Admins managing visitor records)
-     * @deny get, list: if !isAdmin() (Standard users cannot see other people's visits)
-     * @principle Role-Based Access Control (Admin only).
-     */
+    // VISITS collection: Registry of library entries
     match /visits/{visitId} {
-      allow get, list: if isAdmin();
-      allow create: if isAdmin();
-      allow update, delete: if isAdmin() && resource != null;
+      // Allow admins to read/write the entire visits collection
+      allow read, write: if isAdmin();
+
+      // Allow authenticated users to create their own visit entry
+      allow create: if request.auth != null;
+
+      // Allow users to see their own history (Required for active session tracking)
+      allow list, get: if request.auth != null && resource.data.userId == request.auth.uid;
     }
 
-    /**
-     * @description Rules for the Administrative Roles marker collection.
-     * @path /roles_admin/{userId}
-     * @allow get: if isSignedIn() (Allows any user to check their own or others' admin status)
-     * @allow list: if isAdmin() (Only admins can see the full list of other admins)
-     * @deny create, update, delete: if true (Markers are managed via backend/CLI for maximum security)
-     * @principle Authorization Independence.
-     */
-    match /roles_admin/{userId} {
-      allow get: if isSignedIn();
-      allow list: if isAdmin();
-      allow create, update, delete: if false;
-    }
-
-    // Default deny for any paths not explicitly matched.
+    // Default deny
     match /{document=**} {
       allow read, write: if false;
     }

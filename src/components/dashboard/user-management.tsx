@@ -1,24 +1,19 @@
-
 "use client";
 
 import React, { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { 
   Search, 
   ShieldCheck, 
-  Mail, 
   MoreVertical, 
-  ShieldAlert, 
   ShieldOff, 
-  ArrowRightLeft,
   UserPlus,
   Loader2,
-  Send,
   ArrowLeft
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { collection, query, orderBy, where } from "firebase/firestore";
+import { collection, query, orderBy } from "firebase/firestore";
 import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -32,7 +27,6 @@ import {
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
@@ -57,16 +51,14 @@ export function UserManagement({ onBack }: UserManagementProps) {
   const firestore = useFirestore();
   const { 
     setUserRole, 
-    transferSuperAdmin, 
-    addUserByEmail,
     profile: currentUserProfile 
   } = useAuth();
 
-  const isAdmin = currentUserProfile?.role === 'admin' || currentUserProfile?.isSuperAdmin;
+  const isAdmin = currentUserProfile?.role === 'admin';
 
   const usersQuery = useMemoFirebase(() => {
     if (!isAdmin || !firestore) return null;
-    return query(collection(firestore, 'user_profiles'), orderBy('updatedAt', 'desc'));
+    return query(collection(firestore, 'users'), orderBy('updatedAt', 'desc'));
   }, [firestore, isAdmin]);
 
   const { data: users, isLoading } = useCollection(usersQuery);
@@ -77,15 +69,14 @@ export function UserManagement({ onBack }: UserManagementProps) {
     (u.studentId && u.studentId.toLowerCase().includes(searchTerm.toLowerCase()))
   ) || [];
 
-  const handleAddUser = async () => {
-    if (!newEmail.trim()) return;
+  const handleInviteUser = async () => {
+    // Logic for pre-inviting would go here
     setIsAdding(true);
-    const success = await addUserByEmail(newEmail.trim(), 'user', 'General');
-    setIsAdding(false);
-    if (success) {
-      setIsAddUserOpen(false);
-      setNewEmail("");
-    }
+    setTimeout(() => {
+        setIsAdding(false);
+        setIsAddUserOpen(false);
+        setNewEmail("");
+    }, 1000);
   };
 
   return (
@@ -143,7 +134,7 @@ export function UserManagement({ onBack }: UserManagementProps) {
                 </div>
                 <DialogFooter>
                   <Button 
-                    onClick={handleAddUser} 
+                    onClick={handleInviteUser} 
                     disabled={isAdding || !newEmail.includes('@')}
                     className="w-full h-12 font-black uppercase rounded-xl"
                   >
@@ -173,9 +164,7 @@ export function UserManagement({ onBack }: UserManagementProps) {
               <TableRow><TableCell colSpan={5} className="text-center py-20 italic text-muted-foreground">No institutional records found.</TableCell></TableRow>
             ) : filteredUsers.map((u) => {
               const userInitials = u.displayName?.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2) || 'U';
-              const isSuperAdmin = u.isSuperAdmin === true;
               const isCurrentUser = u.id === currentUserProfile?.id;
-              const iAmSuperAdmin = currentUserProfile?.isSuperAdmin === true;
 
               return (
                 <TableRow key={u.id} className="hover:bg-muted/30 border-b transition-colors duration-300">
@@ -195,12 +184,10 @@ export function UserManagement({ onBack }: UserManagementProps) {
                   <TableCell className="text-[10px] font-black uppercase tracking-tight italic text-primary/70">{u.college || 'Guest'}</TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-2">
-                      {isSuperAdmin ? (
-                        <Badge className="bg-secondary text-primary text-[9px] uppercase font-black px-3 py-1">Super Admin</Badge>
-                      ) : u.role === 'admin' ? (
+                       {u.role === 'admin' ? (
                         <Badge className="bg-primary text-white text-[9px] uppercase font-black px-3 py-1">Administrator</Badge>
                       ) : (
-                        <Badge variant="outline" className="text-primary text-[9px] uppercase font-black px-3 py-1 border-primary/20">Institutional</Badge>
+                        <Badge variant="outline" className="text-primary text-[9px] uppercase font-black px-3 py-1 border-primary/20">Member</Badge>
                       )}
                     </div>
                   </TableCell>
@@ -214,14 +201,8 @@ export function UserManagement({ onBack }: UserManagementProps) {
                       <DropdownMenuContent align="end" className="w-56 rounded-xl shadow-xl border-none">
                         <DropdownMenuLabel className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Oversight</DropdownMenuLabel>
                         <DropdownMenuSeparator />
-                        {!isCurrentUser && !isSuperAdmin && (
+                        {!isCurrentUser && (
                           <>
-                            {iAmSuperAdmin && (
-                              <DropdownMenuItem onClick={() => transferSuperAdmin(u.id)} className="gap-2 cursor-pointer text-secondary">
-                                <ArrowRightLeft className="h-4 w-4" />
-                                <span className="text-[10px] uppercase font-black">Transfer Ownership</span>
-                              </DropdownMenuItem>
-                            )}
                             {u.role !== 'admin' ? (
                               <DropdownMenuItem onClick={() => setUserRole(u.id, 'admin')} className="gap-2 cursor-pointer text-primary">
                                 <ShieldCheck className="h-4 w-4" />
