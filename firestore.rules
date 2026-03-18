@@ -32,7 +32,8 @@ service cloud.firestore {
     }
 
     match /visits/{visitId} {
-      allow list: if isAdmin();
+      // Allow list for all signed-in users to support occupancy tracking and personal history
+      allow list: if isSignedIn();
       allow get: if isSignedIn() && (isAdmin() || resource.data.userId == request.auth.uid);
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow update, delete: if isAdmin();
