@@ -12,6 +12,9 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
+    /**
+     * Fast-path check for the bootstrap super admin via email token.
+     */
     function isBootstrapAdmin() {
       return isSignedIn() && request.auth.token.email == 'edwardjasteen.degala@neu.edu.ph';
     }
@@ -47,11 +50,16 @@ service cloud.firestore {
     }
 
     match /visits/{visitId} {
-      // Allow listing if admin OR if filtering for personal logs OR filtering for active occupancy count
+      /**
+       * Secure List Access:
+       * 1. Admins see everything.
+       * 2. Users can list their own logs (filtered by userId).
+       * 3. Users can list active occupancy (filtered by exitTimestamp == null).
+       */
       allow list: if isSignedIn() && (
         isAnyAdmin() || 
-        request.query.filters.userId == request.auth.uid || 
-        request.query.filters.exitTimestamp == null
+        (request.query.filters.userId == request.auth.uid) ||
+        (request.query.filters.exitTimestamp == null)
       );
       
       allow get: if isSignedIn() && (isAnyAdmin() || resource.data.userId == request.auth.uid);

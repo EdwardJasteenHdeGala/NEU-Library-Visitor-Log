@@ -54,20 +54,21 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
 
   const isAdmin = profile?.role === 'admin' || profile?.isSuperAdmin;
 
+  // Real-time queries for telemetry
   const recentVisitsQuery = useMemoFirebase(() => {
     if (!isAdmin || !firestore) return null;
     return query(collection(firestore, 'visits'), orderBy('timestamp', 'desc'), limit(15));
   }, [firestore, isAdmin]);
 
-  const allVisitsQuery = useMemoFirebase(() => {
-    if (!isAdmin || !firestore) return null;
+  const occupancyQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
     return query(collection(firestore, 'visits'), where('exitTimestamp', '==', null));
-  }, [firestore, isAdmin]);
+  }, [firestore]);
 
   const { data: recentVisits } = useCollection(recentVisitsQuery);
-  const { data: allVisits } = useCollection(allVisitsQuery);
+  const { data: activeVisits } = useCollection(occupancyQuery);
 
-  const effectiveOccupancy = isOpen ? (allVisits?.length || 0) : 0;
+  const effectiveOccupancy = isOpen ? (activeVisits?.length || 0) : 0;
 
   const handleOverride = (mode: 'automatic' | 'manual', status?: 'open' | 'closed') => {
     if (!firestore || !profile) return;

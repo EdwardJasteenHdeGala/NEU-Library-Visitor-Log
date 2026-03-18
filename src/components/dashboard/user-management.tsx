@@ -23,7 +23,7 @@ import {
   Clock
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { collection, query, orderBy } from "firebase/firestore";
+import { collection, query, orderBy, where } from "firebase/firestore";
 import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -39,16 +39,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import {
   Dialog,
   DialogContent,
@@ -75,18 +65,19 @@ export function UserManagement({ onBack }: UserManagementProps) {
   const { 
     setUserRole, 
     transferSuperAdmin, 
-    resignAdmin, 
     addUserByEmail,
     profile: currentUserProfile 
   } = useAuth();
 
   const isAdmin = currentUserProfile?.role === 'admin' || currentUserProfile?.isSuperAdmin;
 
+  // Root Directory Query
   const usersQuery = useMemoFirebase(() => {
     if (!isAdmin || !firestore) return null;
     return query(collection(firestore, 'user_profiles'), orderBy('updatedAt', 'desc'));
   }, [firestore, isAdmin]);
 
+  // Global Visits Query (Admins list all to filter per user)
   const visitsQuery = useMemoFirebase(() => {
     if (!isAdmin || !firestore) return null;
     return query(collection(firestore, 'visits'), orderBy('timestamp', 'desc'));
@@ -165,7 +156,7 @@ export function UserManagement({ onBack }: UserManagementProps) {
                       <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input 
                           id="email" 
-                          placeholder="user@gmail.com" 
+                          placeholder="user@neu.edu.ph" 
                           value={newEmail}
                           onChange={(e) => setNewEmail(e.target.value)}
                           className="h-12 rounded-xl border-2 pl-10 font-bold focus:ring-primary"
@@ -305,7 +296,7 @@ export function UserManagement({ onBack }: UserManagementProps) {
                           <div className="flex items-center justify-between border-b-2 border-white pb-6">
                             <div className="flex items-center gap-4">
                                 <History className="h-6 w-6 text-primary" />
-                                <h4 className="font-black text-primary uppercase text-sm tracking-widest italic">Merged Access History</h4>
+                                <h4 className="font-black text-primary uppercase text-sm tracking-widest italic">Institutional Access History</h4>
                             </div>
                             <Badge variant="outline" className="bg-white px-5 py-2 font-black text-[10px] uppercase shadow-sm border-primary/10">{userVisits.length} Records Found</Badge>
                           </div>

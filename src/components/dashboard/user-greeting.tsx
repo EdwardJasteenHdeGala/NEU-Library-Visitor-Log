@@ -86,6 +86,7 @@ export function UserGreeting() {
     setAcademicYear(getAcademicYear());
   }, []);
 
+  // Secure Personal Visit Query
   const activeVisitQuery = useMemoFirebase(() => {
     if (!profile || !firestore) return null;
     return query(
@@ -96,15 +97,16 @@ export function UserGreeting() {
     );
   }, [profile, firestore]);
 
-  const { data: visits } = useCollection(activeVisitQuery);
-  const activeVisit = visits && visits[0] && !visits[0].exitTimestamp ? visits[0] : null;
-
-  const globalOccupancyQuery = useMemoFirebase(() => {
+  // Secure Occupancy Telemetry Query
+  const occupancyQuery = useMemoFirebase(() => {
     if (!firestore) return null;
     return query(collection(firestore, 'visits'), where('exitTimestamp', '==', null));
   }, [firestore]);
-  const { data: activeVisits } = useCollection(globalOccupancyQuery);
-  
+
+  const { data: visits } = useCollection(activeVisitQuery);
+  const { data: activeVisits } = useCollection(occupancyQuery);
+
+  const activeVisit = visits && visits[0] && !visits[0].exitTimestamp ? visits[0] : null;
   const currentOccupancy = isOpen ? (activeVisits?.length || 0) : 0;
 
   const handleCheckIn = () => {
