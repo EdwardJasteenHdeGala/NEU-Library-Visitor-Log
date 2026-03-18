@@ -439,7 +439,7 @@ export function UserGreeting() {
                         <h2 className="text-3xl font-bold uppercase tracking-tighter italic">Active Session Confirmed</h2>
                         <div className="flex flex-col gap-1">
                           <p className="text-white/80 text-lg font-medium">
-                            Authenticated Arrival: <span className="text-secondary font-bold">{activeVisit.timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                            Arrival: <span className="text-secondary font-bold">{activeVisit.timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                           </p>
                           <p className="text-white/60 text-[11px] font-black uppercase tracking-[0.3em] mt-2 italic border-y border-white/10 py-3 px-8">
                             {activeVisit.purpose}
@@ -455,10 +455,6 @@ export function UserGreeting() {
                         >
                           {isLogging ? <Loader2 className="h-4 w-4 animate-spin" /> : "Terminate Session"}
                         </Button>
-                      </div>
-                      <div className="flex items-center gap-3 text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] italic">
-                         <div className="h-1.5 w-1.5 bg-green-500 rounded-full animate-pulse" />
-                         Telemetry Synced in Real-Time
                       </div>
                     </div>
                   </Card>
@@ -508,28 +504,6 @@ export function UserGreeting() {
                     <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Next Scheduled Event</p>
                     <p className="text-xs font-bold text-slate-800 italic">{nextEvent}</p>
                   </div>
-                  
-                  {isManual && (
-                    <div className={cn("p-4 border rounded-xl flex items-start gap-3 shadow-sm", 
-                      category === 'emergency' ? "bg-red-50 border-red-100" : 
-                      category === 'institutional' ? "bg-amber-50 border-amber-100" : 
-                      "bg-blue-50 border-blue-100"
-                    )}>
-                      <AlertTriangle className={cn("h-4 w-4 shrink-0 mt-0.5", 
-                        category === 'emergency' ? "text-red-500" : 
-                        category === 'institutional' ? "text-amber-500" : 
-                        "text-blue-500"
-                      )} />
-                      <div className="space-y-1">
-                        <p className={cn("text-[9px] font-black uppercase leading-tight",
-                          category === 'emergency' ? "text-red-900" : 
-                          category === 'institutional' ? "text-amber-900" : 
-                          "text-blue-900"
-                        )}>{category} Protocol</p>
-                        <p className="text-[8px] font-medium opacity-60">Manual override active</p>
-                      </div>
-                    </div>
-                  )}
                   
                   <div className="flex items-center gap-2 text-green-600 font-bold text-[9px] uppercase tracking-widest mt-2 px-1">
                     <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse shadow-sm" />

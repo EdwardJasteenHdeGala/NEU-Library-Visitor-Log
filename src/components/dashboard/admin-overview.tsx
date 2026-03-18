@@ -12,43 +12,25 @@ import {
   ArrowRight, 
   Clock, 
   ShieldCheck, 
-  Calendar,
-  Settings,
-  ShieldAlert,
-  Power,
-  RotateCcw,
-  MessageSquare,
-  XCircle,
-  Activity,
-  AlertTriangle,
-  DoorOpen,
-  DoorClosed,
-  Megaphone
+  Settings, 
+  ShieldAlert, 
+  Power, 
+  RotateCcw, 
+  MessageSquare, 
+  XCircle, 
+  Activity, 
+  DoorOpen, 
+  DoorClosed, 
+  Megaphone 
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { collection, limit, orderBy, query, doc, serverTimestamp } from "firebase/firestore";
 import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
 import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { format } from "date-fns";
-import { 
-  Bar, 
-  BarChart, 
-  ResponsiveContainer, 
-  XAxis, 
-  YAxis, 
-  Tooltip, 
-  Cell,
-  Pie,
-  PieChart as RePieChart,
-  Area,
-  AreaChart,
-  CartesianGrid
-} from "recharts";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { useAuth } from "@/hooks/use-auth";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { useLibraryStatus, AnnouncementCategory } from "@/hooks/use-library-status";
@@ -76,7 +58,7 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
   const [manualCategory, setManualCategory] = useState<AnnouncementCategory>("general");
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
-  const isAdmin = profile?.role === 'admin';
+  const isAdmin = profile?.role === 'admin' || profile?.isSuperAdmin;
 
   const recentVisitsQuery = useMemoFirebase(() => {
     if (!isAdmin || !firestore) return null;
@@ -85,17 +67,13 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
 
   const allVisitsQuery = useMemoFirebase(() => {
     if (!isAdmin || !firestore) return null;
-    return query(collection(firestore, 'visits'), orderBy('timestamp', 'desc'), limit(500));
+    return query(collection(firestore, 'visits'), where('exitTimestamp', '==', null));
   }, [firestore, isAdmin]);
 
   const { data: recentVisits, isLoading: isLoadingRecent } = useCollection(recentVisitsQuery);
-  const { data: allVisits, isLoading: isLoadingAll } = useCollection(allVisitsQuery);
+  const { data: allVisits } = useCollection(allVisitsQuery);
 
-  const isLoading = isLoadingRecent || isLoadingAll;
-
-  // Real-time Occupancy Logic
-  const activeOccupancy = allVisits?.filter(v => !v.exitTimestamp).length || 0;
-  const effectiveOccupancy = isOpen ? activeOccupancy : 0;
+  const effectiveOccupancy = isOpen ? (allVisits?.length || 0) : 0;
 
   const handleOverride = (mode: 'automatic' | 'manual', status?: 'open' | 'closed') => {
     if (!firestore || !profile) return;
@@ -123,19 +101,6 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
         setManualCategory("general");
       }
     }, 500);
-  };
-
-  const collegeData = allVisits ? Object.entries(
-    allVisits.reduce((acc: any, visit) => {
-      acc[visit.college] = (acc[visit.college] || 0) + 1;
-      return acc;
-    }, {})
-  ).map(([college, visits]) => ({ college, visits }))
-  .sort((a, b) => b.visits - a.visits) : [];
-
-  const chartConfig = {
-    visits: { label: "Visits", color: "hsl(var(--primary))" },
-    count: { label: "Occupancy", color: "hsl(var(--secondary))" },
   };
 
   return (
@@ -189,23 +154,23 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
 
             <Card className="shadow-sm border-border rounded-xl">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Unit Utilization</span>
-                <Building2 className="h-4 w-4 text-primary/60" />
+                <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Next Shift</span>
+                <Clock className="h-4 w-4 text-primary/60" />
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold text-primary tracking-tight">{collegeData.length}</div>
-                <p className="text-[9px] font-bold text-muted-foreground uppercase mt-1">Active Departmental Units</p>
+                <div className="text-xl font-bold text-primary truncate">{nextEvent}</div>
+                <p className="text-[9px] font-bold text-muted-foreground uppercase mt-1 italic">System Schedule</p>
               </CardContent>
             </Card>
 
             <Card className="shadow-sm border-border rounded-xl bg-slate-50/50">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Next Schedule Shift</span>
-                <Clock className="h-4 w-4 text-primary/60" />
+                <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Registry State</span>
+                <Activity className="h-4 w-4 text-primary/60" />
               </CardHeader>
               <CardContent>
-                <div className="text-xl font-bold text-primary truncate">{nextEvent}</div>
-                <p className="text-[9px] font-bold text-muted-foreground uppercase mt-1 italic">Institutional Timing</p>
+                <div className="text-xl font-bold text-green-600 uppercase tracking-tight">Healthy</div>
+                <p className="text-[9px] font-bold text-muted-foreground uppercase mt-1">Syncing with Firestore</p>
               </CardContent>
             </Card>
           </div>
@@ -290,9 +255,6 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
                       <ShieldAlert className="h-3 w-3" /> Priority Access Restricted
                     </p>
                     {reason && <p className="text-[10px] font-medium text-amber-800 italic leading-relaxed">"{reason}"</p>}
-                    <p className="text-[8px] font-bold text-amber-700/60 uppercase tracking-widest border-t border-amber-200 pt-2 mt-2">
-                      Category: {category}
-                    </p>
                   </div>
                 )}
 
@@ -360,27 +322,9 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
                     onChange={(e) => setManualReason(e.target.value)}
                     className="min-h-[100px] text-[10px] font-medium rounded-lg border-2 resize-none bg-white p-3"
                   />
-                  <p className="text-[8px] text-muted-foreground italic mt-1">Note: This message will be broadcasted to all Student and Guest portals.</p>
                 </div>
               </div>
             </CardContent>
-          </Card>
-
-          <Card className="shadow-sm border-border rounded-xl bg-slate-50/50 p-6">
-            <div className="flex items-center gap-3 text-primary mb-4">
-              <Activity className="h-4 w-4" />
-              <h4 className="text-[10px] font-bold uppercase tracking-widest">System Health</h4>
-            </div>
-            <div className="space-y-3">
-              <div className="flex items-center gap-2 text-green-600 font-bold text-[9px] uppercase tracking-widest">
-                <div className="h-1.5 w-1.5 bg-green-500 rounded-full animate-pulse" />
-                Registry Core: Operational
-              </div>
-              <div className="flex items-center gap-2 text-green-600 font-bold text-[9px] uppercase tracking-widest">
-                <div className="h-1.5 w-1.5 bg-green-500 rounded-full animate-pulse" />
-                Auth Gateway: Secured
-              </div>
-            </div>
           </Card>
         </div>
       </div>

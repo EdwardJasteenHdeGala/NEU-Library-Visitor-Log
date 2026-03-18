@@ -29,7 +29,7 @@ import {
   History
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { collection, query, orderBy } from "firebase/firestore";
+import { collection, query, orderBy, where } from "firebase/firestore";
 import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -111,7 +111,7 @@ export function UserManagement({ onBack }: UserManagementProps) {
     profile: currentUserProfile 
   } = useAuth();
 
-  const isAdmin = currentUserProfile?.role === 'admin';
+  const isAdmin = currentUserProfile?.role === 'admin' || currentUserProfile?.isSuperAdmin;
 
   const usersQuery = useMemoFirebase(() => {
     if (!isAdmin || !firestore) return null;
@@ -127,8 +127,8 @@ export function UserManagement({ onBack }: UserManagementProps) {
   const { data: visits } = useCollection(visitsQuery);
 
   const filteredUsers = users?.filter(u => 
-    u.displayName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    u.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    u.displayName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    u.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (u.studentId && u.studentId.toLowerCase().includes(searchTerm.toLowerCase()))
   ) || [];
 
@@ -202,37 +202,9 @@ export function UserManagement({ onBack }: UserManagementProps) {
                           id="email" 
                           placeholder="user@gmail.com" 
                           value={newEmail}
-                          onChange={(e) => setNewEmail(e.target.value)}
+                          onChange={(e) => setNewEmail(newEmail)}
                           className="h-12 rounded-xl border-2 pl-10 font-bold focus:ring-primary"
                       />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="role" className="text-[10px] font-black uppercase tracking-widest text-primary/70 ml-1">Initial Role</Label>
-                      <Select value={newRole} onValueChange={setNewRole}>
-                        <SelectTrigger className="h-12 rounded-xl border-2 font-bold focus:ring-primary">
-                          <SelectValue placeholder="Role" />
-                        </SelectTrigger>
-                        <SelectContent className="rounded-xl border-none shadow-2xl">
-                          <SelectItem value="user" className="font-bold text-sm">Institutional User</SelectItem>
-                          <SelectItem value="admin" className="font-bold text-sm">Administrator</SelectItem>
-                          <SelectItem value="guest" className="font-bold text-sm">Guest Visitor</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="college" className="text-[10px] font-black uppercase tracking-widest text-primary/70 ml-1">Department</Label>
-                      <Select value={newCollege} onValueChange={setNewCollege}>
-                        <SelectTrigger className="h-12 rounded-xl border-2 font-bold focus:ring-primary">
-                          <SelectValue placeholder="College" />
-                        </SelectTrigger>
-                        <SelectContent className="rounded-xl border-none shadow-2xl max-h-[300px]">
-                          {NEU_COLLEGES.map(c => (
-                            <SelectItem key={c.id} value={c.id} className="font-bold text-xs">{c.id}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
                     </div>
                   </div>
                 </div>
@@ -258,46 +230,6 @@ export function UserManagement({ onBack }: UserManagementProps) {
               </DialogContent>
             </Dialog>
         </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="neu-card-shadow border-none bg-primary text-white rounded-2xl">
-          <CardContent className="p-6 flex items-center gap-4">
-            <div className="p-3 bg-white/20 rounded-2xl">
-              <UserCog className="h-6 w-6 text-secondary" />
-            </div>
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-widest opacity-60">Directory Size</p>
-              <p className="text-2xl font-black">{users?.length || 0}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="neu-card-shadow border-none rounded-2xl bg-white shadow-xl">
-          <CardContent className="p-6 flex items-center gap-4">
-            <div className="p-3 bg-accent/10 rounded-2xl">
-              <Globe className="h-6 w-6 text-accent" />
-            </div>
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Guest Accounts</p>
-              <p className="text-2xl font-black text-primary">
-                {users?.filter(u => u.role === 'guest').length || 0}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="neu-card-shadow border-none rounded-2xl bg-white shadow-xl">
-          <CardContent className="p-6 flex items-center gap-4">
-            <div className="p-3 bg-primary/5 rounded-2xl">
-              <ShieldCheck className="h-6 w-6 text-primary" />
-            </div>
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Active Admins</p>
-              <p className="text-2xl font-black text-primary">
-                {users?.filter(u => u.role === 'admin').length || 0}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       <Card className="neu-card-shadow border-none overflow-hidden rounded-[2rem] bg-white shadow-2xl">
@@ -328,7 +260,6 @@ export function UserManagement({ onBack }: UserManagementProps) {
               const isSuperAdmin = u.isSuperAdmin === true;
               const isCurrentUser = u.id === currentUserProfile?.id;
               const iAmSuperAdmin = currentUserProfile?.isSuperAdmin === true;
-              const isPending = u.displayName === 'New User (Pending)';
               const userVisits = getUserVisits(u.id);
               const isExpanded = expandedUser === u.id;
 
@@ -347,20 +278,15 @@ export function UserManagement({ onBack }: UserManagementProps) {
                     </TableCell>
                     <TableCell className="py-6">
                       <div className="flex items-center gap-4">
-                        <Avatar className={cn("h-10 w-10 border-2 shadow-sm", isPending ? "border-dashed border-muted-foreground/30" : "border-primary/20")}>
+                        <Avatar className="h-10 w-10 border-2 border-primary/20 shadow-sm">
                           <AvatarImage src={u.photoURL} alt={u.displayName} />
                           <AvatarFallback className="bg-muted text-primary font-black text-xs">
                             {userInitials}
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex flex-col">
-                          <span className={cn("font-black text-primary text-sm flex items-center gap-2", isPending && "italic text-muted-foreground")}>
+                          <span className="font-black text-primary text-sm flex items-center gap-2">
                             {u.displayName} 
-                            {isPending && (
-                              <Badge className="text-[7px] bg-secondary/10 text-secondary border-none px-2 h-4 font-black tracking-widest uppercase">
-                                PENDING SYNC
-                              </Badge>
-                            )}
                             {isCurrentUser && <span className="text-[8px] bg-primary text-white px-2 py-0.5 rounded uppercase font-black">You</span>}
                           </span>
                           <span className="text-[10px] text-muted-foreground font-bold italic">{u.email}</span>
@@ -368,7 +294,7 @@ export function UserManagement({ onBack }: UserManagementProps) {
                       </div>
                     </TableCell>
                     <TableCell className="font-mono text-[10px] font-black text-muted-foreground">
-                      {isPending ? '---' : u.studentId}
+                      {u.studentId}
                     </TableCell>
                     <TableCell className="text-[11px] font-black uppercase tracking-tight italic text-primary/70">{u.college || 'Guest'}</TableCell>
                     <TableCell>
@@ -487,21 +413,6 @@ export function UserManagement({ onBack }: UserManagementProps) {
                                       <span className="font-black text-xs uppercase tracking-widest">Revoke Admin Role</span>
                                     </DropdownMenuItem>
                                   )}
-                                  <DropdownMenuSeparator />
-                                  <DropdownMenuItem 
-                                    onClick={() => setUserRole(u.id, 'user')}
-                                    className="rounded-xl h-11 gap-3 focus:bg-muted cursor-pointer"
-                                  >
-                                    <UserCheck className="h-4 w-4 text-muted-foreground" />
-                                    <span className="font-bold text-xs">Set Institutional User</span>
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem 
-                                    onClick={() => setUserRole(u.id, 'guest')}
-                                    className="rounded-xl h-11 gap-3 focus:bg-muted cursor-pointer"
-                                  >
-                                    <Globe className="h-4 w-4 text-muted-foreground" />
-                                    <span className="font-bold text-xs">Set External Guest</span>
-                                  </DropdownMenuItem>
                                 </>
                               )}
                             </>
@@ -515,17 +426,9 @@ export function UserManagement({ onBack }: UserManagementProps) {
                     <TableRow className="bg-slate-50/50">
                       <TableCell colSpan={6} className="p-0">
                         <div className="p-8 space-y-4 animate-in slide-in-from-top-2 duration-300">
-                          <div className="flex items-center justify-between border-b pb-4">
-                            <div className="flex items-center gap-2">
-                              <History className="h-4 w-4 text-primary" />
-                              <h4 className="font-black text-primary uppercase text-[10px] tracking-widest">Access History ({userVisits.length})</h4>
-                            </div>
-                            <div className="flex gap-4">
-                              <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground uppercase">
-                                <CalendarDays className="h-3.5 w-3.5" />
-                                Member Since: {u.createdAt?.seconds ? format(u.createdAt.seconds * 1000, 'MMM dd, yyyy') : 'N/A'}
-                              </div>
-                            </div>
+                          <div className="flex items-center gap-2 border-b pb-4">
+                            <History className="h-4 w-4 text-primary" />
+                            <h4 className="font-black text-primary uppercase text-[10px] tracking-widest">Access History ({userVisits.length})</h4>
                           </div>
                           
                           {userVisits.length === 0 ? (
@@ -552,7 +455,7 @@ export function UserManagement({ onBack }: UserManagementProps) {
                                       <div className="flex items-center gap-1.5">
                                         <Clock className="h-3 w-3 text-muted-foreground" />
                                         <span className="text-[9px] font-bold text-slate-700">
-                                          {visit.timestamp?.seconds ? format(visit.timestamp.seconds * 1000, 'MMM dd • h:mm a') : 'Now'}
+                                          {visit.timestamp?.seconds ? format(visit.timestamp.seconds * 1000, 'MMM dd, yyyy') : 'Now'}
                                         </span>
                                       </div>
                                       <span className={cn("text-[9px] font-black uppercase italic", visit.exitTimestamp ? "text-green-600" : "text-amber-600 animate-pulse")}>

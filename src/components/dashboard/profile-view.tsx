@@ -225,9 +225,6 @@ export function ProfileView({ onBack }: ProfileViewProps) {
                 <p className="text-sm font-bold text-muted-foreground leading-relaxed italic">
                   Resigning your administrative credentials will terminate your access to the oversight console.
                 </p>
-                {profile.isSuperAdmin && (
-                  <p className="font-black text-destructive uppercase text-[10px] tracking-[0.2em]">Super Admin: Transfer ownership before proceeding.</p>
-                )}
               </div>
             </div>
 

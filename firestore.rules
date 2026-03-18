@@ -11,43 +11,47 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    /**
-     * Fast-path check for the bootstrap super admin via email token.
-     * This prevents race conditions during initial profile creation.
-     */
     function isBootstrapAdmin() {
       return isSignedIn() && request.auth.token.email == 'edwardjasteen.degala@neu.edu.ph';
     }
 
-    function isAdmin() {
-      return isBootstrapAdmin() || (isSignedIn() && exists(/databases/$(database)/documents/user_profiles/$(request.auth.uid)) && get(/databases/$(database)/documents/user_profiles/$(request.auth.uid)).data.role == 'admin');
+    function getUserData() {
+      return get(/databases/$(database)/documents/user_profiles/$(request.auth.uid)).data;
+    }
+
+    function isAnyAdmin() {
+      return isBootstrapAdmin() || (isSignedIn() && exists(/databases/$(database)/documents/user_profiles/$(request.auth.uid)) && (getUserData().role == 'admin' || getUserData().isSuperAdmin == true));
+    }
+
+    function isSuperAdmin() {
+      return isBootstrapAdmin() || (isSignedIn() && exists(/databases/$(database)/documents/user_profiles/$(request.auth.uid)) && getUserData().isSuperAdmin == true);
     }
 
     match /user_profiles/{userId} {
-      allow get: if isOwner(userId) || isAdmin();
-      allow list: if isAdmin();
-      allow create: if isOwner(userId) || isAdmin();
-      allow update: if (isOwner(userId) || isAdmin());
-      allow delete: if isAdmin();
+      allow get: if isOwner(userId) || isAnyAdmin();
+      allow list: if isAnyAdmin();
+      allow create: if isOwner(userId) || isAnyAdmin();
+      allow update: if isOwner(userId) || isAnyAdmin();
+      allow delete: if isSuperAdmin();
     }
 
     match /visits/{visitId} {
-      // Explicitly allow read (list and get) for all signed-in users to support occupancy tracking and personal history
+      // Allow all signed-in users to list/get visits for occupancy tracking and personal history
       allow read: if isSignedIn();
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow update, delete: if isAdmin();
+      allow update, delete: if isAnyAdmin();
     }
 
     match /feedback/{feedbackId} {
-      allow list: if isAdmin();
-      allow get: if isSignedIn() && (isAdmin() || resource.data.userId == request.auth.uid);
+      allow list: if isAnyAdmin();
+      allow get: if isSignedIn() && (isAnyAdmin() || resource.data.userId == request.auth.uid);
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow update, delete: if isAdmin();
+      allow update, delete: if isAnyAdmin();
     }
 
     match /library_config/{configId} {
       allow read: if isSignedIn();
-      allow write: if isAdmin();
+      allow write: if isAnyAdmin();
     }
   }
 }
