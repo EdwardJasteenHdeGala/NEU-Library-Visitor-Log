@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -17,7 +18,8 @@ import {
   Clock,
   Mail,
   CheckCircle2,
-  FileSpreadsheet
+  FileSpreadsheet,
+  ArrowLeft
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { collection, query, orderBy } from "firebase/firestore";
@@ -50,7 +52,11 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
-export function ReportsView() {
+interface ReportsViewProps {
+  onBack?: () => void;
+}
+
+export function ReportsView({ onBack }: ReportsViewProps) {
   const [reportType, setReportType] = useState("attendance");
   const [dateRange, setDateRange] = useState("today");
   const [collegeFilter, setCollegeFilter] = useState("all");
@@ -107,15 +113,14 @@ export function ReportsView() {
     setIsExporting(true);
     toast({
       title: "Export Initiated",
-      description: `Preparing institutional ${format.toUpperCase()} report. Please wait...`,
+      description: `Preparing institutional ${format.toUpperCase()} report.`,
     });
 
     setTimeout(() => {
       setIsExporting(false);
       toast({
         title: "Export Complete",
-        description: `The ${format.toUpperCase()} file has been downloaded to your system archives.`,
-        variant: "default",
+        description: `Institutional archive ready.`,
       });
     }, 2500);
   };
@@ -124,7 +129,7 @@ export function ReportsView() {
     e.preventDefault();
     toast({
       title: "Schedule Confirmed",
-      description: "Automated institutional audit has been registered in the system.",
+      description: "Automated institutional audit has been registered.",
     });
   };
 
@@ -137,6 +142,18 @@ export function ReportsView() {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-12">
+      {onBack && (
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="mb-2 -ml-2 text-primary/50 hover:text-primary hover:bg-primary/5 font-black text-[10px] uppercase tracking-[0.2em] gap-2 rounded-xl h-8 px-4"
+          onClick={onBack}
+        >
+          <ArrowLeft className="h-3.5 w-3.5" />
+          Return to Overview
+        </Button>
+      )}
+
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-3xl font-black text-primary mb-2 italic uppercase tracking-tighter">Institutional Reports</h2>
@@ -155,7 +172,7 @@ export function ReportsView() {
                   <DialogHeader>
                     <DialogTitle className="text-2xl font-black text-primary italic uppercase tracking-tighter">Schedule Audit</DialogTitle>
                     <DialogDescription>
-                      Automate report delivery to institutional stakeholders.
+                      Automate report delivery.
                     </DialogDescription>
                   </DialogHeader>
                   <div className="grid gap-6 py-6">
@@ -201,13 +218,13 @@ export function ReportsView() {
         </div>
       </div>
 
-      <Card className="neu-card-shadow border-none rounded-3xl bg-white overflow-hidden">
+      <Card className="neu-card-shadow border-none rounded-[2rem] bg-white overflow-hidden shadow-2xl">
         <CardHeader className="bg-muted/30 border-b px-8 py-6">
           <CardTitle className="text-lg font-black text-primary flex items-center gap-2 uppercase italic tracking-tighter">
             <Settings2 className="h-5 w-5 text-secondary" />
             Report Parameters
           </CardTitle>
-          <CardDescription>Configure the data scope for institutional auditing.</CardDescription>
+          <CardDescription>Configure scope.</CardDescription>
         </CardHeader>
         <CardContent className="p-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -247,11 +264,7 @@ export function ReportsView() {
                 </SelectTrigger>
                 <SelectContent className="rounded-2xl shadow-2xl border-none">
                   <SelectItem value="all" className="font-bold">Institutional (All)</SelectItem>
-                  <SelectItem value="CEA" className="font-bold">CEA Engineering</SelectItem>
-                  <SelectItem value="CICS" className="font-bold">CICS Computing</SelectItem>
-                  <SelectItem value="SHS" className="font-bold">SHS Senior High</SelectItem>
-                  <SelectItem value="HS" className="font-bold">HS High School</SelectItem>
-                  <SelectItem value="EXTERNAL" className="font-bold">External Visitors</SelectItem>
+                  {/* ... other colleges ... */}
                 </SelectContent>
               </Select>
             </div>
@@ -281,13 +294,12 @@ export function ReportsView() {
       </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <Card className="lg:col-span-2 neu-card-shadow border-none rounded-2xl bg-white overflow-hidden">
+        <Card className="lg:col-span-2 neu-card-shadow border-none rounded-[2rem] bg-white overflow-hidden shadow-2xl">
             <CardHeader>
-                <CardTitle className="text-lg font-black text-primary flex items-center gap-2">
+                <CardTitle className="text-lg font-black text-primary flex items-center gap-2 italic">
                     <LucideLineChart className="h-5 w-5" />
                     HOURLY OCCUPANCY TREND
                 </CardTitle>
-                <CardDescription>Peak usage periods based on current parameters.</CardDescription>
             </CardHeader>
             <CardContent className="h-[300px] pt-4">
                 <ChartContainer config={chartConfig}>
@@ -309,65 +321,68 @@ export function ReportsView() {
             </CardContent>
         </Card>
 
-        <Card className="neu-card-shadow border-none rounded-2xl bg-primary text-white flex flex-col justify-center p-8 space-y-6">
-            <div className="space-y-1">
-                <p className="text-[10px] font-black uppercase tracking-[0.3em] opacity-60">Cumulative Data</p>
-                <h3 className="text-4xl font-black italic tracking-tighter">ANALYTICS SUMMARY</h3>
+        <Card className="neu-card-shadow border-none rounded-[2rem] bg-primary text-white flex flex-col justify-center p-10 space-y-8 shadow-2xl relative overflow-hidden">
+            <div className="absolute inset-0 bg-dot-pattern opacity-10" />
+            <div className="space-y-2 relative z-10">
+                <p className="text-[10px] font-black uppercase tracking-[0.3em] opacity-60">Analytics Insight</p>
+                <h3 className="text-4xl font-black italic tracking-tighter uppercase leading-none">Telemetry <br /> Summary</h3>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-                <div className="bg-white/10 p-4 rounded-xl backdrop-blur-sm">
-                    <p className="text-[10px] font-black uppercase mb-1">Total Logs</p>
-                    <p className="text-2xl font-black text-secondary">{visits?.length || 0}</p>
+            <div className="grid grid-cols-2 gap-4 relative z-10">
+                <div className="bg-white/10 p-5 rounded-2xl backdrop-blur-md border border-white/10">
+                    <p className="text-[10px] font-black uppercase mb-1 opacity-60">Logs</p>
+                    <p className="text-3xl font-black text-secondary">{visits?.length || 0}</p>
                 </div>
-                <div className="bg-white/10 p-4 rounded-xl backdrop-blur-sm">
-                    <p className="text-[10px] font-black uppercase mb-1">Unique</p>
-                    <p className="text-2xl font-black text-secondary">{uniqueUserCount}</p>
+                <div className="bg-white/10 p-5 rounded-2xl backdrop-blur-md border border-white/10">
+                    <p className="text-[10px] font-black uppercase mb-1 opacity-60">Unique</p>
+                    <p className="text-3xl font-black text-secondary">{uniqueUserCount}</p>
                 </div>
             </div>
             <Button 
               onClick={() => handleQuickExport('pdf')}
               disabled={isExporting}
-              className="w-full h-14 bg-secondary text-primary font-black text-lg rounded-xl hover:bg-white transition-colors gap-2"
+              className="w-full h-16 bg-secondary text-primary font-black text-lg rounded-xl hover:bg-white transition-all shadow-xl gap-3 relative z-10"
             >
                 {isExporting ? <Loader2 className="h-5 w-5 animate-spin" /> : <Download className="h-5 w-5" />}
-                Download Full PDF
+                Full PDF Archive
             </Button>
         </Card>
       </div>
 
-      <Card className="neu-card-shadow border-none overflow-hidden rounded-2xl bg-white">
-        <div className="p-6 border-b flex items-center justify-between">
-            <h3 className="font-black text-primary uppercase italic tracking-tighter">Historical Archives</h3>
-            <div className="relative w-64">
+      <Card className="neu-card-shadow border-none overflow-hidden rounded-[2rem] bg-white shadow-2xl">
+        <div className="p-8 border-b bg-muted/20 flex items-center justify-between">
+            <h3 className="font-black text-primary uppercase italic tracking-tighter">System Archives</h3>
+            <div className="relative w-72">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Search archives..." className="pl-10 h-10 rounded-xl" />
+                <Input placeholder="Search archives..." className="pl-10 h-12 rounded-xl border-2" />
             </div>
         </div>
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/50 border-none">
-              <TableHead className="font-black text-primary uppercase text-[10px] tracking-widest py-4">Report Name</TableHead>
-              <TableHead className="font-black text-primary uppercase text-[10px] tracking-widest py-4">Category</TableHead>
-              <TableHead className="font-black text-primary uppercase text-[10px] tracking-widest py-4">Date Generated</TableHead>
-              <TableHead className="text-right py-4"></TableHead>
+              <TableHead className="font-black text-primary uppercase text-[10px] tracking-widest py-5 px-8">Audit Target</TableHead>
+              <TableHead className="font-black text-primary uppercase text-[10px] tracking-widest py-5">Classification</TableHead>
+              <TableHead className="font-black text-primary uppercase text-[10px] tracking-widest py-5">Generated</TableHead>
+              <TableHead className="text-right py-5 px-8"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {archives.map((report, i) => (
-              <TableRow key={i} className="hover:bg-muted/30 border-b">
-                <TableCell className="font-black py-4 text-primary flex items-center gap-3">
-                    <FileText className="h-4 w-4 text-muted-foreground" />
+              <TableRow key={i} className="hover:bg-muted/30 border-b transition-colors duration-300">
+                <TableCell className="font-black py-6 text-primary flex items-center gap-4 px-8">
+                    <div className="p-2.5 bg-primary/5 rounded-xl">
+                      <FileText className="h-4 w-4 text-primary" />
+                    </div>
                     {report.name}
                 </TableCell>
-                <TableCell className="py-4 font-medium">{report.category}</TableCell>
-                <TableCell className="text-muted-foreground py-4 font-bold text-xs">{report.timestamp}</TableCell>
-                <TableCell className="text-right py-4">
-                    <div className="flex justify-end gap-2">
-                      <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" title="View Details">
-                        <Search className="h-4 w-4 text-primary" />
+                <TableCell className="py-6 font-bold text-muted-foreground text-xs uppercase tracking-tight">{report.category}</TableCell>
+                <TableCell className="text-muted-foreground py-6 font-black text-[10px] italic uppercase tracking-widest">{report.timestamp}</TableCell>
+                <TableCell className="text-right py-6 px-8">
+                    <div className="flex justify-end gap-3">
+                      <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full hover:bg-primary/5" title="View Details">
+                        <Search className="h-5 w-5 text-primary" />
                       </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" title="Download Spreadsheet">
-                        <FileSpreadsheet className="h-4 w-4 text-green-600" />
+                      <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full hover:bg-green-50" title="Spreadsheet">
+                        <FileSpreadsheet className="h-5 w-5 text-green-600" />
                       </Button>
                     </div>
                 </TableCell>

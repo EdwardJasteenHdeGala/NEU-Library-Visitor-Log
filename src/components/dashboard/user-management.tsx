@@ -19,7 +19,8 @@ import {
   UserPlus,
   Loader2,
   Building2,
-  Send
+  Send,
+  ArrowLeft
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { collection, query, orderBy } from "firebase/firestore";
@@ -81,7 +82,11 @@ const NEU_COLLEGES = [
   { id: "EXTERNAL", name: "External / Guest" },
 ];
 
-export function UserManagement() {
+interface UserManagementProps {
+  onBack?: () => void;
+}
+
+export function UserManagement({ onBack }: UserManagementProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
   const [newEmail, setNewEmail] = useState("");
@@ -128,9 +133,21 @@ export function UserManagement() {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
+      {onBack && (
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="mb-2 -ml-2 text-primary/50 hover:text-primary hover:bg-primary/5 font-black text-[10px] uppercase tracking-[0.2em] gap-2 rounded-xl h-8 px-4"
+          onClick={onBack}
+        >
+          <ArrowLeft className="h-3.5 w-3.5" />
+          Return to Overview
+        </Button>
+      )}
+
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-black text-primary mb-2 italic uppercase">User Directory</h2>
+          <h2 className="text-3xl font-black text-primary mb-2 italic uppercase tracking-tighter">User Directory</h2>
           <p className="text-muted-foreground font-medium">Audit institutional and guest access privileges.</p>
         </div>
         <div className="flex items-center gap-3">
@@ -155,7 +172,7 @@ export function UserManagement() {
                 <DialogHeader>
                   <DialogTitle className="text-2xl font-black text-primary italic uppercase tracking-tighter">Authorize Access</DialogTitle>
                   <DialogDescription>
-                    Provide an email to pre-authorize access. This works like sharing a Google Drive folder; the user gets permissions as soon as they log in.
+                    Provide an email to pre-authorize access.
                   </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-6 py-4">
@@ -237,7 +254,7 @@ export function UserManagement() {
             </div>
           </CardContent>
         </Card>
-        <Card className="neu-card-shadow border-none rounded-2xl">
+        <Card className="neu-card-shadow border-none rounded-2xl bg-white shadow-xl">
           <CardContent className="p-6 flex items-center gap-4">
             <div className="p-3 bg-accent/10 rounded-2xl">
               <Globe className="h-6 w-6 text-accent" />
@@ -250,10 +267,10 @@ export function UserManagement() {
             </div>
           </CardContent>
         </Card>
-        <Card className="neu-card-shadow border-none rounded-2xl">
+        <Card className="neu-card-shadow border-none rounded-2xl bg-white shadow-xl">
           <CardContent className="p-6 flex items-center gap-4">
-            <div className="p-3 bg-blue-50 rounded-2xl">
-              <ShieldCheck className="h-6 w-6 text-blue-600" />
+            <div className="p-3 bg-primary/5 rounded-2xl">
+              <ShieldCheck className="h-6 w-6 text-primary" />
             </div>
             <div>
               <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Active Admins</p>
@@ -265,7 +282,7 @@ export function UserManagement() {
         </Card>
       </div>
 
-      <Card className="neu-card-shadow border-none overflow-hidden rounded-2xl bg-white">
+      <Card className="neu-card-shadow border-none overflow-hidden rounded-[2rem] bg-white shadow-2xl">
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/50 border-none">
@@ -295,17 +312,17 @@ export function UserManagement() {
               const isPending = u.displayName === 'New User (Pending)';
 
               return (
-                <TableRow key={u.id} className="hover:bg-muted/30 border-b">
-                  <TableCell className="py-4">
-                    <div className="flex items-center gap-3">
-                      <Avatar className={cn("h-10 w-10 border-2 shadow-sm", isPending ? "border-dashed border-muted-foreground/30" : "border-muted")}>
+                <TableRow key={u.id} className="hover:bg-muted/30 border-b transition-colors duration-300">
+                  <TableCell className="py-6">
+                    <div className="flex items-center gap-4">
+                      <Avatar className={cn("h-10 w-10 border-2 shadow-sm", isPending ? "border-dashed border-muted-foreground/30" : "border-primary/20")}>
                         <AvatarImage src={u.photoURL} alt={u.displayName} />
                         <AvatarFallback className="bg-muted text-primary font-black text-xs">
                           {userInitials}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex flex-col">
-                        <span className={cn("font-bold text-primary flex items-center gap-2", isPending && "italic text-muted-foreground")}>
+                        <span className={cn("font-black text-primary text-sm flex items-center gap-2", isPending && "italic text-muted-foreground")}>
                           {u.displayName} 
                           {isPending && (
                             <Badge className="text-[7px] bg-secondary/10 text-secondary border-none px-2 h-4 font-black tracking-widest uppercase">
@@ -314,14 +331,14 @@ export function UserManagement() {
                           )}
                           {isCurrentUser && <span className="text-[8px] bg-primary text-white px-2 py-0.5 rounded uppercase font-black">You</span>}
                         </span>
-                        <span className="text-[10px] text-muted-foreground font-medium">{u.email}</span>
+                        <span className="text-[10px] text-muted-foreground font-bold italic">{u.email}</span>
                       </div>
                     </div>
                   </TableCell>
                   <TableCell className="font-mono text-[10px] font-black text-muted-foreground">
                     {isPending ? '---' : u.studentId}
                   </TableCell>
-                  <TableCell className="text-sm font-bold uppercase tracking-tight italic text-primary/80">{u.college || 'Guest'}</TableCell>
+                  <TableCell className="text-[11px] font-black uppercase tracking-tight italic text-primary/70">{u.college || 'Guest'}</TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-2">
                       {isSuperAdmin && (
@@ -371,7 +388,7 @@ export function UserManagement() {
                                 <AlertDialogHeader>
                                   <AlertDialogTitle className="text-2xl font-black text-primary italic uppercase tracking-tighter">Confirm Resignation</AlertDialogTitle>
                                   <AlertDialogDescription className="text-base font-medium">
-                                    You are about to revoke your own administrative access. You will be demoted to a regular user immediately.
+                                    You are about to revoke your own administrative access.
                                   </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
@@ -403,7 +420,7 @@ export function UserManagement() {
                                   <AlertDialogHeader>
                                     <AlertDialogTitle className="text-2xl font-black text-primary italic uppercase tracking-tighter text-center">Transfer Ownership</AlertDialogTitle>
                                     <AlertDialogDescription className="text-center text-base">
-                                      Transfer Super Admin status to <strong className="text-primary">{u.displayName}</strong>. You will lose your unique institutional ownership privileges.
+                                      Transfer Super Admin status to <strong className="text-primary">{u.displayName}</strong>.
                                     </AlertDialogDescription>
                                   </AlertDialogHeader>
                                   <AlertDialogFooter className="sm:justify-center gap-2">

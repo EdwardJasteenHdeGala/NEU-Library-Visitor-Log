@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -55,16 +56,23 @@ export function DashboardLayout() {
     { id: 'profile', label: 'Settings', icon: Settings },
   ];
 
+  const handleNavClick = (view: View) => {
+    setCurrentView(view);
+    setIsMobileMenuOpen(false);
+  };
+
   const renderView = () => {
+    const onBack = () => handleNavClick('dashboard');
+    
     switch (currentView) {
-      case 'dashboard': return <AdminOverview onNavigate={(view: View) => setCurrentView(view)} />;
-      case 'visitor-log': return <VisitorLog />;
-      case 'users': return <UserManagement />;
-      case 'reports': return <ReportsView />;
-      case 'feedback': return <FeedbackView />;
-      case 'help': return <HelpView />;
-      case 'profile': return <ProfileView />;
-      default: return <AdminOverview onNavigate={(view: View) => setCurrentView(view)} />;
+      case 'dashboard': return <AdminOverview onNavigate={handleNavClick} />;
+      case 'visitor-log': return <VisitorLog onBack={onBack} />;
+      case 'users': return <UserManagement onBack={onBack} />;
+      case 'reports': return <ReportsView onBack={onBack} />;
+      case 'feedback': return <FeedbackView onBack={onBack} />;
+      case 'help': return <HelpView onBack={onBack} />;
+      case 'profile': return <ProfileView onBack={onBack} />;
+      default: return <AdminOverview onNavigate={handleNavClick} />;
     }
   };
 
@@ -74,11 +82,6 @@ export function DashboardLayout() {
     .join('')
     .toUpperCase()
     .slice(0, 2) || 'AD';
-
-  const handleNavClick = (view: View) => {
-    setCurrentView(view);
-    setIsMobileMenuOpen(false);
-  };
 
   return (
     <div className="min-h-screen bg-background flex flex-col overflow-x-hidden neu-mesh-gradient">
@@ -138,8 +141,8 @@ export function DashboardLayout() {
                       {userInitials}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="flex flex-col items-start hidden xs:flex text-left">
-                    <span className="text-[10px] font-black uppercase tracking-tight leading-none max-w-[100px] truncate text-white">{profile?.displayName?.split(' ')[0]}</span>
+                  <div className="flex flex-col items-start hidden xs:flex text-left text-white">
+                    <span className="text-[10px] font-black uppercase tracking-tight leading-none max-w-[100px] truncate">{profile?.displayName?.split(' ')[0]}</span>
                     <span className="text-[7px] font-bold text-secondary uppercase tracking-widest opacity-80 italic">Admin</span>
                   </div>
                 </button>

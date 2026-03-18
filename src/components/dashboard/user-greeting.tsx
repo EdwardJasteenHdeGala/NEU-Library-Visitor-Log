@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -92,29 +93,27 @@ export function UserGreeting() {
     if (!purpose || !profile || !firestore || !currentCollege) {
       toast({
         title: "Incomplete Details",
-        description: "Please specify your department and purpose of visit.",
+        description: "Message required.",
         variant: "destructive"
       });
       return;
     }
 
     setIsLogging(true);
-    // Non-blocking mutation
     addDocumentNonBlocking(collection(firestore, 'visits'), {
       userId: profile.id,
       userName: profile.displayName,
       college: currentCollege,
       roleAtTime: profile.role,
       purpose: purpose,
-      timestamp: new Date(), // Using local date for instant feedback
+      timestamp: new Date(),
       academicYear: getAcademicYear()
     });
 
-    // Simulate completion for local UX
     setTimeout(() => {
       toast({
         title: "Visit Transmitted",
-        description: `Your presence in ${currentCollege} has been officially recorded.`,
+        description: `Your presence in ${currentCollege} has been recorded.`,
       });
       setHasLoggedThisSession(true);
       setIsLogging(false);
@@ -280,7 +279,7 @@ export function UserGreeting() {
                 </div>
 
                 {!hasLoggedThisSession ? (
-                  <Card className="neu-card-shadow border-none overflow-hidden rounded-[3rem] bg-white relative animate-in slide-in-from-bottom-8 duration-1000 group">
+                  <Card className="neu-card-shadow border-none overflow-hidden rounded-[3rem] bg-white relative animate-in slide-in-from-bottom-8 duration-1000 group shadow-2xl">
                       <CardHeader className="p-8 md:p-10 border-b bg-muted/30">
                         <CardTitle className="text-2xl md:text-4xl font-black text-primary flex items-center gap-5 italic tracking-tighter uppercase">
                             <History className="h-8 w-8 text-secondary" />
@@ -363,7 +362,7 @@ export function UserGreeting() {
                         <div className="space-y-5">
                            <h2 className="text-4xl md:text-6xl font-black text-white italic tracking-tighter uppercase leading-none">Record Secured!</h2>
                            <p className="text-white/80 text-lg md:text-2xl font-medium max-w-xl mx-auto leading-relaxed">
-                              Your presence has been successfully synchronized with the institutional hub. You are now authorized for research access.
+                              Your presence has been synchronized with the institutional hub.
                            </p>
                         </div>
                         <div className="flex flex-col sm:flex-row gap-6 w-full max-w-lg pt-8">
@@ -416,7 +415,7 @@ export function UserGreeting() {
                           <span className="font-black text-[11px] uppercase tracking-[0.3em]">Connectivity Active</span>
                         </div>
                         <p className="text-sm font-medium text-muted-foreground leading-relaxed italic opacity-80">
-                          Logging is mandatory for all institutional visitors to maintain active academic audit trails.
+                          Logging is mandatory.
                         </p>
                       </div>
                   </CardContent>
@@ -427,9 +426,9 @@ export function UserGreeting() {
             </div>
           )}
 
-          {subView === 'feedback' && <FeedbackView />}
-          {subView === 'help' && <HelpView />}
-          {subView === 'profile' && <ProfileView />}
+          {subView === 'feedback' && <FeedbackView onBack={() => setSubView('log-entry')} />}
+          {subView === 'help' && <HelpView onBack={() => setSubView('log-entry')} />}
+          {subView === 'profile' && <ProfileView onBack={() => setSubView('log-entry')} />}
         </div>
       </main>
 

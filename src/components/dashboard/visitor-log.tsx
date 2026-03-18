@@ -4,7 +4,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Search, Users, Trash2, Download, Filter, Calendar, Loader2 } from "lucide-react";
+import { Search, Users, Trash2, Download, Filter, Calendar, Loader2, ArrowLeft } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { collection, query, orderBy, doc } from "firebase/firestore";
 import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
@@ -25,7 +25,11 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
-export function VisitorLog() {
+interface VisitorLogProps {
+  onBack?: () => void;
+}
+
+export function VisitorLog({ onBack }: VisitorLogProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const firestore = useFirestore();
   const { toast } = useToast();
@@ -66,9 +70,21 @@ export function VisitorLog() {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
+      {onBack && (
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="mb-2 -ml-2 text-primary/50 hover:text-primary hover:bg-primary/5 font-black text-[10px] uppercase tracking-[0.2em] gap-2 rounded-xl h-8 px-4"
+          onClick={onBack}
+        >
+          <ArrowLeft className="h-3.5 w-3.5" />
+          Return to Overview
+        </Button>
+      )}
+
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-black text-primary mb-2 italic uppercase">Visitor Registry</h2>
+          <h2 className="text-3xl font-black text-primary mb-2 italic uppercase tracking-tighter">Visitor Registry</h2>
           <p className="text-muted-foreground font-medium">Real-time audit trail of all institutional access logs.</p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
@@ -137,7 +153,7 @@ export function VisitorLog() {
         </Card>
       </div>
 
-      <Card className="neu-card-shadow border-none overflow-hidden rounded-2xl bg-white">
+      <Card className="neu-card-shadow border-none overflow-hidden rounded-2xl bg-white shadow-2xl">
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/50 border-none">
@@ -164,21 +180,21 @@ export function VisitorLog() {
                 </div>
               </TableCell></TableRow>
             ) : filteredVisits.map((visit, i) => (
-              <TableRow key={visit.id} className="hover:bg-muted/30 border-b">
-                <TableCell className="font-black py-4 text-primary">{visit.userName}</TableCell>
-                <TableCell className="font-medium">{visit.college}</TableCell>
+              <TableRow key={visit.id} className="hover:bg-muted/30 border-b transition-colors duration-300">
+                <TableCell className="font-black py-4 text-primary tracking-tight">{visit.userName}</TableCell>
+                <TableCell className="font-bold text-muted-foreground text-xs uppercase tracking-tight">{visit.college}</TableCell>
                 <TableCell>
-                  <span className="text-[10px] font-black uppercase tracking-widest bg-secondary/10 text-primary px-3 py-1 rounded-full border border-secondary/20">
+                  <span className="text-[9px] font-black uppercase tracking-widest bg-secondary/10 text-primary px-4 py-1.5 rounded-full border border-secondary/20 shadow-sm">
                     {visit.purpose}
                   </span>
                 </TableCell>
                 <TableCell>
                    <div className="flex items-center gap-2">
                       <Calendar className="h-3 w-3 text-secondary" />
-                      <span className="text-xs font-bold text-primary italic">AY {visit.academicYear || "N/A"}</span>
+                      <span className="text-[10px] font-black text-primary italic uppercase tracking-tighter">AY {visit.academicYear || "N/A"}</span>
                    </div>
                 </TableCell>
-                <TableCell className="text-muted-foreground font-bold text-xs">
+                <TableCell className="text-muted-foreground font-black text-[10px] italic uppercase tracking-widest">
                   {visit.timestamp?.seconds ? format(visit.timestamp.seconds * 1000, 'MMM dd, yyyy • h:mm a') : 'Syncing...'}
                 </TableCell>
               </TableRow>
