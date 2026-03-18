@@ -5,61 +5,22 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "UserProfile",
       "type": "object",
-      "description": "Represents a user's profile within the NEU Access Hub, including their institutional status (Student, Faculty, Staff) or guest access role.",
+      "description": "Represents a user's profile within the NEU Access Hub.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the UserProfile entity (Firebase UID)."
-        },
-        "email": {
-          "type": "string",
-          "description": "The email address of the user.",
-          "format": "email"
-        },
-        "studentId": {
-          "type": "string",
-          "description": "Institutional ID number (Student, Faculty, Employee, or Staff) or 'GUEST' for non-institutional users."
-        },
-        "role": {
-          "type": "string",
-          "description": "The current access role: 'guest', 'user', or 'admin'.",
-          "enum": ["guest", "user", "admin"]
-        },
-        "isAuthorizedAdmin": {
-          "type": "boolean",
-          "description": "Flag indicating if the user is authorized for administrative features."
-        },
-        "college": {
-          "type": "string",
-          "description": "The college, department, or 'External' for guests."
-        },
-        "displayName": {
-          "type": "string",
-          "description": "The full name of the user."
-        },
-        "photoURL": {
-          "type": "string",
-          "description": "The URL of the user's profile picture."
-        },
-        "createdAt": {
-          "type": "string",
-          "description": "Timestamp of profile creation.",
-          "format": "date-time"
-        },
-        "updatedAt": {
-          "type": "string",
-          "description": "Timestamp of last update.",
-          "format": "date-time"
-        }
+        "id": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "studentId": { "type": "string" },
+        "role": { "type": "string", "enum": ["guest", "user", "admin"] },
+        "isAuthorizedAdmin": { "type": "boolean" },
+        "isSuperAdmin": { "type": "boolean" },
+        "college": { "type": "string" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "theme": { "type": "string", "enum": ["light", "dark"], "default": "light" }
       },
-      "required": [
-        "id",
-        "email",
-        "studentId",
-        "role",
-        "createdAt",
-        "updatedAt"
-      ]
+      "required": ["id", "email", "role", "createdAt", "updatedAt"]
     },
     "Visit": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -67,92 +28,52 @@
       "type": "object",
       "description": "Records details of a visitor's entry and exit.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the Visit."
-        },
-        "userId": {
-          "type": "string",
-          "description": "Reference to the UserProfile UID."
-        },
-        "userName": {
-          "type": "string",
-          "description": "Name of the visitor."
-        },
-        "college": {
-          "type": "string",
-          "description": "College or 'External'."
-        },
-        "roleAtTime": {
-          "type": "string",
-          "description": "Role at the time of visit.",
-          "enum": ["guest", "student", "faculty", "staff"]
-        },
-        "purpose": {
-          "type": "string",
-          "description": "Purpose of visit.",
-          "enum": [
-            "reading books",
-            "research in thesis",
-            "use of computer",
-            "doing assignments",
-            "group study",
-            "consultation",
-            "charging device",
-            "resting/waiting",
-            "printing/scanning",
-            "resource borrowing"
-          ]
-        },
-        "timestamp": {
-          "type": "string",
-          "description": "Timestamp of the visit entry.",
-          "format": "date-time"
-        },
-        "exitTimestamp": {
-          "type": "string",
-          "description": "Timestamp of the visit exit.",
-          "format": "date-time"
-        },
-        "durationMinutes": {
-          "type": "number",
-          "description": "Calculated stay duration in minutes."
-        },
-        "academicYear": {
-          "type": "string",
-          "description": "The academic year of the visit."
-        }
-      },
-      "required": [
-        "id",
-        "userId",
-        "userName",
-        "purpose",
-        "timestamp"
-      ]
-    },
-    "Feedback": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Feedback",
-      "type": "object",
-      "description": "User submitted feedback about library services.",
-      "properties": {
         "id": { "type": "string" },
         "userId": { "type": "string" },
         "userName": { "type": "string" },
-        "userPhoto": { "type": "string" },
-        "rating": { "type": "number" },
-        "visitType": { "type": "string" },
-        "message": { "type": "string" },
+        "college": { "type": "string" },
+        "roleAtTime": { "type": "string", "enum": ["guest", "user", "admin"] },
+        "purpose": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "exitTimestamp": { "type": "string", "format": "date-time" },
+        "durationMinutes": { "type": "number" },
+        "academicYear": { "type": "string" }
+      },
+      "required": ["id", "userId", "userName", "purpose", "timestamp"]
+    },
+    "AuditLog": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "AuditLog",
+      "type": "object",
+      "description": "Administrative action logs.",
+      "properties": {
+        "id": { "type": "string" },
+        "adminId": { "type": "string" },
+        "adminName": { "type": "string" },
+        "action": { "type": "string" },
+        "details": { "type": "string" },
         "timestamp": { "type": "string", "format": "date-time" }
       },
-      "required": ["userId", "userName", "rating", "message", "timestamp"]
+      "required": ["adminId", "action", "timestamp"]
+    },
+    "Notification": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Notification",
+      "type": "object",
+      "description": "User notifications.",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "message": { "type": "string" },
+        "read": { "type": "boolean" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "title", "message", "timestamp"]
     }
   },
   "auth": {
-    "providers": [
-      "google.com"
-    ]
+    "providers": ["google.com"]
   },
   "firestore": {
     "structure": [
@@ -160,30 +81,40 @@
         "path": "/user_profiles/{userId}",
         "definition": {
           "entityName": "UserProfile",
-          "schema": {
-            "$ref": "#/backend/entities/UserProfile"
-          },
-          "description": "Stores individual user profiles."
+          "schema": { "$ref": "#/backend/entities/UserProfile" },
+          "description": "User profiles."
         }
       },
       {
         "path": "/visits/{visitId}",
         "definition": {
           "entityName": "Visit",
-          "schema": {
-            "$ref": "#/backend/entities/Visit"
-          },
-          "description": "Root collection for all library visits."
+          "schema": { "$ref": "#/backend/entities/Visit" },
+          "description": "Library visits."
+        }
+      },
+      {
+        "path": "/audit_logs/{logId}",
+        "definition": {
+          "entityName": "AuditLog",
+          "schema": { "$ref": "#/backend/entities/AuditLog" },
+          "description": "Administrative audit trail."
+        }
+      },
+      {
+        "path": "/notifications/{notificationId}",
+        "definition": {
+          "entityName": "Notification",
+          "schema": { "$ref": "#/backend/entities/Notification" },
+          "description": "User notifications."
         }
       },
       {
         "path": "/feedback/{feedbackId}",
         "definition": {
           "entityName": "Feedback",
-          "schema": {
-            "$ref": "#/backend/entities/Feedback"
-          },
-          "description": "User feedback submissions."
+          "schema": { "$ref": "#/backend/entities/Feedback" },
+          "description": "User feedback."
         }
       }
     ]

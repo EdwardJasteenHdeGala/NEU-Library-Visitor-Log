@@ -1,33 +1,17 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // --- Helper Functions ---
-
     function isSignedIn() {
       return request.auth != null;
     }
 
-    /**
-     * Fast-path check for the bootstrap super admin via email token.
-     */
-    function isBootstrapAdmin() {
-      return isSignedIn() && request.auth.token.email == 'edwardjasteen.degala@neu.edu.ph';
-    }
-
-    function getUserData() {
-      return get(/databases/$(database)/documents/user_profiles/$(request.auth.uid)).data;
-    }
-
     function isAnyAdmin() {
-      return isBootstrapAdmin() || (
-        isSignedIn() && 
-        exists(/databases/$(database)/documents/user_profiles/$(request.auth.uid)) && 
-        (getUserData().role == 'admin' || getUserData().isSuperAdmin == true)
+      return isSignedIn() && (
+        request.auth.token.email == 'edwardjasteen.degala@neu.edu.ph' ||
+        get(/databases/$(database)/documents/user_profiles/$(request.auth.uid)).data.role == 'admin'
       );
     }
-
-    // --- Collection Rules ---
 
     match /user_profiles/{userId} {
       allow get: if isSignedIn() && (request.auth.uid == userId || isAnyAdmin());
@@ -38,11 +22,7 @@ service cloud.firestore {
     }
 
     match /visits/{visitId} {
-      /**
-       * Registry Access:
-       * We allow all signed-in users to list the collection.
-       * This is required for real-time occupancy stats and personal history tracking.
-       */
+      // Corrected: Allow list for all authenticated users to resolve Nhica's error
       allow read: if isSignedIn();
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow update, delete: if isAnyAdmin();
@@ -55,9 +35,15 @@ service cloud.firestore {
       allow update, delete: if isAnyAdmin();
     }
 
-    match /library_config/{configId} {
-      allow read: if isSignedIn();
-      allow write: if isAnyAdmin();
+    match /audit_logs/{logId} {
+      allow read: if isAnyAdmin();
+      allow create: if isAnyAdmin();
+    }
+
+    match /notifications/{notificationId} {
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isAnyAdmin();
+      allow update: if isSignedIn() && resource.data.userId == request.auth.uid;
     }
   }
 }
