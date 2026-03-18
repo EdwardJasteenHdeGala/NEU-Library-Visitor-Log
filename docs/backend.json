@@ -147,42 +147,6 @@
         "timestamp": { "type": "string", "format": "date-time" }
       },
       "required": ["userId", "userName", "rating", "message", "timestamp"]
-    },
-    "LibraryConfig": {
-      "title": "LibraryConfig",
-      "type": "object",
-      "description": "Stores the library's operational configuration, including manual overrides and announcements.",
-      "properties": {
-        "mode": {
-          "type": "string",
-          "enum": ["automatic", "manual"],
-          "description": "The current control mode."
-        },
-        "manualStatus": {
-          "type": "string",
-          "enum": ["open", "closed"],
-          "description": "The status when in manual mode."
-        },
-        "manualReason": {
-          "type": "string",
-          "description": "The formal reason/note for manual status change."
-        },
-        "manualCategory": {
-          "type": "string",
-          "enum": ["general", "emergency", "institutional"],
-          "description": "The classification of the manual override announcement."
-        },
-        "updatedBy": {
-          "type": "string",
-          "description": "UID of the admin who last updated the config."
-        },
-        "updatedAt": {
-          "type": "string",
-          "format": "date-time",
-          "description": "Timestamp of the last update."
-        }
-      },
-      "required": ["mode", "updatedAt"]
     }
   },
   "auth": {
@@ -220,16 +184,6 @@
             "$ref": "#/backend/entities/Feedback"
           },
           "description": "User feedback submissions."
-        }
-      },
-      {
-        "path": "/library_config/{configId}",
-        "definition": {
-          "entityName": "LibraryConfig",
-          "schema": {
-            "$ref": "#/backend/entities/LibraryConfig"
-          },
-          "description": "Global operational configuration."
         }
       }
     ]

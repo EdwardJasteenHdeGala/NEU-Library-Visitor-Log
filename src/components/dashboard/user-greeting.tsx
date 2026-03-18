@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -16,7 +17,6 @@ import {
   X, 
   Settings, 
   Loader2,
-  ShieldAlert,
   Users,
   DoorOpen,
   DoorClosed,
@@ -48,7 +48,6 @@ import { getAcademicYear, cn } from "@/lib/utils";
 import { FeedbackView } from "./feedback-view";
 import { HelpView } from "./help-view";
 import { ProfileView } from "./profile-view";
-import { useLibraryStatus } from "@/hooks/use-library-status";
 
 const NEU_COLLEGES = [
   { id: "CICS", name: "Computer & Info Sciences" },
@@ -71,7 +70,6 @@ export function UserGreeting() {
   const { logout, profile, switchRole } = useAuth();
   const { firestore } = useFirebase();
   const { toast } = useToast();
-  const { isOpen, label, nextEvent, isManual, reason } = useLibraryStatus();
   
   const [subView, setSubView] = useState<UserSubView>('log-entry');
   const [purpose, setPurpose] = useState<string>("");
@@ -97,7 +95,7 @@ export function UserGreeting() {
     );
   }, [profile, firestore]);
 
-  // Secure Occupancy Telemetry Query - Matches exitTimestamp null check in Rules
+  // Secure Occupancy Telemetry Query
   const occupancyQuery = useMemoFirebase(() => {
     if (!firestore) return null;
     return query(collection(firestore, 'visits'), where('exitTimestamp', '==', null));
@@ -107,18 +105,9 @@ export function UserGreeting() {
   const { data: activeVisits } = useCollection(occupancyQuery);
 
   const activeVisit = visits && visits[0] && !visits[0].exitTimestamp ? visits[0] : null;
-  const currentOccupancy = isOpen ? (activeVisits?.length || 0) : 0;
+  const currentOccupancy = activeVisits?.length || 0;
 
   const handleCheckIn = () => {
-    if (!isOpen) {
-      toast({
-        title: "Access Restricted",
-        description: isManual ? "The facility has been manually closed by administration." : "Access logging is restricted outside operational hours.",
-        variant: "destructive"
-      });
-      return;
-    }
-
     if (!purpose || !profile || !firestore || !currentCollege) {
       toast({ title: "Required Information", description: "Select department and purpose.", variant: "destructive" });
       return;
@@ -240,21 +229,12 @@ export function UserGreeting() {
                 </div>
               </div>
 
-              <Card className={cn("shadow-xl border-border rounded-xl overflow-hidden", isManual && !isOpen && "border-amber-500 ring-2 ring-amber-500/10")}>
-                <CardHeader className={cn("bg-slate-50 border-b p-6 flex flex-row items-center justify-between", isManual && !isOpen && "bg-amber-50 border-amber-100")}>
+              <Card className="shadow-xl border-border rounded-xl overflow-hidden">
+                <CardHeader className="bg-slate-50 border-b p-6 flex flex-row items-center justify-between">
                   <CardTitle className="text-xs font-bold flex items-center gap-2 uppercase tracking-widest"><History className="h-4 w-4 text-primary" /> Log Attendance</CardTitle>
-                  <div className={cn("px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border", isOpen ? "bg-green-50 text-green-700 border-green-200" : "bg-red-50 text-red-700 border-red-200")}>{label}</div>
                 </CardHeader>
                 <CardContent className="p-10 space-y-10">
-                  {!isOpen ? (
-                    <div className={cn("p-10 border-2 border-dashed rounded-xl flex flex-col items-center text-center gap-6", isManual ? "bg-amber-50 border-amber-200" : "bg-slate-50 border-slate-200")}>
-                      {isManual ? <ShieldAlert className="h-12 w-12 text-amber-500" /> : <DoorClosed className="h-12 w-12 text-slate-400" />}
-                      <div className="space-y-4">
-                        <h3 className="text-xl font-bold uppercase italic">{isManual ? "Institutional Suspension" : "Facility Closed"}</h3>
-                        {isManual && reason ? <p className="font-bold text-lg italic leading-relaxed bg-white p-6 rounded-lg border shadow-sm text-amber-700 border-amber-100">“{reason}”</p> : <p className="text-muted-foreground">{nextEvent}</p>}
-                      </div>
-                    </div>
-                  ) : activeVisit ? (
+                  {activeVisit ? (
                     <div className="shadow-2xl border-none bg-primary text-white p-16 rounded-xl overflow-hidden relative">
                       <div className="relative z-10 flex flex-col items-center text-center space-y-10">
                         <div className="h-20 w-20 bg-white/10 rounded-full flex items-center justify-center border-2 border-white/20 animate-pulse shadow-xl">
@@ -306,10 +286,6 @@ export function UserGreeting() {
               <Card className="shadow-sm border-border rounded-xl bg-white">
                 <CardHeader className="bg-primary text-white p-6"><CardTitle className="text-[10px] font-bold flex items-center gap-2 uppercase tracking-widest"><Library className="h-4 w-4 text-secondary" /> Telemetry</CardTitle></CardHeader>
                 <CardContent className="p-8 space-y-8">
-                  <div className="flex items-center gap-5 p-5 bg-slate-50 border rounded-xl shadow-inner">
-                    <div className={cn("p-3 rounded-xl", isOpen ? "bg-green-100" : "bg-red-100")}>{isOpen ? <DoorOpen className="h-6 w-6 text-green-600" /> : <DoorClosed className="h-6 w-6 text-red-600" />}</div>
-                    <div><p className="text-[9px] font-bold text-muted-foreground uppercase mb-1">Status</p><p className={cn("text-sm font-bold uppercase", isOpen ? "text-green-600" : "text-red-600")}>{label}</p></div>
-                  </div>
                   <div className="flex items-center gap-5 p-5 bg-slate-50 border rounded-xl shadow-inner">
                     <div className="p-3 rounded-xl bg-primary/10"><Users className="h-6 w-6 text-primary" /></div>
                     <div><p className="text-[9px] font-bold text-muted-foreground uppercase mb-1">Occupancy</p><p className="text-sm font-bold text-slate-700">{currentOccupancy} Members</p></div>

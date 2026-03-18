@@ -1,3 +1,4 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -53,17 +54,10 @@ service cloud.firestore {
       /**
        * Secure List Access:
        * 1. Admins see everything.
-       * 2. Authenticated institutional members can perform list operations if they:
-       *    a) Filter by their own userId (Personal History).
-       *    b) Filter by exitTimestamp == null (Occupancy Telemetry).
+       * 2. Authenticated institutional members can perform list operations for telemetry and personal history.
        */
-      allow list: if isSignedIn() && (
-        isAnyAdmin() || 
-        request.query.userId == request.auth.uid || 
-        request.query.exitTimestamp == null
-      );
-      
-      allow get: if isSignedIn() && (isAnyAdmin() || resource.data.userId == request.auth.uid);
+      allow list: if isSignedIn();
+      allow get: if isSignedIn();
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow update, delete: if isAnyAdmin();
     }
@@ -73,11 +67,6 @@ service cloud.firestore {
       allow get: if isSignedIn() && (isAnyAdmin() || resource.data.userId == request.auth.uid);
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow update, delete: if isAnyAdmin();
-    }
-
-    match /library_config/{configId} {
-      allow read: if isSignedIn();
-      allow write: if isAnyAdmin();
     }
   }
 }

@@ -2,10 +2,9 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { 
   ArrowLeft, 
-  Clock, 
   Users, 
   Info, 
   ShieldCheck, 
@@ -15,20 +14,14 @@ import {
   Mail,
   LogIn,
   AlertCircle,
-  ShieldAlert,
   Activity,
-  Megaphone,
-  AlertTriangle,
-  DoorOpen,
-  DoorClosed
+  Megaphone
 } from "lucide-react";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { cn } from "@/lib/utils";
-import { useLibraryStatus } from "@/hooks/use-library-status";
 import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
 import { collection, query, where } from "firebase/firestore";
-import { format } from "date-fns";
 
 interface GuestViewProps {
   onBack: () => void;
@@ -38,7 +31,6 @@ interface GuestViewProps {
 export function GuestView({ onBack, onLogin }: GuestViewProps) {
   const coverImage = PlaceHolderImages.find(img => img.id === 'neu-cover');
   const logoImage = PlaceHolderImages.find(img => img.id === 'neu-logo');
-  const { isOpen, label, nextEvent, isManual, reason, category, updatedAt } = useLibraryStatus();
   const firestore = useFirestore();
 
   // Real-time occupancy tracking for Guests
@@ -49,7 +41,7 @@ export function GuestView({ onBack, onLogin }: GuestViewProps) {
 
   const { data: activeVisits } = useCollection(activeVisitsQuery);
 
-  const currentOccupancy = isOpen ? (activeVisits?.length || 0) : 0;
+  const currentOccupancy = activeVisits?.length || 0;
   const maxCapacity = 150;
   const occupancyPercentage = (currentOccupancy / maxCapacity) * 100;
 
@@ -124,7 +116,7 @@ export function GuestView({ onBack, onLogin }: GuestViewProps) {
                   <h3 className="text-3xl font-bold uppercase tracking-tighter italic">Institutional Hub</h3>
                 </div>
               </div>
-              <CardContent className="p-10 grid grid-cols-1 md:grid-cols-2 gap-12 bg-white">
+              <CardContent className="p-10 bg-white">
                 <div className="space-y-8">
                   <div className="flex items-center gap-3">
                     <Activity className="h-5 w-5 text-primary/60" />
@@ -132,40 +124,23 @@ export function GuestView({ onBack, onLogin }: GuestViewProps) {
                   </div>
                   <div className="space-y-4">
                     <div className="flex justify-between items-end">
-                      <span className={cn("text-5xl font-bold tracking-tighter italic", isOpen && currentOccupancy > 0 ? "text-green-600" : "text-primary")}>
+                      <span className="text-5xl font-bold tracking-tighter italic text-primary">
                         {currentOccupancy} 
                         <span className="text-2xl font-medium text-slate-300 ml-3">/ {maxCapacity}</span>
                       </span>
                       <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5">
-                        {isOpen ? Math.round(occupancyPercentage) : 0}% Utilized
+                        {Math.round(occupancyPercentage)}% Utilized
                       </span>
                     </div>
                     <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden border shadow-inner">
                         <div 
-                          className={cn("h-full transition-all duration-1000 ease-in-out", isOpen ? (currentOccupancy > 0 ? "bg-green-500" : "bg-primary") : "bg-slate-300")}
-                          style={{ width: `${isOpen ? occupancyPercentage : 0}%` }}
+                          className="h-full bg-primary transition-all duration-1000 ease-in-out"
+                          style={{ width: `${occupancyPercentage}%` }}
                         />
                     </div>
                     <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest italic text-right">
                        Capacity Limit: 150 Individuals
                     </p>
-                  </div>
-                </div>
-                
-                <div className="space-y-8 border-l md:pl-12 border-slate-100">
-                  <div className="flex items-center gap-3">
-                    <Clock className="h-5 w-5 text-primary/60" />
-                    <h4 className="font-bold text-[10px] uppercase tracking-widest text-slate-500">Operational Protocol</h4>
-                  </div>
-                  <div className="space-y-4">
-                    <div className={cn("flex items-center gap-3 font-bold text-sm uppercase tracking-widest px-5 py-3 rounded-lg border", isOpen ? "bg-green-50 text-green-700 border-green-100" : "bg-red-50 text-red-700 border-red-100")}>
-                      <div className={cn("h-2.5 w-2.5 rounded-full", isOpen ? "bg-green-500 animate-pulse" : "bg-red-500")} />
-                      {label}
-                    </div>
-                    <div className="space-y-1 px-1">
-                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Next Scheduled Shift</p>
-                      <p className="text-sm font-bold text-slate-800 uppercase italic">{nextEvent}</p>
-                    </div>
                   </div>
                 </div>
               </CardContent>
@@ -214,79 +189,24 @@ export function GuestView({ onBack, onLogin }: GuestViewProps) {
           </div>
 
           <aside className="lg:col-span-4 space-y-10 lg:sticky lg:top-24">
-            <Card className={cn("shadow-2xl p-10 space-y-8 transition-all duration-700 rounded-xl border-none text-white", 
-              isOpen ? "bg-primary" : 
-              isManual ? (
-                category === 'emergency' ? "bg-red-600" :
-                category === 'institutional' ? "bg-amber-600" :
-                "bg-blue-600"
-              ) : "bg-slate-800"
-            )}>
+            <Card className="shadow-2xl p-10 space-y-8 rounded-xl border-none text-white bg-primary">
               <div className="space-y-6">
                 <div className="flex flex-col gap-2">
-                  <h3 className="text-3xl font-bold tracking-tighter uppercase italic">
-                    {isOpen ? "Portal Active" : 
-                     isManual ? (
-                       category === 'emergency' ? "Emergency Alert" :
-                       category === 'institutional' ? "Academic Suspension" :
-                       "Notice of Closure"
-                     ) : "Access Restricted"}
-                  </h3>
+                  <h3 className="text-3xl font-bold tracking-tighter uppercase italic">Portal Active</h3>
                   <div className="h-1 w-12 bg-secondary/80 rounded-full" />
                 </div>
-                
                 <div className="text-base font-medium leading-relaxed opacity-90">
-                  {isOpen ? (
-                    "Authenticated institutional members may now proceed with attendance logging and facility access."
-                  ) : isManual ? (
-                    <div className="space-y-6">
-                      {reason ? (
-                        <div className="space-y-4">
-                          <p className="font-bold italic bg-white/10 p-6 rounded-lg border border-white/20 shadow-inner">“{reason}”</p>
-                          {updatedAt && (
-                            <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest opacity-60">
-                              <Clock className="h-3 w-3" />
-                              Last Update: {format(updatedAt.toDate(), 'MMM dd, h:mm a')}
-                            </div>
-                          )}
-                        </div>
-                      ) : (
-                        <p>Access is temporarily restricted for administrative reasons. Please check back later.</p>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      <p>Institutional access logging is currently offline. Facility availability is dictated by the academic schedule.</p>
-                      <p className="font-bold text-secondary uppercase tracking-widest">{nextEvent}</p>
-                    </div>
-                  )}
+                  Authenticated institutional members may now proceed with attendance logging and facility access.
                 </div>
               </div>
-              
-              {isOpen ? (
-                <Button 
-                  onClick={onLogin}
-                  variant="secondary"
-                  className="w-full h-14 font-black text-xs uppercase tracking-[0.2em] rounded-xl shadow-2xl active:scale-95 transition-all"
-                >
-                  Enter Portal Gateway
-                  <LogIn className="h-4 w-4 ml-2" />
-                </Button>
-              ) : (
-                <div className={cn("p-6 rounded-xl flex items-center gap-4 border shadow-inner", isManual ? "bg-white/10 border-white/20" : "bg-white/5 border-white/10")}>
-                  {isManual ? (
-                    category === 'emergency' ? <AlertTriangle className="h-6 w-6 text-white" /> :
-                    category === 'institutional' ? <ShieldAlert className="h-6 w-6 text-white" /> :
-                    <Megaphone className="h-6 w-6 text-white" />
-                  ) : <AlertCircle className="h-6 w-6 text-slate-400" />}
-                  <div className="space-y-1">
-                    <span className="text-[11px] font-black uppercase tracking-[0.2em] opacity-80">
-                      {isManual ? `${category} Protocol` : "Scheduled Closure"}
-                    </span>
-                    <p className="text-[9px] font-medium opacity-60">Registry Synchronized</p>
-                  </div>
-                </div>
-              )}
+              <Button 
+                onClick={onLogin}
+                variant="secondary"
+                className="w-full h-14 font-black text-xs uppercase tracking-[0.2em] rounded-xl shadow-2xl active:scale-95 transition-all"
+              >
+                Enter Portal Gateway
+                <LogIn className="h-4 w-4 ml-2" />
+              </Button>
             </Card>
 
             <Card className="shadow-sm p-10 space-y-10 rounded-xl border-slate-100 bg-white">
