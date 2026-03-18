@@ -278,9 +278,9 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
             <CardContent className="p-6 space-y-6">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Access Strategy</span>
+                  <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Current Strategy</span>
                   <Badge variant={isManual ? "secondary" : "default"} className="text-[8px] font-black uppercase h-5 px-2">
-                    {isManual ? "Manual Override" : "Automatic Mode"}
+                    {isManual ? "Manual Override" : "Automatic Schedule"}
                   </Badge>
                 </div>
                 
