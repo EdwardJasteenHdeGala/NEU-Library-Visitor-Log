@@ -5,10 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/componen
 import { 
   Users, 
   History, 
-  TrendingUp, 
-  Filter, 
-  BarChart3, 
-  PieChart, 
   Building2, 
   LayoutDashboard, 
   Loader2, 
@@ -21,16 +17,11 @@ import {
   Power,
   RotateCcw,
   MessageSquare,
-  XCircle
+  XCircle,
+  TrendingUp,
+  Activity
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
 import { collection, limit, orderBy, query, doc, serverTimestamp } from "firebase/firestore";
 import { useFirestore, useCollection, useMemoFirebase, setDocumentNonBlocking } from "@/firebase";
 import { format } from "date-fns";
@@ -44,6 +35,9 @@ import {
   Cell,
   Pie,
   PieChart as RePieChart,
+  Area,
+  AreaChart,
+  CartesianGrid
 } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { useAuth } from "@/hooks/use-auth";
@@ -85,7 +79,14 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
 
   const isLoading = isLoadingRecent || isLoadingAll;
 
+  // Real-time Occupancy Logic
   const activeOccupancy = allVisits?.filter(v => !v.exitTimestamp).length || 0;
+  const effectiveOccupancy = isOpen ? activeOccupancy : 0;
+  const occupancyStatusColor = !isOpen 
+    ? "text-destructive" 
+    : effectiveOccupancy > 0 
+      ? "text-green-600" 
+      : "text-muted-foreground";
 
   const purposeData = allVisits ? Object.entries(
     allVisits.reduce((acc: any, visit) => {
@@ -105,6 +106,15 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
   const avgDuration = allVisits 
     ? Math.round(allVisits.filter(v => !!v.exitTimestamp).reduce((acc, v) => acc + (v.durationMinutes || 0), 0) / (allVisits.filter(v => !!v.exitTimestamp).length || 1)) || 0
     : 0;
+
+  // Mocked Trend Data for formal visualization
+  const trendData = [
+    { time: '08:00', count: 5 },
+    { time: '10:00', count: 25 },
+    { time: '12:00', count: 42 },
+    { time: '14:00', count: 38 },
+    { time: '16:00', count: 12 },
+  ];
 
   const handleOverride = (mode: 'automatic' | 'manual', status?: 'open' | 'closed') => {
     if (!firestore || !profile) return;
@@ -132,13 +142,14 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
 
   const stats = [
     { title: "Total Logs", value: allVisits?.length || "0", icon: Users },
-    { title: "Active Occupancy", value: isOpen ? activeOccupancy : 0, icon: ShieldCheck },
+    { title: "Active Occupancy", value: effectiveOccupancy, icon: Activity, color: occupancyStatusColor },
     { title: "Avg. Duration", value: `${avgDuration}m`, icon: Clock },
     { title: "Unit Coverage", value: collegeData.length || "0", icon: Building2 },
   ];
 
   const chartConfig = {
     visits: { label: "Visits", color: "hsl(var(--primary))" },
+    count: { label: "Occupancy", color: "hsl(var(--secondary))" },
   };
 
   return (
@@ -172,11 +183,13 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
               <Card key={i} className="shadow-sm border-border hover:shadow-md transition-shadow rounded-lg">
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
                   <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">{stat.title}</span>
-                  <stat.icon className="h-3.5 w-3.5 text-muted-foreground" />
+                  <stat.icon className={cn("h-3.5 w-3.5", stat.color || "text-muted-foreground")} />
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-baseline gap-2">
-                    <span className="text-3xl font-bold tracking-tight text-primary italic">{stat.value}</span>
+                    <span className={cn("text-3xl font-bold tracking-tight italic", stat.color || "text-primary")}>
+                      {stat.value}
+                    </span>
                   </div>
                 </CardContent>
               </Card>
@@ -184,9 +197,36 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <Card className="shadow-sm rounded-lg overflow-hidden">
+              <CardHeader className="pb-4 border-b p-6 bg-slate-50/50">
+                <CardTitle className="text-[10px] font-bold flex items-center gap-2 uppercase tracking-widest">
+                  <TrendingUp className="h-4 w-4 text-primary" />
+                  Hourly Load Distribution
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="h-[250px] pt-6">
+                <ChartContainer config={chartConfig} className="h-full w-full">
+                  <AreaChart data={trendData} margin={{ left: 0, right: 10, top: 10, bottom: 0 }}>
+                    <CartesianGrid vertical={false} strokeDasharray="3 3" opacity={0.2} />
+                    <XAxis dataKey="time" axisLine={false} tickLine={false} className="text-[8px] font-bold" />
+                    <YAxis axisLine={false} tickLine={false} className="text-[8px] font-bold" />
+                    <ChartTooltip content={<ChartTooltipContent />} />
+                    <Area 
+                      type="monotone" 
+                      dataKey="count" 
+                      stroke="hsl(var(--primary))" 
+                      fill="hsl(var(--primary))" 
+                      fillOpacity={0.1} 
+                      strokeWidth={3}
+                    />
+                  </AreaChart>
+                </ChartContainer>
+              </CardContent>
+            </Card>
+
             <Card className="shadow-sm rounded-lg">
               <CardHeader className="pb-4 border-b p-6">
-                <CardTitle className="text-xs font-bold flex items-center gap-2 uppercase tracking-widest">
+                <CardTitle className="text-[10px] font-bold flex items-center gap-2 uppercase tracking-widest">
                   <Building2 className="h-4 w-4 text-primary" />
                   Unit Utilization
                 </CardTitle>
@@ -208,38 +248,11 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
                 )}
               </CardContent>
             </Card>
-
-            <Card className="shadow-sm rounded-lg">
-              <CardHeader className="pb-4 border-b p-6">
-                <CardTitle className="text-xs font-bold flex items-center gap-2 uppercase tracking-widest">
-                  <PieChart className="h-4 w-4 text-primary" />
-                  Activity Scope
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="h-[250px] flex items-center justify-center pt-6">
-                {isLoading ? (
-                   <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-                ) : purposeData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <RePieChart>
-                      <Pie data={purposeData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={4} dataKey="value">
-                        {purposeData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={index % 2 === 0 ? "hsl(var(--primary))" : "hsl(var(--secondary))"} stroke="none" />
-                        ))}
-                      </Pie>
-                      <Tooltip contentStyle={{ borderRadius: '0.5rem', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', fontSize: '10px', fontWeight: 'bold' }} />
-                    </RePieChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <div className="text-muted-foreground text-[10px] italic uppercase">Empty Registry</div>
-                )}
-              </CardContent>
-            </Card>
           </div>
         </div>
 
         <div className="lg:col-span-4 space-y-8">
-          <Card className={cn("shadow-lg border-none rounded-xl overflow-hidden ring-1", isManual ? "ring-amber-500/30 bg-amber-50/50" : "ring-primary/10 bg-white")}>
+          <Card className={cn("shadow-sm border-none rounded-xl overflow-hidden ring-1", isManual ? "ring-amber-500/30 bg-amber-50/50" : "ring-primary/10 bg-white")}>
             <CardHeader className={cn("p-6 text-white flex flex-row items-center justify-between", isManual ? "bg-amber-600" : "bg-primary")}>
               <div className="flex items-center gap-3">
                 <ShieldAlert className="h-5 w-5" />
@@ -302,7 +315,6 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
                 )}
               </div>
 
-              {/* Reason input for Manual Close */}
               <div className="space-y-3 pt-4 border-t">
                 <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
                   <MessageSquare className="h-3 w-3" /> Closure Announcement
@@ -319,7 +331,7 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
 
           <Card className="shadow-sm border-border rounded-xl overflow-hidden">
             <CardHeader className="bg-slate-50 border-b p-6 flex flex-row items-center justify-between">
-              <CardTitle className="text-xs font-bold flex items-center gap-2 uppercase tracking-widest">
+              <CardTitle className="text-[10px] font-bold flex items-center gap-2 uppercase tracking-widest">
                 <History className="h-4 w-4 text-primary" />
                 Live Registry
               </CardTitle>
@@ -364,7 +376,7 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
                 onClick={() => onNavigate?.('visitor-log')}
                 className="text-[9px] font-bold uppercase tracking-widest text-primary gap-2"
               >
-                Full Registry history
+                Full Registry History
                 <ArrowRight className="h-3 w-3" />
               </Button>
             </CardFooter>

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -20,7 +19,8 @@ import {
   Clock,
   ArrowRight,
   AlertCircle,
-  ShieldAlert
+  ShieldAlert,
+  Users
 } from "lucide-react";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
@@ -86,6 +86,7 @@ export function UserGreeting() {
     setAcademicYear(getAcademicYear());
   }, []);
 
+  // Tracking Active Session
   const activeVisitQuery = useMemoFirebase(() => {
     if (!profile || !firestore) return null;
     return query(
@@ -98,6 +99,15 @@ export function UserGreeting() {
 
   const { data: visits, isLoading: isLoadingVisit } = useCollection(activeVisitQuery);
   const activeVisit = visits && visits[0] && !visits[0].exitTimestamp ? visits[0] : null;
+
+  // Tracking Global Occupancy
+  const globalOccupancyQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, 'visits'), where('exitTimestamp', '==', null));
+  }, [firestore]);
+  const { data: activeVisits } = useCollection(globalOccupancyQuery);
+  
+  const currentOccupancy = isOpen ? (activeVisits?.length || 0) : 0;
 
   const handleCheckIn = () => {
     if (!isOpen) {
@@ -405,17 +415,32 @@ export function UserGreeting() {
                 <CardHeader className="bg-primary text-white p-5">
                   <CardTitle className="text-xs font-bold flex items-center gap-2 uppercase tracking-tight">
                     <Library className="h-3.5 w-3.5 text-secondary" />
-                    Institutional Hours
+                    Institutional Hub
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-6 space-y-6">
                   <div className="flex items-center gap-4 p-4 bg-slate-50 border rounded-lg">
-                    <Clock className="h-5 w-5 text-primary" />
+                    <div className={cn("p-2 rounded-lg", isOpen ? "bg-green-100" : "bg-red-100")}>
+                      <Clock className={cn("h-5 w-5", isOpen ? "text-green-600" : "text-red-600")} />
+                    </div>
                     <div className="leading-tight">
                       <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest">Facility Status</p>
                       <p className={cn("text-xs font-bold", isOpen ? "text-green-600" : "text-red-600")}>{label}</p>
                     </div>
                   </div>
+
+                  <div className="flex items-center gap-4 p-4 bg-slate-50 border rounded-lg">
+                    <div className={cn("p-2 rounded-lg", currentOccupancy > 0 ? "bg-primary/10" : "bg-slate-200")}>
+                      <Users className={cn("h-5 w-5", currentOccupancy > 0 ? "text-primary" : "text-slate-400")} />
+                    </div>
+                    <div className="leading-tight">
+                      <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest">Live Occupancy</p>
+                      <p className="text-xs font-bold text-slate-700">
+                        {currentOccupancy} {currentOccupancy === 1 ? 'Person' : 'People'}
+                      </p>
+                    </div>
+                  </div>
+
                   <div className="space-y-1">
                     <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest">Next Schedule Change</p>
                     <p className="text-xs font-medium text-slate-700 italic">{nextEvent}</p>

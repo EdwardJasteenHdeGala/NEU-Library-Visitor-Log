@@ -1,4 +1,3 @@
-
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -15,7 +14,8 @@ import {
   Mail,
   LogIn,
   AlertCircle,
-  ShieldAlert
+  ShieldAlert,
+  Activity
 } from "lucide-react";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
@@ -35,6 +35,7 @@ export function GuestView({ onBack, onLogin }: GuestViewProps) {
   const { isOpen, label, nextEvent, isManual, reason } = useLibraryStatus();
   const firestore = useFirestore();
 
+  // Real-time occupancy tracking for Guests
   const activeVisitsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
     return query(collection(firestore, 'visits'), where('exitTimestamp', '==', null));
@@ -42,7 +43,7 @@ export function GuestView({ onBack, onLogin }: GuestViewProps) {
 
   const { data: activeVisits } = useCollection(activeVisitsQuery);
 
-  const currentOccupancy = activeVisits?.length || 0;
+  const currentOccupancy = isOpen ? (activeVisits?.length || 0) : 0;
   const maxCapacity = 150;
   const occupancyPercentage = (currentOccupancy / maxCapacity) * 100;
 
@@ -99,7 +100,7 @@ export function GuestView({ onBack, onLogin }: GuestViewProps) {
               </p>
             </div>
 
-            <Card className="shadow-sm border-border overflow-hidden">
+            <Card className="shadow-sm border-border overflow-hidden rounded-xl">
               <div className="aspect-[21/9] relative">
                 <Image 
                   src={coverImage?.imageUrl || ""} 
@@ -120,22 +121,22 @@ export function GuestView({ onBack, onLogin }: GuestViewProps) {
               <CardContent className="p-8 grid grid-cols-1 md:grid-cols-2 gap-10">
                 <div className="space-y-6">
                   <div className="flex items-center gap-3">
-                    <Users className="h-5 w-5 text-primary" />
-                    <h4 className="font-bold text-xs uppercase tracking-widest text-slate-500">Live Facility Usage</h4>
+                    <Activity className="h-5 w-5 text-primary" />
+                    <h4 className="font-bold text-[10px] uppercase tracking-widest text-slate-500">Live Occupancy Monitor</h4>
                   </div>
                   <div className="space-y-3">
                     <div className="flex justify-between items-end">
-                      <span className="text-4xl font-bold text-primary tracking-tight">
-                        {isOpen ? currentOccupancy : 0} 
+                      <span className={cn("text-4xl font-bold tracking-tight", isOpen && currentOccupancy > 0 ? "text-green-600" : "text-primary")}>
+                        {currentOccupancy} 
                         <span className="text-xl font-medium text-slate-300 ml-2">/ {maxCapacity}</span>
                       </span>
                       <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                        {isOpen ? Math.round(occupancyPercentage) : 0}% Utilization
+                        {isOpen ? Math.round(occupancyPercentage) : 0}% Utilized
                       </span>
                     </div>
                     <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden border">
                         <div 
-                          className={cn("h-full transition-all duration-1000 ease-in-out", isOpen ? "bg-primary" : "bg-slate-300")}
+                          className={cn("h-full transition-all duration-1000 ease-in-out", isOpen ? (currentOccupancy > 0 ? "bg-green-500" : "bg-primary") : "bg-slate-300")}
                           style={{ width: `${isOpen ? occupancyPercentage : 0}%` }}
                         />
                     </div>
@@ -145,7 +146,7 @@ export function GuestView({ onBack, onLogin }: GuestViewProps) {
                 <div className="space-y-6">
                   <div className="flex items-center gap-3">
                     <Clock className="h-5 w-5 text-primary" />
-                    <h4 className="font-bold text-xs uppercase tracking-widest text-slate-500">Facility Status</h4>
+                    <h4 className="font-bold text-[10px] uppercase tracking-widest text-slate-500">Facility Protocol</h4>
                   </div>
                   <div className="space-y-2">
                     <div className={cn("flex items-center gap-2 font-bold text-xs uppercase tracking-widest", isOpen ? "text-green-600" : "text-red-600")}>
@@ -161,10 +162,10 @@ export function GuestView({ onBack, onLogin }: GuestViewProps) {
             </Card>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <Card className="shadow-sm p-6 space-y-4">
+              <Card className="shadow-sm p-6 space-y-4 rounded-xl">
                 <div className="flex items-center gap-3 text-primary">
                   <ShieldCheck className="h-5 w-5" />
-                  <h4 className="font-bold uppercase text-xs tracking-widest">General Protocols</h4>
+                  <h4 className="font-bold uppercase text-[10px] tracking-widest">General Protocols</h4>
                 </div>
                 <ul className="space-y-3">
                   {['Institutional ID Required', 'Google Workspace Auth', 'Academic Quiet Zone', 'No Food or Beverages'].map((rule, i) => (
@@ -176,10 +177,10 @@ export function GuestView({ onBack, onLogin }: GuestViewProps) {
                 </ul>
               </Card>
               
-              <Card className="shadow-sm p-6 space-y-4">
+              <Card className="shadow-sm p-6 space-y-4 rounded-xl">
                 <div className="flex items-center gap-3 text-primary">
                   <BookOpen className="h-5 w-5" />
-                  <h4 className="font-bold uppercase text-xs tracking-widest">Academic Resources</h4>
+                  <h4 className="font-bold uppercase text-[10px] tracking-widest">Academic Resources</h4>
                 </div>
                 <ul className="space-y-3">
                   {['Digital Archives', 'Unified Workspace', 'Research Stations', 'High-Speed Infrastructure'].map((service, i) => (
@@ -194,7 +195,7 @@ export function GuestView({ onBack, onLogin }: GuestViewProps) {
           </div>
 
           <aside className="lg:col-span-4 space-y-8 lg:sticky lg:top-24">
-            <Card className={cn("shadow-md p-8 space-y-6 transition-all duration-500", isOpen ? "bg-primary text-white" : isManual ? "bg-amber-600 text-white" : "bg-slate-200 text-slate-700")}>
+            <Card className={cn("shadow-md p-8 space-y-6 transition-all duration-500 rounded-xl", isOpen ? "bg-primary text-white" : isManual ? "bg-amber-600 text-white" : "bg-slate-200 text-slate-700")}>
               <div className="space-y-2">
                 <h3 className="text-2xl font-bold tracking-tight uppercase">
                   {isOpen ? "Portal Access" : isManual ? "Manual Closure" : "Access Restricted"}
@@ -216,7 +217,7 @@ export function GuestView({ onBack, onLogin }: GuestViewProps) {
                 <Button 
                   onClick={onLogin}
                   variant="secondary"
-                  className="w-full h-12 font-bold text-xs uppercase tracking-widest"
+                  className="w-full h-12 font-bold text-xs uppercase tracking-widest rounded-lg"
                 >
                   Sign In to Portal
                   <LogIn className="h-4 w-4 ml-2" />
@@ -231,7 +232,7 @@ export function GuestView({ onBack, onLogin }: GuestViewProps) {
               )}
             </Card>
 
-            <Card className="shadow-sm p-8 space-y-8">
+            <Card className="shadow-sm p-8 space-y-8 rounded-xl">
               <div className="flex items-center gap-3 text-primary">
                 <Info className="h-5 w-5 text-slate-400" />
                 <h4 className="font-bold uppercase text-[10px] tracking-widest opacity-60">Help Desk</h4>
