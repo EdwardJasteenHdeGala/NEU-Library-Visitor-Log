@@ -3,42 +3,56 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * NEU Library Visitor Log - Institutional Security Rules
+     * NEU Library Access Hub - Institutional Security Protocols
      */
 
-    // Helper: Checks if the user is an admin based on the users collection
+    // Helper: Checks if the user has an admin role in their profile
     function isAdmin() {
       return request.auth != null && 
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
     }
 
-    // Helper: Checks if the user owns the document
+    // Helper: Checks if the user is the document owner
     function isOwner(userId) {
       return request.auth != null && request.auth.uid == userId;
     }
 
-    // USERS collection: Primary identity records
+    // USERS collection: Identity management
     match /users/{userId} {
-      // Allow authenticated users to read/write their own user document
+      // Allow users to manage their own profile
       allow read, write: if isOwner(userId);
       
-      // Allow admins to manage all user records
+      // Allow admins to manage all institutional records
       allow read, write: if isAdmin();
     }
 
     // VISITS collection: Registry of library entries
     match /visits/{visitId} {
-      // Allow admins to read/write the entire visits collection
+      // Allow admins to oversee all telemetry
       allow read, write: if isAdmin();
 
-      // Allow authenticated users to create their own visit entry
+      // Allow users to create their own log entries
       allow create: if request.auth != null;
 
-      // Allow users to see their own history (Required for active session tracking)
-      allow list, get: if request.auth != null && resource.data.userId == request.auth.uid;
+      // Allow users to read their own history (Required for active session tracking)
+      // This resolves the permission error for standard users listing their own visits
+      allow read: if request.auth != null && 
+        (isAdmin() || resource.data.userId == request.auth.uid);
+    }
+    
+    // FEEDBACK collection: Institutional sentiments
+    match /feedback/{feedbackId} {
+      allow create: if request.auth != null;
+      allow read: if isAdmin();
+    }
+    
+    // AUDIT_LOGS collection: Administrative trail
+    match /audit_logs/{logId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin();
     }
 
-    // Default deny
+    // Default deny for all other paths
     match /{document=**} {
       allow read, write: if false;
     }

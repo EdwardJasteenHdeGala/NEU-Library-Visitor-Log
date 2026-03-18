@@ -39,6 +39,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// INSTITUTIONAL SUPER ADMINS
 export const BOOTSTRAP_SUPER_ADMIN_EMAIL = 'edwardjasteen.degala@neu.edu.ph';
 const AUTHORIZED_ADMIN_EMAILS = [
   BOOTSTRAP_SUPER_ADMIN_EMAIL,
@@ -74,9 +75,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const docRef = doc(firestore, 'users', uid);
       let docSnap = await getDoc(docRef);
       
-      const isInstitutional = user.email && user.email.endsWith('@neu.edu.ph');
-      const isBootstrapAdmin = user.email === BOOTSTRAP_SUPER_ADMIN_EMAIL;
-      const isAuthorized = user.email && AUTHORIZED_ADMIN_EMAILS.includes(user.email);
+      const userEmail = user.email?.toLowerCase();
+      const isInstitutional = userEmail && userEmail.endsWith('@neu.edu.ph');
+      const isBootstrapAdmin = userEmail === BOOTSTRAP_SUPER_ADMIN_EMAIL;
+      const isAuthorized = userEmail && AUTHORIZED_ADMIN_EMAILS.includes(userEmail);
       
       const defaultCollege = isInstitutional ? 'General Education' : 'External / Guest';
       const defaultRole = isInstitutional ? 'user' : 'guest';
@@ -91,10 +93,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           needsUpdate = true;
         }
 
-        // Force Admin role for test accounts if they aren't already
-        if ((isAuthorized || isBootstrapAdmin) && !data.isAuthorizedAdmin) {
+        // FORCE SUPER ADMIN / ADMIN PRIVILEGES
+        if ((isAuthorized || isBootstrapAdmin) && (!data.isAuthorizedAdmin || (isBootstrapAdmin && !data.isSuperAdmin))) {
           updates.isAuthorizedAdmin = true;
           updates.isSuperAdmin = isBootstrapAdmin;
+          // Ensure they are actually in the admin role for the UI
           if (data.role !== 'admin') updates.role = 'admin';
           needsUpdate = true;
         }
@@ -121,7 +124,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         const profileData = {
           id: user.uid,
-          email: user.email!.toLowerCase(),
+          email: userEmail,
           studentId: isInstitutional ? 'PENDING-ID' : 'GUEST-ID',
           role: initialRole, 
           isAuthorizedAdmin: !!isAuthorized || isBootstrapAdmin,
