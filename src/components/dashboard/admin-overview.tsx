@@ -26,13 +26,13 @@ interface AdminOverviewProps {
 
 export function AdminOverview({ onNavigate }: AdminOverviewProps) {
   const firestore = useFirestore();
-  const { profile } = useAuth();
+  const { profile, loading: authLoading } = useAuth();
   const status = useLibraryStatus();
   
-  // Robust admin check
-  const isAdmin = profile?.role === 'admin' || profile?.isSuperAdmin;
+  // Robust admin check - only proceed if profile is definitely loaded and user is admin
+  const isAdmin = !authLoading && (profile?.role === 'admin' || profile?.isSuperAdmin);
 
-  // Real-time queries for telemetry - strictly guarded by isAdmin
+  // Real-time queries for telemetry - strictly guarded by isAdmin state
   const recentVisitsQuery = useMemoFirebase(() => {
     // Only fetch if explicitly authorized and profile is loaded.
     if (!isAdmin || !firestore) return null;
@@ -50,7 +50,7 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
   const effectiveOccupancy = activeVisits?.length || 0;
 
   // If not admin, show a simplified dashboard or restricted view
-  if (!isAdmin) {
+  if (!isAdmin && !authLoading) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center space-y-4 animate-in fade-in duration-500">
         <div className="p-4 bg-destructive/10 rounded-full">

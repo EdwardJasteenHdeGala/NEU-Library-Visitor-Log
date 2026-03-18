@@ -23,7 +23,7 @@ service cloud.firestore {
 
     match /visits/{visitId} {
       // Explicitly allow list and get for all authenticated users
-      // This is required for checking active sessions and viewing personal logs
+      // Required for real-time occupancy tracking and personal log history
       allow list, get: if isSignedIn();
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow update, delete: if isAnyAdmin();
