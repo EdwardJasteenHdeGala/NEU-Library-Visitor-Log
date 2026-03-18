@@ -1,4 +1,3 @@
-
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -30,16 +29,16 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
   
   const isAdmin = profile?.role === 'admin' || profile?.isSuperAdmin;
 
-  // Real-time queries for telemetry
+  // Real-time queries for telemetry - strictly guarded by isAdmin
   const recentVisitsQuery = useMemoFirebase(() => {
     if (!isAdmin || !firestore) return null;
     return query(collection(firestore, 'visits'), orderBy('timestamp', 'desc'), limit(15));
   }, [firestore, isAdmin]);
 
   const occupancyQuery = useMemoFirebase(() => {
-    if (!firestore) return null;
+    if (!isAdmin || !firestore) return null;
     return query(collection(firestore, 'visits'), where('exitTimestamp', '==', null));
-  }, [firestore]);
+  }, [firestore, isAdmin]);
 
   const { data: recentVisits } = useCollection(recentVisitsQuery);
   const { data: activeVisits } = useCollection(occupancyQuery);
