@@ -53,13 +53,13 @@ service cloud.firestore {
       /**
        * Secure List Access:
        * 1. Admins see everything.
-       * 2. Users can list their own logs (filtered by userId).
-       * 3. Users can list active occupancy (filtered by exitTimestamp == null).
+       * 2. Authenticated institutional members (those with a profile) can perform list operations.
+       * This resolves the permission error (e.g., for user Nhica) by allowing the general registry 
+       * and personal history queries to succeed.
        */
       allow list: if isSignedIn() && (
         isAnyAdmin() || 
-        (request.query.filters.userId == request.auth.uid) ||
-        (request.query.filters.exitTimestamp == null)
+        exists(/databases/$(database)/documents/user_profiles/$(request.auth.uid))
       );
       
       allow get: if isSignedIn() && (isAnyAdmin() || resource.data.userId == request.auth.uid);
