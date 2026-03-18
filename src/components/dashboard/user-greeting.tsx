@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -7,22 +8,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
   Library, 
   LogOut, 
-  BookOpen, 
-  Clock, 
   CheckCircle2, 
   ShieldCheck, 
-  RefreshCcw, 
-  Sparkles,
-  Building2,
-  Trophy,
-  History,
-  MessageSquare,
-  HelpCircle,
-  Menu,
-  X,
-  Globe,
-  Settings,
-  Loader2
+  History, 
+  MessageSquare, 
+  HelpCircle, 
+  Menu, 
+  X, 
+  Settings, 
+  Loader2,
+  Clock,
+  ArrowRight
 } from "lucide-react";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
@@ -41,16 +37,15 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator
 } from "@/components/ui/dropdown-menu";
-import { collection, doc } from "firebase/firestore";
-import { useFirebase, addDocumentNonBlocking } from "@/firebase";
+import { collection, query, where, orderBy, limit } from "firebase/firestore";
+import { useFirebase, useCollection, useMemoFirebase, addDocumentNonBlocking, updateDocumentNonBlocking } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LiveClock } from "@/components/ui/live-clock";
-import { getAcademicYear } from "@/lib/utils";
+import { getAcademicYear, cn } from "@/lib/utils";
 import { FeedbackView } from "./feedback-view";
 import { HelpView } from "./help-view";
 import { ProfileView } from "./profile-view";
-import { cn } from "@/lib/utils";
 
 const NEU_COLLEGES = [
   { id: "CICS", name: "Computer & Info Sciences" },
@@ -78,7 +73,6 @@ export function UserGreeting() {
   const [purpose, setPurpose] = useState<string>("");
   const [currentCollege, setCurrentCollege] = useState<string>(profile?.college || "");
   const [isLogging, setIsLogging] = useState(false);
-  const [hasLoggedThisSession, setHasLoggedThisSession] = useState(false);
   const [academicYear, setAcademicYear] = useState("");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -88,11 +82,25 @@ export function UserGreeting() {
     setAcademicYear(getAcademicYear());
   }, []);
 
-  const handleLogVisit = () => {
+  // Fetch the most recent visit to check if user is currently checked in
+  const activeVisitQuery = useMemoFirebase(() => {
+    if (!profile || !firestore) return null;
+    return query(
+      collection(firestore, 'visits'),
+      where('userId', '==', profile.id),
+      orderBy('timestamp', 'desc'),
+      limit(1)
+    );
+  }, [profile, firestore]);
+
+  const { data: visits, isLoading: isLoadingVisit } = useCollection(activeVisitQuery);
+  const activeVisit = visits && visits[0] && !visits[0].exitTimestamp ? visits[0] : null;
+
+  const handleCheckIn = () => {
     if (!purpose || !profile || !firestore || !currentCollege) {
       toast({
-        title: "Incomplete Details",
-        description: "Please complete all fields before confirming attendance.",
+        title: "Required Information",
+        description: "Please select your department and purpose.",
         variant: "destructive"
       });
       return;
@@ -106,22 +114,49 @@ export function UserGreeting() {
       roleAtTime: profile.role,
       purpose: purpose,
       timestamp: new Date(),
+      exitTimestamp: null,
+      durationMinutes: 0,
       academicYear: getAcademicYear()
     });
 
     setTimeout(() => {
       toast({
-        title: "Visit Logged",
-        description: `Your entry for ${currentCollege} has been recorded.`,
+        title: "Check-In Confirmed",
+        description: "Your entry has been recorded in the institutional registry.",
       });
-      setHasLoggedThisSession(true);
       setIsLogging(false);
     }, 600);
   };
 
-  const handleSubViewChange = (view: UserSubView) => {
-    setSubView(view);
-    setIsMobileMenuOpen(false);
+  const handleCheckOut = () => {
+    if (!activeVisit || !firestore) return;
+
+    setIsLogging(true);
+    const entryTime = activeVisit.timestamp.toDate();
+    const exitTime = new Date();
+    const durationMs = exitTime.getTime() - entryTime.getTime();
+    const durationMinutes = Math.round(durationMs / 60000);
+
+    const visitRef = activeVisit.ref; // useCollection provides doc ref? No, it provides doc data with ID.
+    // Assuming useCollection result items have their DocumentReference available or we construct it.
+    // Our useCollection currently only gives 'id' and 'data'.
+    
+    // Construct doc reference
+    const { doc } = require('firebase/firestore');
+    const docRef = doc(firestore, 'visits', activeVisit.id);
+
+    updateDocumentNonBlocking(docRef, {
+      exitTimestamp: exitTime,
+      durationMinutes: durationMinutes
+    });
+
+    setTimeout(() => {
+      toast({
+        title: "Check-Out Confirmed",
+        description: `Stay Duration: ${durationMinutes} minutes. Session terminated.`,
+      });
+      setIsLogging(false);
+    }, 600);
   };
 
   const userInitials = profile?.displayName
@@ -142,10 +177,10 @@ export function UserGreeting() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
-      <header className="neu-header">
+      <header className="neu-header h-[60px]">
         <div className="max-w-7xl mx-auto flex justify-between items-center px-6 w-full">
           <div className="flex items-center gap-4">
-            <div className="bg-white p-1 rounded shadow-sm w-9 h-9 relative overflow-hidden flex items-center justify-center cursor-pointer" onClick={() => handleSubViewChange('log-entry')}>
+            <div className="bg-white p-1 rounded shadow-sm w-9 h-9 relative overflow-hidden flex items-center justify-center cursor-pointer" onClick={() => setSubView('log-entry')}>
               <Image 
                 src={logoImage?.imageUrl || ""} 
                 alt="NEU" 
@@ -155,8 +190,8 @@ export function UserGreeting() {
               />
             </div>
             <div className="flex flex-col leading-none">
-              <h1 className="text-sm font-bold tracking-tight text-white uppercase">NEU Access Hub</h1>
-              <span className="text-[8px] font-bold text-secondary uppercase tracking-widest">Student Portal</span>
+              <h1 className="text-xs font-bold tracking-tight text-white uppercase">NEU Access Hub</h1>
+              <span className="text-[7px] font-bold text-secondary uppercase tracking-widest">Portal Console</span>
             </div>
           </div>
 
@@ -164,13 +199,13 @@ export function UserGreeting() {
             {navItems.map((item) => (
               <button
                 key={item.id}
-                onClick={() => handleSubViewChange(item.id as UserSubView)}
+                onClick={() => setSubView(item.id as UserSubView)}
                 className={cn(
-                  "px-4 py-2 text-[10px] font-bold uppercase tracking-widest transition-all flex items-center gap-2 rounded-lg",
+                  "px-4 py-2 text-[9px] font-bold uppercase tracking-widest transition-all flex items-center gap-2 rounded-lg",
                   subView === item.id ? "bg-white/10 text-white shadow-sm" : "text-white/60 hover:text-white"
                 )}
               >
-                <item.icon className="h-4 w-4" />
+                <item.icon className="h-3.5 w-3.5" />
                 {item.label}
               </button>
             ))}
@@ -196,15 +231,15 @@ export function UserGreeting() {
                   <AvatarFallback className="bg-secondary text-primary font-bold text-[10px]">{userInitials}</AvatarFallback>
                 </Avatar>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 mt-2">
-                <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">User Options</DropdownMenuLabel>
+              <DropdownMenuContent align="end" className="w-56 mt-2 rounded-xl">
+                <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Account Options</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => handleSubViewChange('profile')} className="gap-2 cursor-pointer">
+                <DropdownMenuItem onClick={() => setSubView('profile')} className="gap-2 cursor-pointer font-medium text-xs">
                   <Settings className="h-4 w-4" />
                   <span>Profile Settings</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={logout} className="gap-2 text-destructive cursor-pointer">
+                <DropdownMenuItem onClick={logout} className="gap-2 text-destructive cursor-pointer font-medium text-xs">
                   <LogOut className="h-4 w-4" />
                   <span>Sign Out</span>
                 </DropdownMenuItem>
@@ -221,158 +256,154 @@ export function UserGreeting() {
             </Button>
           </div>
         </div>
-        
-        {isMobileMenuOpen && (
-          <div className="lg:hidden fixed inset-x-0 top-[60px] bg-primary p-4 border-t border-white/10 shadow-lg space-y-1 z-[70]">
-            {navItems.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => handleSubViewChange(item.id as UserSubView)}
-                className={cn(
-                  "w-full flex items-center gap-4 p-3 rounded-lg font-bold text-[10px] uppercase tracking-widest transition-all",
-                  subView === item.id ? "bg-white/10 text-white" : "text-white/70 hover:bg-white/5"
-                )}
-              >
-                <item.icon className="h-4 w-4" />
-                {item.label}
-              </button>
-            ))}
-          </div>
-        )}
       </header>
 
       <main className="flex-1 w-full max-w-7xl mx-auto p-6 md:p-10">
         {subView === 'log-entry' && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            <div className="lg:col-span-8 space-y-8">
-              <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
+            <div className="lg:col-span-8 space-y-10">
+              <div className="flex flex-col sm:flex-row items-center sm:items-start gap-8">
                 <Avatar className="h-24 w-24 md:h-32 md:w-32 border-4 border-white shadow-sm ring-1 ring-border">
                   <AvatarImage src={profile?.photoURL} alt={profile?.displayName} />
                   <AvatarFallback className="bg-slate-200 text-slate-500 font-bold text-2xl">
                     {userInitials}
                   </AvatarFallback>
                 </Avatar>
-                <div className="space-y-2 pt-2 text-center sm:text-left">
-                  <div className="inline-flex items-center gap-2 bg-slate-100 text-slate-600 border px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">
-                    {isGuest ? "Guest Access" : `Academic Cycle ${academicYear || "2024-25"}`}
+                <div className="space-y-3 pt-4 text-center sm:text-left">
+                  <div className="inline-flex items-center gap-2 bg-slate-100 text-slate-600 border px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest">
+                    {isGuest ? "Guest Access" : `Academic Cycle ${academicYear}`}
                   </div>
-                  <h1 className="text-3xl md:text-5xl font-bold text-primary tracking-tight">
-                    {isGuest ? "Hello," : "Welcome,"} <span className="text-slate-900">{profile?.displayName?.split(' ')[0]}</span>
+                  <h1 className="text-3xl md:text-4xl font-bold text-primary tracking-tight">
+                    {isGuest ? "Welcome," : "Greetings,"} <span className="text-slate-900">{profile?.displayName?.split(' ')[0]}</span>
                   </h1>
-                  <p className="text-muted-foreground font-medium">Please confirm your institutional attendance.</p>
+                  <p className="text-muted-foreground font-medium text-sm">Institutional attendance and research tracking.</p>
                 </div>
               </div>
 
-              {!hasLoggedThisSession ? (
-                <Card className="shadow-sm border-border">
-                  <CardHeader className="bg-slate-50 border-b">
-                    <CardTitle className="text-lg font-bold flex items-center gap-2">
-                      <History className="h-5 w-5 text-primary" />
-                      Attendance Registry
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-8 space-y-8">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
-                          Academic Unit / Department
-                        </label>
-                        <Select value={currentCollege} onValueChange={setCurrentCollege}>
-                          <SelectTrigger className="h-12 font-semibold">
-                            <SelectValue placeholder="Select Department" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {NEU_COLLEGES.map((college) => (
-                              <SelectItem key={college.id} value={college.id} className="font-semibold">
-                                {college.name} ({college.id})
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+              {!isLoadingVisit ? (
+                !activeVisit ? (
+                  <Card className="shadow-sm border-border rounded-xl overflow-hidden">
+                    <CardHeader className="bg-slate-50 border-b p-6">
+                      <CardTitle className="text-sm font-bold flex items-center gap-2 uppercase tracking-tight">
+                        <History className="h-4 w-4 text-primary" />
+                        Check-In Registration
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-8 space-y-8">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div className="space-y-2">
+                          <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
+                            Current Department
+                          </label>
+                          <Select value={currentCollege} onValueChange={setCurrentCollege}>
+                            <SelectTrigger className="h-11 font-medium text-sm rounded-lg">
+                              <SelectValue placeholder="Select Dept" />
+                            </SelectTrigger>
+                            <SelectContent className="rounded-xl">
+                              {NEU_COLLEGES.map((college) => (
+                                <SelectItem key={college.id} value={college.id} className="text-xs font-medium">
+                                  {college.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-2">
+                          <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
+                            Purpose of Entry
+                          </label>
+                          <Select value={purpose} onValueChange={setPurpose}>
+                            <SelectTrigger className="h-11 font-medium text-sm rounded-lg">
+                              <SelectValue placeholder="Select Purpose" />
+                            </SelectTrigger>
+                            <SelectContent className="rounded-xl">
+                              <SelectItem value="reading books" className="text-xs font-medium">General Reading</SelectItem>
+                              <SelectItem value="research in thesis" className="text-xs font-medium">Academic Research</SelectItem>
+                              <SelectItem value="use of computer" className="text-xs font-medium">Computer Use</SelectItem>
+                              <SelectItem value="doing assignments" className="text-xs font-medium">Assignments</SelectItem>
+                              <SelectItem value="group study" className="text-xs font-medium">Collaborative Study</SelectItem>
+                              <SelectItem value="resource borrowing" className="text-xs font-medium">Resource Access</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </div>
 
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
-                          Purpose of Visit
-                        </label>
-                        <Select value={purpose} onValueChange={setPurpose}>
-                          <SelectTrigger className="h-12 font-semibold">
-                            <SelectValue placeholder="Select Purpose" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="reading books" className="font-semibold">General Reading</SelectItem>
-                            <SelectItem value="research in thesis" className="font-semibold">Academic Research</SelectItem>
-                            <SelectItem value="use of computer" className="font-semibold">Computer Utilization</SelectItem>
-                            <SelectItem value="doing assignments" className="font-semibold">Course Assignments</SelectItem>
-                            <SelectItem value="group study" className="font-semibold">Collaborative Study</SelectItem>
-                            <SelectItem value="charging device" className="font-semibold">Power Utilization</SelectItem>
-                            <SelectItem value="printing/scanning" className="font-semibold">Media Services</SelectItem>
-                          </SelectContent>
-                        </Select>
+                      <Button 
+                        onClick={handleCheckIn} 
+                        disabled={!purpose || !currentCollege || isLogging}
+                        className="w-full h-14 text-sm font-bold gap-3 rounded-xl"
+                      >
+                        {isLogging ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <CheckCircle2 className="h-4 w-4" />
+                        )}
+                        Confirm Attendance
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <Card className="shadow-lg border-primary bg-primary text-white p-12 rounded-xl overflow-hidden relative">
+                    <div className="absolute inset-0 bg-white/5 pointer-events-none" />
+                    <div className="relative z-10 flex flex-col items-center text-center space-y-8">
+                      <div className="h-16 w-16 bg-white/10 rounded-full flex items-center justify-center border border-white/20 animate-pulse">
+                        <Clock className="h-8 w-8 text-white" />
                       </div>
+                      <div className="space-y-2">
+                        <h2 className="text-2xl font-bold uppercase tracking-tight">Active Session</h2>
+                        <p className="text-white/70 text-sm font-medium">Checked In At: <span className="text-secondary">{activeVisit.timestamp.toDate().toLocaleTimeString()}</span></p>
+                        <p className="text-white/50 text-[10px] font-bold uppercase tracking-widest mt-1">{activeVisit.purpose}</p>
+                      </div>
+                      <div className="flex flex-col sm:flex-row gap-4 w-full max-w-sm">
+                        <Button 
+                          onClick={handleCheckOut} 
+                          disabled={isLogging}
+                          variant="secondary" 
+                          className="flex-1 h-12 font-bold uppercase text-[10px] tracking-widest"
+                        >
+                          {isLogging ? <Loader2 className="h-4 w-4 animate-spin" /> : "Terminate Session"}
+                        </Button>
+                      </div>
+                      <p className="text-[9px] font-bold text-white/40 uppercase tracking-[0.2em] italic">Stay duration will be recorded upon exit.</p>
                     </div>
-
-                    <Button 
-                      onClick={handleLogVisit} 
-                      disabled={!purpose || !currentCollege || isLogging}
-                      className="w-full h-14 text-base font-bold gap-3"
-                    >
-                      {isLogging ? (
-                        <Loader2 className="h-5 w-5 animate-spin" />
-                      ) : (
-                        <CheckCircle2 className="h-5 w-5" />
-                      )}
-                      Confirm Attendance
-                    </Button>
-                  </CardContent>
-                </Card>
+                  </Card>
+                )
               ) : (
-                <Card className="shadow-lg border-primary bg-primary text-white text-center py-16 px-8 rounded-2xl overflow-hidden relative">
-                  <div className="absolute inset-0 bg-white/5 pointer-events-none" />
-                  <div className="relative z-10 space-y-6">
-                    <div className="h-20 w-20 bg-white/10 rounded-full flex items-center justify-center mx-auto border-2 border-white/20">
-                      <CheckCircle2 className="h-10 w-10 text-white" />
-                    </div>
-                    <div className="space-y-2">
-                      <h2 className="text-3xl font-bold">Attendance Confirmed</h2>
-                      <p className="text-white/70 max-w-sm mx-auto">Your institutional presence has been successfully synchronized with the Hub.</p>
-                    </div>
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-                      <Button variant="outline" className="border-white/20 hover:bg-white/10 text-white font-bold h-12 px-8" onClick={logout}>Sign Out</Button>
-                      <Button variant="secondary" className="font-bold h-12 px-8" onClick={() => setHasLoggedThisSession(false)}>New Entry</Button>
-                    </div>
-                  </div>
-                </Card>
+                <div className="flex flex-col items-center justify-center py-20 gap-4">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Verifying state...</p>
+                </div>
               )}
             </div>
 
             <aside className="lg:col-span-4 space-y-6 lg:sticky lg:top-24">
-              <Card className="shadow-sm">
-                <CardHeader className="bg-primary text-white p-6">
-                  <CardTitle className="text-base font-bold flex items-center gap-2 uppercase tracking-tight">
-                    <Library className="h-4 w-4 text-secondary" />
-                    Hub Status
+              <Card className="shadow-sm rounded-xl">
+                <CardHeader className="bg-primary text-white p-5">
+                  <CardTitle className="text-xs font-bold flex items-center gap-2 uppercase tracking-tight">
+                    <Library className="h-3.5 w-3.5 text-secondary" />
+                    Institutional Hours
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-6 space-y-6">
                   <div className="flex items-center gap-4 p-4 bg-slate-50 border rounded-lg">
-                    <Clock className="h-6 w-6 text-primary" />
+                    <Clock className="h-5 w-5 text-primary" />
                     <div className="leading-tight">
-                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Operational Hours</p>
-                      <p className="text-sm font-bold text-primary">08:00 AM - 05:00 PM</p>
+                      <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest">Active window</p>
+                      <p className="text-xs font-bold text-primary">08:00 AM - 05:00 PM</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 text-green-600 font-bold text-xs uppercase tracking-widest">
-                    <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse" />
-                    System Online
+                  <div className="flex items-center gap-2 text-green-600 font-bold text-[9px] uppercase tracking-widest">
+                    <div className="h-1.5 w-1.5 bg-green-500 rounded-full animate-pulse" />
+                    Registry Online
                   </div>
-                  <p className="text-xs text-muted-foreground leading-relaxed">
-                    Access logging is mandatory for all institutional visitors. Please ensure your session is recorded accurately.
+                  <p className="text-[10px] font-medium text-muted-foreground leading-relaxed italic border-l-2 pl-3 py-1">
+                    Attendance logging is mandatory for institutional compliance.
                   </p>
                 </CardContent>
               </Card>
               
-              <LiveClock className="shadow-sm border bg-white p-6 !flex-col !items-start" showSelector={false} />
+              <LiveClock className="shadow-sm border bg-white p-6 !flex-col !items-start rounded-xl" showSelector={false} />
             </aside>
           </div>
         )}
@@ -384,11 +415,11 @@ export function UserGreeting() {
 
       <footer className="p-10 border-t bg-white mt-auto">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6 opacity-40">
-          <div className="flex items-center gap-3">
-            <Library className="h-5 w-5 text-primary" />
-            <span className="font-bold text-sm uppercase tracking-widest text-primary">NEU Access Hub</span>
+          <div className="flex items-center gap-2">
+            <Library className="h-4 w-4 text-primary" />
+            <span className="font-bold text-xs uppercase tracking-widest text-primary">NEU Access Hub</span>
           </div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+          <p className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground">
             &copy; {new Date().getFullYear()} New Era University
           </p>
         </div>

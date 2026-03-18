@@ -10,13 +10,14 @@ import {
   Trash2, 
   Download, 
   Filter, 
-  Calendar, 
   Loader2, 
   ArrowLeft,
   Building2,
   BookOpen,
   UserCheck,
-  XCircle
+  XCircle,
+  Clock,
+  History
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { 
@@ -45,6 +46,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 
 const NEU_COLLEGES = [
   { id: "CICS", name: "Computer & Info Sciences" },
@@ -114,7 +116,14 @@ export function VisitorLog({ onBack }: VisitorLogProps) {
     });
   }, [visits, searchTerm, collegeFilter, purposeFilter, roleFilter]);
 
-  const uniqueUserCount = new Set(visits?.map(v => v.userId)).size;
+  // Frequency calculation for current user set
+  const visitFrequencyMap = useMemo(() => {
+    const map: Record<string, number> = {};
+    filteredVisits.forEach(v => {
+      map[v.userId] = (map[v.userId] || 0) + 1;
+    });
+    return map;
+  }, [filteredVisits]);
 
   const handlePurgeLogs = () => {
     if (!visits || visits.length === 0) return;
@@ -125,235 +134,187 @@ export function VisitorLog({ onBack }: VisitorLogProps) {
     });
 
     toast({
-      title: "System Reset",
-      description: `Successfully purged ${visits.length} log entries.`,
+      title: "Log Purge Complete",
+      description: `Successfully removed ${visits.length} records.`,
     });
   };
 
-  const clearFilters = () => {
-    setSearchTerm("");
-    setCollegeFilter("all");
-    setPurposeFilter("all");
-    setRoleFilter("all");
-  };
-
-  const hasActiveFilters = searchTerm !== "" || collegeFilter !== "all" || purposeFilter !== "all" || roleFilter !== "all";
-
   return (
-    <div className="space-y-8 animate-in fade-in duration-700 pb-12">
+    <div className="space-y-8 animate-in fade-in duration-500">
       {onBack && (
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          className="mb-2 -ml-2 text-primary/50 hover:text-primary hover:bg-primary/5 font-black text-[10px] uppercase tracking-[0.2em] gap-2 rounded-xl h-8 px-4"
-          onClick={onBack}
-        >
-          <ArrowLeft className="h-3.5 w-3.5" />
-          Return to Overview
+        <Button variant="ghost" size="sm" onClick={onBack} className="mb-2 -ml-2 text-muted-foreground font-bold text-[10px] uppercase gap-2 rounded-lg">
+          <ArrowLeft className="h-3 w-3" />
+          Return to Dashboard
         </Button>
       )}
 
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div className="space-y-2">
-          <div className="flex items-center gap-3 text-primary font-black text-[9px] uppercase tracking-[0.4em] opacity-60">
-             <Filter className="h-4 w-4" />
-             Data Filtering Console
-          </div>
-          <h2 className="text-4xl md:text-5xl font-black text-primary italic tracking-tighter uppercase leading-none">Visitor Registry</h2>
-          <p className="text-muted-foreground font-medium text-sm md:text-lg opacity-70">Audit institutional access with multi-dimensional filters.</p>
+        <div className="space-y-1">
+          <h2 className="text-3xl font-bold tracking-tight text-slate-900 uppercase">Visitor Registry</h2>
+          <p className="text-xs text-muted-foreground font-medium uppercase tracking-widest">Institutional Audit Console</p>
         </div>
-        
-        <div className="flex flex-wrap items-center gap-3">
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button 
-                    variant="outline" 
-                    className="h-12 gap-2 border-2 border-destructive/20 text-destructive hover:bg-destructive hover:text-white transition-all font-black text-[10px] uppercase tracking-widest px-6"
-                    disabled={!visits || visits.length === 0}
-                >
-                    <Trash2 className="h-4 w-4" />
-                    Reset Data
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent className="rounded-[2.5rem] p-10 border-none shadow-3xl bg-white/98 backdrop-blur-3xl">
-                <AlertDialogHeader>
-                  <AlertDialogTitle className="text-3xl font-black text-primary italic uppercase tracking-tighter">Purge Data Registry?</AlertDialogTitle>
-                  <AlertDialogDescription className="text-lg font-medium opacity-70">
-                    This action will permanently delete all {visits?.length} recorded visit logs from the cloud. This is irreversible and will reset all telemetry analytics.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter className="sm:justify-center gap-4 pt-6">
-                  <AlertDialogCancel className="rounded-2xl h-14 px-10 font-bold border-2">Cancel</AlertDialogCancel>
-                  <AlertDialogAction 
-                    onClick={handlePurgeLogs}
-                    className="bg-destructive hover:bg-destructive/90 text-white rounded-2xl h-14 px-10 font-black uppercase tracking-widest"
-                  >
-                    Confirm Purge
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-            
-            <Button variant="neu" className="h-12 gap-2 font-black text-[10px] uppercase tracking-widest px-6 shadow-xl">
-               <Download className="h-4 w-4 text-secondary" />
-               Export PDF
-            </Button>
+        <div className="flex gap-2">
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="outline" size="sm" className="h-9 gap-2 font-bold text-[10px] uppercase rounded-lg text-destructive border-destructive/20 hover:bg-destructive/5">
+                <Trash2 className="h-3.5 w-3.5" />
+                Purge Registry
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent className="rounded-xl">
+              <AlertDialogHeader>
+                <AlertDialogTitle className="font-bold">Institutional Data Purge</AlertDialogTitle>
+                <AlertDialogDescription className="text-xs">
+                  This action will permanently terminate all {visits?.length} recorded logs from the archive. This process is irreversible.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel className="rounded-lg text-[10px] font-bold uppercase">Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handlePurgeLogs} className="rounded-lg bg-destructive text-[10px] font-bold uppercase">Confirm Purge</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+          <Button variant="default" size="sm" className="h-9 gap-2 font-bold text-[10px] uppercase rounded-lg">
+            <Download className="h-3.5 w-3.5" />
+            Export Archive
+          </Button>
         </div>
       </div>
 
-      <Card className="neu-card-shadow border-none rounded-[2rem] bg-white overflow-hidden shadow-2xl">
-        <CardContent className="p-8 space-y-8">
+      <Card className="shadow-sm border-border rounded-xl">
+        <CardContent className="p-6 space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="space-y-2">
-              <label className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.3em] ml-1 flex items-center gap-2">
-                <Search className="h-3 w-3" /> Keyword Search
+            <div className="space-y-1.5">
+              <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
+                <Search className="h-3 w-3" /> Search
               </label>
               <Input 
-                placeholder="Name, ID, or Academic Year..." 
-                className="h-12 rounded-xl border-2 font-bold focus:ring-primary shadow-inner"
+                placeholder="Name or ID..." 
+                className="h-10 text-xs rounded-lg border-2"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
 
-            <div className="space-y-2">
-              <label className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.3em] ml-1 flex items-center gap-2">
-                <Building2 className="h-3 w-3" /> Institutional Unit
+            <div className="space-y-1.5">
+              <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
+                <Building2 className="h-3 w-3" /> Dept
               </label>
               <Select value={collegeFilter} onValueChange={setCollegeFilter}>
-                <SelectTrigger className="h-12 rounded-xl border-2 font-bold focus:ring-primary shadow-inner">
-                  <SelectValue placeholder="All Departments" />
+                <SelectTrigger className="h-10 text-xs font-bold rounded-lg border-2">
+                  <SelectValue placeholder="All Depts" />
                 </SelectTrigger>
-                <SelectContent className="rounded-xl border-none shadow-3xl max-h-[300px]">
-                  <SelectItem value="all" className="font-bold">Institutional (All)</SelectItem>
+                <SelectContent className="rounded-xl">
+                  <SelectItem value="all" className="text-xs font-bold">ALL DEPARTMENTS</SelectItem>
                   {NEU_COLLEGES.map(c => (
-                    <SelectItem key={c.id} value={c.id} className="font-bold">{c.id} • {c.name}</SelectItem>
+                    <SelectItem key={c.id} value={c.id} className="text-xs font-medium">{c.id}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
 
-            <div className="space-y-2">
-              <label className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.3em] ml-1 flex items-center gap-2">
-                <BookOpen className="h-3 w-3" /> Core Activity
+            <div className="space-y-1.5">
+              <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
+                <BookOpen className="h-3 w-3" /> Purpose
               </label>
               <Select value={purposeFilter} onValueChange={setPurposeFilter}>
-                <SelectTrigger className="h-12 rounded-xl border-2 font-bold focus:ring-primary shadow-inner">
-                  <SelectValue placeholder="All Activities" />
+                <SelectTrigger className="h-10 text-xs font-bold rounded-lg border-2">
+                  <SelectValue placeholder="All" />
                 </SelectTrigger>
-                <SelectContent className="rounded-xl border-none shadow-3xl max-h-[300px]">
-                  <SelectItem value="all" className="font-bold">All Purposes</SelectItem>
+                <SelectContent className="rounded-xl">
+                  <SelectItem value="all" className="text-xs font-bold">ALL PURPOSES</SelectItem>
                   {PURPOSES.map(p => (
-                    <SelectItem key={p} value={p} className="font-bold capitalize">{p}</SelectItem>
+                    <SelectItem key={p} value={p} className="text-xs font-medium capitalize">{p}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
 
-            <div className="space-y-2">
-              <label className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.3em] ml-1 flex items-center gap-2">
-                <UserCheck className="h-3 w-3" /> Access Role
+            <div className="space-y-1.5">
+              <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
+                <UserCheck className="h-3 w-3" /> Role
               </label>
               <Select value={roleFilter} onValueChange={setRoleFilter}>
-                <SelectTrigger className="h-12 rounded-xl border-2 font-bold focus:ring-primary shadow-inner">
-                  <SelectValue placeholder="All Roles" />
+                <SelectTrigger className="h-10 text-xs font-bold rounded-lg border-2">
+                  <SelectValue placeholder="All" />
                 </SelectTrigger>
-                <SelectContent className="rounded-xl border-none shadow-3xl">
-                  <SelectItem value="all" className="font-bold">All Roles</SelectItem>
-                  <SelectItem value="user" className="font-bold">Member (User)</SelectItem>
-                  <SelectItem value="guest" className="font-bold">Visitor (Guest)</SelectItem>
-                  <SelectItem value="admin" className="font-bold">Administrator</SelectItem>
+                <SelectContent className="rounded-xl">
+                  <SelectItem value="all" className="text-xs font-bold">ALL ROLES</SelectItem>
+                  <SelectItem value="user" className="text-xs font-medium">STUDENT</SelectItem>
+                  <SelectItem value="guest" className="text-xs font-medium">GUEST</SelectItem>
+                  <SelectItem value="admin" className="text-xs font-medium">ADMIN</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
-
-          {hasActiveFilters && (
-            <div className="flex items-center justify-between pt-2 border-t border-muted/50">
-              <div className="flex items-center gap-3">
-                <span className="text-[10px] font-black text-primary uppercase tracking-widest italic bg-primary/5 px-4 py-1 rounded-full border border-primary/10">
-                  {filteredVisits.length} matching entries found
-                </span>
-              </div>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={clearFilters}
-                className="text-[9px] font-black uppercase tracking-widest text-destructive hover:bg-destructive/5 gap-2 rounded-xl"
-              >
-                <XCircle className="h-3.5 w-3.5" />
-                Clear Active Filters
-              </Button>
-            </div>
-          )}
         </CardContent>
       </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-primary p-8 rounded-[2rem] flex items-center justify-between text-white shadow-2xl relative overflow-hidden group">
-            <div className="absolute inset-0 bg-dot-pattern opacity-10" />
-            <div className="relative z-10">
-                <p className="text-[10px] font-black uppercase tracking-[0.4em] opacity-60 mb-1">Total Registry</p>
-                <span className="text-5xl font-black italic tracking-tighter">{isLoading ? "---" : (visits?.length || 0)}</span>
-            </div>
-            <Users className="h-14 w-14 text-secondary opacity-20 group-hover:scale-110 transition-transform duration-700" />
+        <div className="bg-primary p-6 rounded-xl flex items-center justify-between text-white shadow-sm">
+          <div className="space-y-1">
+            <p className="text-[8px] font-bold uppercase tracking-widest opacity-60">Total Sessions</p>
+            <span className="text-2xl font-bold">{filteredVisits.length}</span>
+          </div>
+          <History className="h-8 w-8 opacity-20" />
         </div>
-        <div className="bg-white p-8 rounded-[2rem] flex items-center justify-between text-primary shadow-xl border border-white/50 relative overflow-hidden group">
-            <div className="relative z-10">
-                <p className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground opacity-60 mb-1">Unique Visitors</p>
-                <span className="text-5xl font-black italic tracking-tighter text-primary">{isLoading ? "---" : uniqueUserCount}</span>
-            </div>
-            <UserCheck className="h-14 w-14 text-secondary opacity-40 group-hover:rotate-12 transition-transform duration-700" />
+        <div className="bg-white border p-6 rounded-xl flex items-center justify-between text-primary shadow-sm">
+          <div className="space-y-1">
+            <p className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground opacity-60">Unique Visitors</p>
+            <span className="text-2xl font-bold">{Object.keys(visitFrequencyMap).length}</span>
+          </div>
+          <Users className="h-8 w-8 opacity-20" />
         </div>
-        <Card className="neu-card-shadow border-none rounded-[2rem] bg-white p-8 flex flex-col justify-center items-center shadow-xl group hover:bg-primary/5 transition-all duration-500 cursor-default border border-white/50">
-            <Calendar className="h-10 w-10 text-primary mb-3 opacity-20 group-hover:opacity-100 group-hover:scale-110 transition-all duration-500" />
-            <span className="text-[11px] font-black uppercase tracking-[0.3em] text-muted-foreground group-hover:text-primary italic">Live Institutional Telemetry</span>
-        </Card>
+        <div className="bg-white border p-6 rounded-xl flex items-center justify-between text-primary shadow-sm">
+          <div className="space-y-1">
+            <p className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground opacity-60">Avg. Stay (Min)</p>
+            <span className="text-2xl font-bold">
+              {filteredVisits.length > 0 
+                ? Math.round(filteredVisits.reduce((acc, v) => acc + (v.durationMinutes || 0), 0) / filteredVisits.length) 
+                : 0}
+            </span>
+          </div>
+          <Clock className="h-8 w-8 opacity-20" />
+        </div>
       </div>
 
-      <Card className="neu-card-shadow border-none overflow-hidden rounded-[2.5rem] bg-white shadow-2xl">
+      <Card className="shadow-sm border-border rounded-xl overflow-hidden">
         <Table>
-          <TableHeader>
-            <TableRow className="bg-muted/50 border-none">
-              <TableHead className="font-black text-primary py-6 uppercase text-[10px] tracking-[0.4em] px-8">Institutional Visitor</TableHead>
-              <TableHead className="font-black text-primary py-6 uppercase text-[10px] tracking-[0.4em]">Origin / Unit</TableHead>
-              <TableHead className="font-black text-primary py-6 uppercase text-[10px] tracking-[0.4em]">Activity Context</TableHead>
-              <TableHead className="font-black text-primary py-6 uppercase text-[10px] tracking-[0.4em]">Academic Year</TableHead>
-              <TableHead className="font-black text-primary py-6 uppercase text-[10px] tracking-[0.4em] px-8 text-right">Registry Date</TableHead>
+          <TableHeader className="bg-slate-50">
+            <TableRow>
+              <TableHead className="font-bold text-[9px] uppercase py-4 px-6">Visitor</TableHead>
+              <TableHead className="font-bold text-[9px] uppercase py-4">Dept</TableHead>
+              <TableHead className="font-bold text-[9px] uppercase py-4">Frequency</TableHead>
+              <TableHead className="font-bold text-[9px] uppercase py-4">Stay (Min)</TableHead>
+              <TableHead className="font-bold text-[9px] uppercase py-4 px-6 text-right">Timestamp</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              <TableRow><TableCell colSpan={5} className="text-center py-24">
-                <div className="flex flex-col items-center gap-5">
-                    <Loader2 className="h-12 w-12 animate-spin text-primary" />
-                    <span className="text-xs font-black uppercase tracking-[0.4em] text-muted-foreground animate-pulse">Syncing Institutional Registry...</span>
-                </div>
-              </TableCell></TableRow>
+              <TableRow><TableCell colSpan={5} className="text-center py-20 font-bold text-xs uppercase tracking-widest text-muted-foreground animate-pulse">Syncing Archive...</TableCell></TableRow>
             ) : filteredVisits.length === 0 ? (
-              <TableRow><TableCell colSpan={5} className="text-center py-32 text-muted-foreground italic">
-                <div className="flex flex-col items-center gap-6">
-                    <XCircle className="h-16 w-16 opacity-10" />
-                    <p className="font-black text-lg uppercase tracking-tighter opacity-50">No matching telemetry detected.</p>
-                </div>
-              </TableCell></TableRow>
-            ) : filteredVisits.map((visit, i) => (
-              <TableRow key={visit.id} className="hover:bg-muted/30 border-b transition-colors duration-500">
-                <TableCell className="font-black py-8 text-primary px-8 text-lg tracking-tight italic">{visit.userName}</TableCell>
-                <TableCell className="font-black text-muted-foreground text-[11px] uppercase tracking-widest">{visit.college}</TableCell>
+              <TableRow><TableCell colSpan={5} className="text-center py-20 italic text-muted-foreground">No matching institutional logs detected.</TableCell></TableRow>
+            ) : filteredVisits.map((visit) => (
+              <TableRow key={visit.id} className="hover:bg-slate-50 transition-colors">
+                <TableCell className="font-semibold py-5 px-6">
+                  <div className="flex flex-col">
+                    <span className="text-sm">{visit.userName}</span>
+                    <span className="text-[8px] font-bold text-muted-foreground uppercase">{visit.purpose}</span>
+                  </div>
+                </TableCell>
+                <TableCell className="text-[10px] font-bold text-primary uppercase">{visit.college}</TableCell>
                 <TableCell>
-                  <span className="text-[9px] font-black uppercase tracking-[0.3em] bg-secondary/10 text-primary px-6 py-2 rounded-full border border-secondary/20 shadow-sm italic">
-                    {visit.purpose}
+                  <Badge variant="secondary" className="text-[9px] font-bold uppercase tracking-tight">
+                    {visitFrequencyMap[visit.userId]}x
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <span className={cn("text-[10px] font-bold uppercase", visit.exitTimestamp ? "text-green-600" : "text-amber-600 animate-pulse")}>
+                    {visit.exitTimestamp ? `${visit.durationMinutes}m` : "Active"}
                   </span>
                 </TableCell>
-                <TableCell>
-                   <div className="flex items-center gap-3">
-                      <Calendar className="h-4 w-4 text-secondary" />
-                      <span className="text-[11px] font-black text-primary italic uppercase tracking-tighter">AY {visit.academicYear || "2024-25"}</span>
-                   </div>
-                </TableCell>
-                <TableCell className="text-muted-foreground font-black text-[11px] italic uppercase tracking-widest px-8 text-right">
-                  {visit.timestamp?.seconds ? format(visit.timestamp.seconds * 1000, 'MMM dd, yyyy • h:mm a') : 'Streaming...'}
+                <TableCell className="text-muted-foreground text-[9px] font-bold px-6 text-right uppercase">
+                  {visit.timestamp?.seconds ? format(visit.timestamp.seconds * 1000, 'MMM dd • h:mm a') : 'Now'}
                 </TableCell>
               </TableRow>
             ))}
@@ -363,4 +324,3 @@ export function VisitorLog({ onBack }: VisitorLogProps) {
     </div>
   );
 }
-

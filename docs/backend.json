@@ -65,7 +65,7 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Visit",
       "type": "object",
-      "description": "Records details of a visitor's entry.",
+      "description": "Records details of a visitor's entry and exit.",
       "properties": {
         "id": {
           "type": "string",
@@ -108,6 +108,19 @@
           "type": "string",
           "description": "Timestamp of the visit entry.",
           "format": "date-time"
+        },
+        "exitTimestamp": {
+          "type": "string",
+          "description": "Timestamp of the visit exit.",
+          "format": "date-time"
+        },
+        "durationMinutes": {
+          "type": "number",
+          "description": "Calculated stay duration in minutes."
+        },
+        "academicYear": {
+          "type": "string",
+          "description": "The academic year of the visit."
         }
       },
       "required": [
