@@ -12,11 +12,15 @@ import {
   BookOpen,
   Phone,
   Mail,
-  LogIn
+  LogIn,
+  AlertCircle
 } from "lucide-react";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { cn } from "@/lib/utils";
+import { useLibraryStatus } from "@/hooks/use-library-status";
+import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
+import { collection, query, where } from "firebase/firestore";
 
 interface GuestViewProps {
   onBack: () => void;
@@ -26,8 +30,17 @@ interface GuestViewProps {
 export function GuestView({ onBack, onLogin }: GuestViewProps) {
   const coverImage = PlaceHolderImages.find(img => img.id === 'neu-cover');
   const logoImage = PlaceHolderImages.find(img => img.id === 'neu-logo');
+  const { isOpen, label, nextEvent } = useLibraryStatus();
+  const firestore = useFirestore();
 
-  const currentOccupancy = 42;
+  const activeVisitsQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, 'visits'), where('exitTimestamp', '==', null));
+  }, [firestore]);
+
+  const { data: activeVisits } = useCollection(activeVisitsQuery);
+
+  const currentOccupancy = activeVisits?.length || 0;
   const maxCapacity = 150;
   const occupancyPercentage = (currentOccupancy / maxCapacity) * 100;
 
@@ -111,17 +124,17 @@ export function GuestView({ onBack, onLogin }: GuestViewProps) {
                   <div className="space-y-3">
                     <div className="flex justify-between items-end">
                       <span className="text-4xl font-bold text-primary tracking-tight">
-                        {currentOccupancy} 
+                        {isOpen ? currentOccupancy : 0} 
                         <span className="text-xl font-medium text-slate-300 ml-2">/ {maxCapacity}</span>
                       </span>
                       <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                        {Math.round(occupancyPercentage)}% Utilization
+                        {isOpen ? Math.round(occupancyPercentage) : 0}% Utilization
                       </span>
                     </div>
                     <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden border">
                         <div 
-                          className="h-full bg-primary transition-all duration-1000 ease-in-out" 
-                          style={{ width: `${occupancyPercentage}%` }}
+                          className={cn("h-full transition-all duration-1000 ease-in-out", isOpen ? "bg-primary" : "bg-slate-300")}
+                          style={{ width: `${isOpen ? occupancyPercentage : 0}%` }}
                         />
                     </div>
                   </div>
@@ -130,15 +143,15 @@ export function GuestView({ onBack, onLogin }: GuestViewProps) {
                 <div className="space-y-6">
                   <div className="flex items-center gap-3">
                     <Clock className="h-5 w-5 text-primary" />
-                    <h4 className="font-bold text-xs uppercase tracking-widest text-slate-500">Operational Window</h4>
+                    <h4 className="font-bold text-xs uppercase tracking-widest text-slate-500">Facility Status</h4>
                   </div>
                   <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-green-600 font-bold text-xs uppercase tracking-widest">
-                      <div className="h-2 w-2 rounded-full bg-green-500" />
-                      Services Active
+                    <div className={cn("flex items-center gap-2 font-bold text-xs uppercase tracking-widest", isOpen ? "text-green-600" : "text-red-600")}>
+                      <div className={cn("h-2 w-2 rounded-full", isOpen ? "bg-green-500 animate-pulse" : "bg-red-500")} />
+                      {label}
                     </div>
-                    <p className="text-sm font-semibold text-slate-700">
-                      Monday - Friday: <span className="text-primary">08:00 AM - 05:00 PM</span>
+                    <p className="text-[10px] font-bold text-slate-700 uppercase tracking-widest">
+                      {nextEvent}
                     </p>
                   </div>
                 </div>
@@ -179,19 +192,32 @@ export function GuestView({ onBack, onLogin }: GuestViewProps) {
           </div>
 
           <aside className="lg:col-span-4 space-y-8 lg:sticky lg:top-24">
-            <Card className="shadow-md bg-primary text-white p-8 space-y-6">
+            <Card className={cn("shadow-md p-8 space-y-6 transition-colors duration-500", isOpen ? "bg-primary text-white" : "bg-slate-200 text-slate-700")}>
               <div className="space-y-2">
-                <h3 className="text-2xl font-bold tracking-tight uppercase">Portal Access</h3>
-                <p className="text-white/70 text-sm font-medium leading-relaxed">Please sign in with your institutional credentials to log attendance and access facilities.</p>
+                <h3 className="text-2xl font-bold tracking-tight uppercase">
+                  {isOpen ? "Portal Access" : "Access Denied"}
+                </h3>
+                <p className={cn("text-sm font-medium leading-relaxed", isOpen ? "text-white/70" : "text-slate-500")}>
+                  {isOpen 
+                    ? "Please sign in with your institutional credentials to log attendance and access facilities." 
+                    : `The library is currently closed. ${nextEvent}`}
+                </p>
               </div>
-              <Button 
-                onClick={onLogin}
-                variant="secondary"
-                className="w-full h-12 font-bold text-xs uppercase tracking-widest"
-              >
-                Sign In to Portal
-                <LogIn className="h-4 w-4 ml-2" />
-              </Button>
+              {isOpen ? (
+                <Button 
+                  onClick={onLogin}
+                  variant="secondary"
+                  className="w-full h-12 font-bold text-xs uppercase tracking-widest"
+                >
+                  Sign In to Portal
+                  <LogIn className="h-4 w-4 ml-2" />
+                </Button>
+              ) : (
+                <div className="p-4 bg-white/50 rounded-lg flex items-center gap-3 border border-slate-300">
+                  <AlertCircle className="h-5 w-5 text-slate-400" />
+                  <span className="text-[10px] font-bold uppercase tracking-widest opacity-60 italic">Automated Shutdown Active</span>
+                </div>
+              )}
             </Card>
 
             <Card className="shadow-sm p-8 space-y-8">
@@ -220,13 +246,6 @@ export function GuestView({ onBack, onLogin }: GuestViewProps) {
                 </div>
               </div>
             </Card>
-
-            <div className="p-6 border-2 border-dashed rounded-xl text-center space-y-2 bg-slate-50">
-              <p className="text-[10px] font-bold text-primary uppercase tracking-widest opacity-60">System Notice</p>
-              <p className="text-[11px] font-medium text-slate-500 leading-relaxed italic">
-                Guest access is limited to observational data. Physical entry requires authenticated attendance registration.
-              </p>
-            </div>
           </aside>
         </div>
       </main>

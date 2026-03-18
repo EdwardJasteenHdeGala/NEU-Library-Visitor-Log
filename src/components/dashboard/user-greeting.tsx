@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -18,7 +17,8 @@ import {
   Settings, 
   Loader2,
   Clock,
-  ArrowRight
+  ArrowRight,
+  AlertCircle
 } from "lucide-react";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
@@ -37,7 +37,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator
 } from "@/components/ui/dropdown-menu";
-import { collection, query, where, orderBy, limit } from "firebase/firestore";
+import { collection, query, where, orderBy, limit, doc } from "firebase/firestore";
 import { useFirebase, useCollection, useMemoFirebase, addDocumentNonBlocking, updateDocumentNonBlocking } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -46,6 +46,7 @@ import { getAcademicYear, cn } from "@/lib/utils";
 import { FeedbackView } from "./feedback-view";
 import { HelpView } from "./help-view";
 import { ProfileView } from "./profile-view";
+import { useLibraryStatus } from "@/hooks/use-library-status";
 
 const NEU_COLLEGES = [
   { id: "CICS", name: "Computer & Info Sciences" },
@@ -68,6 +69,7 @@ export function UserGreeting() {
   const { logout, profile, switchRole } = useAuth();
   const { firestore } = useFirebase();
   const { toast } = useToast();
+  const { isOpen, label, nextEvent } = useLibraryStatus();
   
   const [subView, setSubView] = useState<UserSubView>('log-entry');
   const [purpose, setPurpose] = useState<string>("");
@@ -82,7 +84,6 @@ export function UserGreeting() {
     setAcademicYear(getAcademicYear());
   }, []);
 
-  // Fetch the most recent visit to check if user is currently checked in
   const activeVisitQuery = useMemoFirebase(() => {
     if (!profile || !firestore) return null;
     return query(
@@ -97,6 +98,15 @@ export function UserGreeting() {
   const activeVisit = visits && visits[0] && !visits[0].exitTimestamp ? visits[0] : null;
 
   const handleCheckIn = () => {
+    if (!isOpen) {
+      toast({
+        title: "Facility Closed",
+        description: "Library entries are currently disabled based on the institutional schedule.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     if (!purpose || !profile || !firestore || !currentCollege) {
       toast({
         title: "Required Information",
@@ -137,12 +147,6 @@ export function UserGreeting() {
     const durationMs = exitTime.getTime() - entryTime.getTime();
     const durationMinutes = Math.round(durationMs / 60000);
 
-    const visitRef = activeVisit.ref; // useCollection provides doc ref? No, it provides doc data with ID.
-    // Assuming useCollection result items have their DocumentReference available or we construct it.
-    // Our useCollection currently only gives 'id' and 'data'.
-    
-    // Construct doc reference
-    const { doc } = require('firebase/firestore');
     const docRef = doc(firestore, 'visits', activeVisit.id);
 
     updateDocumentNonBlocking(docRef, {
@@ -166,8 +170,6 @@ export function UserGreeting() {
     .toUpperCase()
     .slice(0, 2) || 'V';
 
-  const isGuest = profile?.role === 'guest';
-
   const navItems = [
     { id: 'log-entry', label: 'Home', icon: History },
     { id: 'feedback', label: 'Feedback', icon: MessageSquare },
@@ -177,7 +179,7 @@ export function UserGreeting() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
-      <header className="neu-header h-[60px]">
+      <header className="neu-header">
         <div className="max-w-7xl mx-auto flex justify-between items-center px-6 w-full">
           <div className="flex items-center gap-4">
             <div className="bg-white p-1 rounded shadow-sm w-9 h-9 relative overflow-hidden flex items-center justify-center cursor-pointer" onClick={() => setSubView('log-entry')}>
@@ -271,10 +273,10 @@ export function UserGreeting() {
                 </Avatar>
                 <div className="space-y-3 pt-4 text-center sm:text-left">
                   <div className="inline-flex items-center gap-2 bg-slate-100 text-slate-600 border px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest">
-                    {isGuest ? "Guest Access" : `Academic Cycle ${academicYear}`}
+                    {profile?.role === 'guest' ? "Guest Access" : `Academic Cycle ${academicYear}`}
                   </div>
                   <h1 className="text-3xl md:text-4xl font-bold text-primary tracking-tight">
-                    {isGuest ? "Welcome," : "Greetings,"} <span className="text-slate-900">{profile?.displayName?.split(' ')[0]}</span>
+                    {profile?.role === 'guest' ? "Welcome," : "Greetings,"} <span className="text-slate-900">{profile?.displayName?.split(' ')[0]}</span>
                   </h1>
                   <p className="text-muted-foreground font-medium text-sm">Institutional attendance and research tracking.</p>
                 </div>
@@ -283,64 +285,78 @@ export function UserGreeting() {
               {!isLoadingVisit ? (
                 !activeVisit ? (
                   <Card className="shadow-sm border-border rounded-xl overflow-hidden">
-                    <CardHeader className="bg-slate-50 border-b p-6">
+                    <CardHeader className="bg-slate-50 border-b p-6 flex flex-row items-center justify-between">
                       <CardTitle className="text-sm font-bold flex items-center gap-2 uppercase tracking-tight">
                         <History className="h-4 w-4 text-primary" />
                         Check-In Registration
                       </CardTitle>
+                      <div className={cn("px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest", isOpen ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700")}>
+                        {label}
+                      </div>
                     </CardHeader>
                     <CardContent className="p-8 space-y-8">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div className="space-y-2">
-                          <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
-                            Current Department
-                          </label>
-                          <Select value={currentCollege} onValueChange={setCurrentCollege}>
-                            <SelectTrigger className="h-11 font-medium text-sm rounded-lg">
-                              <SelectValue placeholder="Select Dept" />
-                            </SelectTrigger>
-                            <SelectContent className="rounded-xl">
-                              {NEU_COLLEGES.map((college) => (
-                                <SelectItem key={college.id} value={college.id} className="text-xs font-medium">
-                                  {college.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                      {!isOpen ? (
+                        <div className="p-8 border-2 border-dashed rounded-xl bg-slate-50/50 flex flex-col items-center text-center gap-4">
+                          <AlertCircle className="h-10 w-10 text-red-400" />
+                          <div className="space-y-1">
+                            <h3 className="font-bold text-slate-900 uppercase">Library Closed</h3>
+                            <p className="text-sm text-muted-foreground font-medium leading-relaxed">
+                              Access logging is currently disabled. <br />
+                              <span className="text-primary font-bold">{nextEvent}</span>
+                            </p>
+                          </div>
                         </div>
+                      ) : (
+                        <>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div className="space-y-2">
+                              <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
+                                Current Department
+                              </label>
+                              <Select value={currentCollege} onValueChange={setCurrentCollege}>
+                                <SelectTrigger className="h-11 font-medium text-sm rounded-lg">
+                                  <SelectValue placeholder="Select Dept" />
+                                </SelectTrigger>
+                                <SelectContent className="rounded-xl">
+                                  {NEU_COLLEGES.map((college) => (
+                                    <SelectItem key={college.id} value={college.id} className="text-xs font-medium">
+                                      {college.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
 
-                        <div className="space-y-2">
-                          <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
-                            Purpose of Entry
-                          </label>
-                          <Select value={purpose} onValueChange={setPurpose}>
-                            <SelectTrigger className="h-11 font-medium text-sm rounded-lg">
-                              <SelectValue placeholder="Select Purpose" />
-                            </SelectTrigger>
-                            <SelectContent className="rounded-xl">
-                              <SelectItem value="reading books" className="text-xs font-medium">General Reading</SelectItem>
-                              <SelectItem value="research in thesis" className="text-xs font-medium">Academic Research</SelectItem>
-                              <SelectItem value="use of computer" className="text-xs font-medium">Computer Use</SelectItem>
-                              <SelectItem value="doing assignments" className="text-xs font-medium">Assignments</SelectItem>
-                              <SelectItem value="group study" className="text-xs font-medium">Collaborative Study</SelectItem>
-                              <SelectItem value="resource borrowing" className="text-xs font-medium">Resource Access</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
+                            <div className="space-y-2">
+                              <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
+                                Purpose of Entry
+                              </label>
+                              <Select value={purpose} onValueChange={setPurpose}>
+                                <SelectTrigger className="h-11 font-medium text-sm rounded-lg">
+                                  <SelectValue placeholder="Select Purpose" />
+                                </SelectTrigger>
+                                <SelectContent className="rounded-xl">
+                                  <SelectItem value="reading books" className="text-xs font-medium">General Reading</SelectItem>
+                                  <SelectItem value="research in thesis" className="text-xs font-medium">Academic Research</SelectItem>
+                                  <SelectItem value="use of computer" className="text-xs font-medium">Computer Use</SelectItem>
+                                  <SelectItem value="doing assignments" className="text-xs font-medium">Assignments</SelectItem>
+                                  <SelectItem value="group study" className="text-xs font-medium">Collaborative Study</SelectItem>
+                                  <SelectItem value="resource borrowing" className="text-xs font-medium">Resource Access</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
 
-                      <Button 
-                        onClick={handleCheckIn} 
-                        disabled={!purpose || !currentCollege || isLogging}
-                        className="w-full h-14 text-sm font-bold gap-3 rounded-xl"
-                      >
-                        {isLogging ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <CheckCircle2 className="h-4 w-4" />
-                        )}
-                        Confirm Attendance
-                      </Button>
+                          <Button 
+                            onClick={handleCheckIn} 
+                            disabled={!purpose || !currentCollege || isLogging}
+                            className="w-full h-14 text-sm font-bold gap-3 rounded-xl"
+                          >
+                            {isLogging ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+                            Confirm Attendance
+                          </Button>
+                        </>
+                      )}
                     </CardContent>
                   </Card>
                 ) : (
@@ -389,17 +405,18 @@ export function UserGreeting() {
                   <div className="flex items-center gap-4 p-4 bg-slate-50 border rounded-lg">
                     <Clock className="h-5 w-5 text-primary" />
                     <div className="leading-tight">
-                      <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest">Active window</p>
-                      <p className="text-xs font-bold text-primary">08:00 AM - 05:00 PM</p>
+                      <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest">Facility Status</p>
+                      <p className={cn("text-xs font-bold", isOpen ? "text-green-600" : "text-red-600")}>{label}</p>
                     </div>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest">Next Schedule Change</p>
+                    <p className="text-xs font-medium text-slate-700 italic">{nextEvent}</p>
                   </div>
                   <div className="flex items-center gap-2 text-green-600 font-bold text-[9px] uppercase tracking-widest">
                     <div className="h-1.5 w-1.5 bg-green-500 rounded-full animate-pulse" />
                     Registry Online
                   </div>
-                  <p className="text-[10px] font-medium text-muted-foreground leading-relaxed italic border-l-2 pl-3 py-1">
-                    Attendance logging is mandatory for institutional compliance.
-                  </p>
                 </CardContent>
               </Card>
               
