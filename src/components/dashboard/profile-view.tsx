@@ -31,8 +31,8 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { AlertDialogTrigger } from "@radix-ui/react-alert-dialog";
 
 interface ProfileViewProps {
   onBack?: () => void;
@@ -131,7 +131,7 @@ export function ProfileView({ onBack }: ProfileViewProps) {
 
       {profile?.isAuthorizedAdmin && (
         <Card className="neu-card-shadow border-none rounded-[2.5rem] bg-destructive/5 overflow-hidden shadow-xl ring-1 ring-destructive/10">
-          <CardHeader className="p-8 pb-4"><CardTitle className="xl font-black text-destructive flex items-center gap-4 uppercase italic tracking-tighter"><ShieldOff className="h-7 w-7" /> Institutional Resignation</CardTitle></CardHeader>
+          <CardHeader className="p-8 pb-4"><CardTitle className="text-xl font-black text-destructive flex items-center gap-4 uppercase italic tracking-tighter"><ShieldOff className="h-7 w-7" /> Institutional Resignation</CardTitle></CardHeader>
           <CardContent className="p-8 space-y-6">
             <AlertDialog>
               <AlertDialogTrigger asChild>

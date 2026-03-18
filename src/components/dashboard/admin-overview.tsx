@@ -105,7 +105,10 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
             <LayoutDashboard className="h-3.5 w-3.5" /> Institutional Overview
           </div>
           <h2 className="text-3xl font-bold tracking-tight text-slate-900 uppercase italic">Admin Console</h2>
-          <div className="flex items-center gap-2"><div className={cn("h-2 w-2 rounded-full", isOpen ? "bg-green-500 animate-pulse" : "bg-red-500")} /><p className="text-[10px] text-muted-foreground font-bold uppercase">Library {label}</p></div>
+          <div className="flex items-center gap-2">
+            <div className={cn("h-2 w-2 rounded-full", isOpen ? "bg-green-500 animate-pulse" : "bg-red-500")} />
+            <p className="text-[10px] text-muted-foreground font-bold uppercase">Library {label}</p>
+          </div>
         </div>
         <div className="bg-white border rounded-lg p-2 px-4 flex items-center gap-3 shadow-sm">
           {isOpen ? <DoorOpen className="h-4 w-4 text-green-600" /> : <DoorClosed className="h-4 w-4 text-red-600" />}
