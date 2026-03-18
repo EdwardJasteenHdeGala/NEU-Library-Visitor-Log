@@ -18,8 +18,6 @@ import {
   Settings, 
   Loader2,
   Users,
-  DoorOpen,
-  DoorClosed,
   Activity
 } from "lucide-react";
 import Image from "next/image";
@@ -45,6 +43,7 @@ import { useFirebase, useCollection, useMemoFirebase, addDocumentNonBlocking, up
 import { useToast } from "@/hooks/use-toast";
 import { LiveClock } from "@/components/ui/live-clock";
 import { getAcademicYear, cn } from "@/lib/utils";
+import { useLibraryStatus } from "@/hooks/use-library-status";
 import { FeedbackView } from "./feedback-view";
 import { HelpView } from "./help-view";
 import { ProfileView } from "./profile-view";
@@ -70,6 +69,7 @@ export function UserGreeting() {
   const { logout, profile, switchRole } = useAuth();
   const { firestore } = useFirebase();
   const { toast } = useToast();
+  const status = useLibraryStatus();
   
   const [subView, setSubView] = useState<UserSubView>('log-entry');
   const [purpose, setPurpose] = useState<string>("");
@@ -84,7 +84,6 @@ export function UserGreeting() {
     setAcademicYear(getAcademicYear());
   }, []);
 
-  // Secure Personal Visit Query - Matches userId check in Rules
   const activeVisitQuery = useMemoFirebase(() => {
     if (!profile || !firestore) return null;
     return query(
@@ -95,7 +94,6 @@ export function UserGreeting() {
     );
   }, [profile, firestore]);
 
-  // Secure Occupancy Telemetry Query
   const occupancyQuery = useMemoFirebase(() => {
     if (!firestore) return null;
     return query(collection(firestore, 'visits'), where('exitTimestamp', '==', null));
@@ -171,7 +169,7 @@ export function UserGreeting() {
             </div>
             <div className="flex flex-col leading-none">
               <h1 className="text-xs font-bold tracking-tight text-white uppercase">NEU Access Hub</h1>
-              <span className="text-[7px] font-bold text-secondary uppercase tracking-widest">Student Portal</span>
+              <span className="text-[7px] font-bold text-secondary uppercase tracking-widest">Institutional Portal</span>
             </div>
           </div>
 
@@ -221,8 +219,9 @@ export function UserGreeting() {
                   <AvatarFallback className="bg-slate-200 text-slate-500 font-bold text-2xl">{userInitials}</AvatarFallback>
                 </Avatar>
                 <div className="space-y-3 pt-4 text-center sm:text-left">
-                  <div className="inline-flex items-center gap-2 bg-slate-100 text-slate-600 border px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest shadow-sm">
-                    Academic Cycle {academicYear}
+                  <div className="flex items-center justify-center sm:justify-start gap-2">
+                    <div className={cn("h-2 w-2 rounded-full", status.isOpen ? "bg-green-500 animate-pulse" : "bg-red-500")} />
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{status.label}</span>
                   </div>
                   <h1 className="text-3xl md:text-5xl font-bold text-primary tracking-tight leading-none italic">Welcome, <span className="text-slate-900 not-italic">{profile?.displayName?.split(' ')[0]}</span></h1>
                   <p className="text-muted-foreground font-medium">New Era University Institutional Registry</p>

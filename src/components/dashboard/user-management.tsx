@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState } from "react";
@@ -13,14 +14,8 @@ import {
   ArrowRightLeft,
   UserPlus,
   Loader2,
-  Building2,
   Send,
-  ArrowLeft,
-  ChevronDown,
-  ChevronUp,
-  History,
-  CalendarDays,
-  Clock
+  ArrowLeft
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { collection, query, orderBy, where } from "firebase/firestore";
@@ -38,7 +33,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
 import {
   Dialog,
   DialogContent,
@@ -59,7 +53,6 @@ export function UserManagement({ onBack }: UserManagementProps) {
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
   const [newEmail, setNewEmail] = useState("");
   const [isAdding, setIsAdding] = useState(false);
-  const [expandedUser, setExpandedUser] = useState<string | null>(null);
 
   const firestore = useFirestore();
   const { 
@@ -71,30 +64,18 @@ export function UserManagement({ onBack }: UserManagementProps) {
 
   const isAdmin = currentUserProfile?.role === 'admin' || currentUserProfile?.isSuperAdmin;
 
-  // Root Directory Query
   const usersQuery = useMemoFirebase(() => {
     if (!isAdmin || !firestore) return null;
     return query(collection(firestore, 'user_profiles'), orderBy('updatedAt', 'desc'));
   }, [firestore, isAdmin]);
 
-  // Global Visits Query (Admins list all to filter per user)
-  const visitsQuery = useMemoFirebase(() => {
-    if (!isAdmin || !firestore) return null;
-    return query(collection(firestore, 'visits'), orderBy('timestamp', 'desc'));
-  }, [firestore, isAdmin]);
-
   const { data: users, isLoading } = useCollection(usersQuery);
-  const { data: visits } = useCollection(visitsQuery);
 
   const filteredUsers = users?.filter(u => 
     u.displayName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     u.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (u.studentId && u.studentId.toLowerCase().includes(searchTerm.toLowerCase()))
   ) || [];
-
-  const getUserVisits = (userId: string) => {
-    return visits?.filter(v => v.userId === userId) || [];
-  };
 
   const handleAddUser = async () => {
     if (!newEmail.trim()) return;
@@ -124,7 +105,7 @@ export function UserManagement({ onBack }: UserManagementProps) {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
           <h2 className="text-3xl font-black text-primary italic uppercase tracking-tighter">Institutional Directory</h2>
-          <p className="text-muted-foreground font-medium text-lg">Consolidated audit and identity management console.</p>
+          <p className="text-muted-foreground font-medium text-lg">Identity management console.</p>
         </div>
         <div className="flex items-center gap-3">
             <div className="relative max-w-sm hidden sm:block">
@@ -139,39 +120,34 @@ export function UserManagement({ onBack }: UserManagementProps) {
 
             <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
               <DialogTrigger asChild>
-                <Button className="h-12 gap-2 rounded-xl font-black text-xs uppercase shadow-lg hover:scale-105 transition-transform">
+                <Button className="h-12 gap-2 rounded-xl font-black text-xs uppercase shadow-lg">
                   <UserPlus className="h-4 w-4" />
                   Invite Member
                 </Button>
               </DialogTrigger>
-              <DialogContent className="rounded-[2rem] sm:max-w-[425px]">
+              <DialogContent className="rounded-2xl">
                 <DialogHeader>
-                  <DialogTitle className="text-2xl font-black text-primary italic uppercase tracking-tighter">Authorize Access</DialogTitle>
+                  <DialogTitle className="text-xl font-black text-primary uppercase italic">Authorize Access</DialogTitle>
                   <DialogDescription>Pre-authorize an email for institutional portal access.</DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-6 py-4">
                   <div className="space-y-2">
-                    <Label htmlFor="email" className="text-[10px] font-black uppercase tracking-widest text-primary/70 ml-1">Email Address</Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input 
-                          id="email" 
-                          placeholder="user@neu.edu.ph" 
-                          value={newEmail}
-                          onChange={(e) => setNewEmail(e.target.value)}
-                          className="h-12 rounded-xl border-2 pl-10 font-bold focus:ring-primary"
-                      />
-                    </div>
+                    <Label className="text-[10px] font-black uppercase tracking-widest">Email Address</Label>
+                    <Input 
+                        placeholder="user@neu.edu.ph" 
+                        value={newEmail}
+                        onChange={(e) => setNewEmail(e.target.value)}
+                        className="h-12 rounded-xl border-2 font-bold"
+                    />
                   </div>
                 </div>
                 <DialogFooter>
                   <Button 
                     onClick={handleAddUser} 
                     disabled={isAdding || !newEmail.includes('@')}
-                    className="w-full h-14 text-lg font-black uppercase rounded-2xl shadow-xl gap-2"
+                    className="w-full h-12 font-black uppercase rounded-xl"
                   >
-                    {isAdding ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
-                    GRANT ACCESS
+                    {isAdding ? <Loader2 className="h-5 w-5 animate-spin" /> : "GRANT ACCESS"}
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -183,160 +159,86 @@ export function UserManagement({ onBack }: UserManagementProps) {
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/50 border-none">
-              <TableHead className="w-16"></TableHead>
               <TableHead className="font-black text-primary py-5 uppercase text-[10px] tracking-widest px-8">Member Identity</TableHead>
               <TableHead className="font-black text-primary py-5 uppercase text-[10px] tracking-widest">ID Reference</TableHead>
-              <TableHead className="font-black text-primary py-5 uppercase text-[10px] tracking-widest">Unit/Origin</TableHead>
+              <TableHead className="font-black text-primary py-5 uppercase text-[10px] tracking-widest">Unit</TableHead>
               <TableHead className="font-black text-primary py-5 uppercase text-[10px] tracking-widest">Permissions</TableHead>
               <TableHead className="font-black text-primary py-5 uppercase text-[10px] tracking-widest text-right px-8">Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              <TableRow><TableCell colSpan={6} className="text-center py-20 font-bold text-muted-foreground uppercase tracking-widest animate-pulse">Syncing Directory...</TableCell></TableRow>
+              <TableRow><TableCell colSpan={5} className="text-center py-20 font-bold text-muted-foreground uppercase tracking-widest animate-pulse">Syncing Directory...</TableCell></TableRow>
             ) : filteredUsers.length === 0 ? (
-              <TableRow><TableCell colSpan={6} className="text-center py-20 italic text-muted-foreground">No institutional records found.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={5} className="text-center py-20 italic text-muted-foreground">No institutional records found.</TableCell></TableRow>
             ) : filteredUsers.map((u) => {
               const userInitials = u.displayName?.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2) || 'U';
               const isSuperAdmin = u.isSuperAdmin === true;
               const isCurrentUser = u.id === currentUserProfile?.id;
               const iAmSuperAdmin = currentUserProfile?.isSuperAdmin === true;
-              const userVisits = getUserVisits(u.id);
-              const isExpanded = expandedUser === u.id;
 
               return (
-                <React.Fragment key={u.id}>
-                  <TableRow className="hover:bg-muted/30 border-b transition-colors duration-300">
-                    <TableCell className="pl-8 text-center">
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className={cn("h-10 w-10 rounded-xl transition-all", isExpanded ? "bg-primary text-white" : "hover:bg-primary/5 text-primary")}
-                        onClick={() => setExpandedUser(isExpanded ? null : u.id)}
-                      >
-                        {isExpanded ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
-                      </Button>
-                    </TableCell>
-                    <TableCell className="py-6 px-8">
-                      <div className="flex items-center gap-4">
-                        <Avatar className="h-12 w-12 border-2 border-primary/10 shadow-sm">
-                          <AvatarImage src={u.photoURL} alt={u.displayName} />
-                          <AvatarFallback className="bg-muted text-primary font-black text-sm">{userInitials}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex flex-col">
-                          <span className="font-black text-primary text-base flex items-center gap-2 italic">
-                            {u.displayName} 
-                            {isCurrentUser && <span className="text-[8px] bg-primary text-white px-3 py-1 rounded-full uppercase font-black not-italic shadow-sm">Self</span>}
-                          </span>
-                          <span className="text-[11px] text-muted-foreground font-bold opacity-60">{u.email}</span>
-                        </div>
+                <TableRow key={u.id} className="hover:bg-muted/30 border-b transition-colors duration-300">
+                  <TableCell className="py-6 px-8">
+                    <div className="flex items-center gap-4">
+                      <Avatar className="h-10 w-10 border-2 border-primary/10 shadow-sm">
+                        <AvatarImage src={u.photoURL} alt={u.displayName} />
+                        <AvatarFallback className="bg-muted text-primary font-bold text-xs">{userInitials}</AvatarFallback>
+                      </Avatar>
+                      <div className="flex flex-col">
+                        <span className="font-black text-primary text-sm italic">{u.displayName}</span>
+                        <span className="text-[10px] text-muted-foreground font-bold opacity-60">{u.email}</span>
                       </div>
-                    </TableCell>
-                    <TableCell className="font-black text-[10px] text-muted-foreground tracking-widest">{u.studentId || 'NO-ID'}</TableCell>
-                    <TableCell className="text-[11px] font-black uppercase tracking-tight italic text-primary/70">{u.college || 'Guest'}</TableCell>
-                    <TableCell>
-                      <div className="flex flex-wrap gap-2">
-                        {isSuperAdmin ? (
-                          <Badge className="bg-secondary text-primary text-[9px] uppercase font-black px-3 py-1 flex items-center gap-2 shadow-sm border border-primary/20">
-                            <ShieldAlert className="h-3.5 w-3.5" /> Super Admin
-                          </Badge>
-                        ) : u.role === 'admin' ? (
-                          <Badge className="bg-primary text-white text-[9px] uppercase font-black px-3 py-1">Administrator</Badge>
-                        ) : (
-                          <Badge variant="outline" className="text-primary text-[9px] uppercase font-black px-3 py-1 border-primary/20">Institutional</Badge>
+                    </div>
+                  </TableCell>
+                  <TableCell className="font-black text-[10px] text-muted-foreground tracking-widest">{u.studentId || 'NO-ID'}</TableCell>
+                  <TableCell className="text-[10px] font-black uppercase tracking-tight italic text-primary/70">{u.college || 'Guest'}</TableCell>
+                  <TableCell>
+                    <div className="flex flex-wrap gap-2">
+                      {isSuperAdmin ? (
+                        <Badge className="bg-secondary text-primary text-[9px] uppercase font-black px-3 py-1">Super Admin</Badge>
+                      ) : u.role === 'admin' ? (
+                        <Badge className="bg-primary text-white text-[9px] uppercase font-black px-3 py-1">Administrator</Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-primary text-[9px] uppercase font-black px-3 py-1 border-primary/20">Institutional</Badge>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right px-8">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full">
+                          <MoreVertical className="h-4 w-4 text-muted-foreground" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-56 rounded-xl shadow-xl border-none">
+                        <DropdownMenuLabel className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Oversight</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        {!isCurrentUser && !isSuperAdmin && (
+                          <>
+                            {iAmSuperAdmin && (
+                              <DropdownMenuItem onClick={() => transferSuperAdmin(u.id)} className="gap-2 cursor-pointer text-secondary">
+                                <ArrowRightLeft className="h-4 w-4" />
+                                <span className="text-[10px] uppercase font-black">Transfer Ownership</span>
+                              </DropdownMenuItem>
+                            )}
+                            {u.role !== 'admin' ? (
+                              <DropdownMenuItem onClick={() => setUserRole(u.id, 'admin')} className="gap-2 cursor-pointer text-primary">
+                                <ShieldCheck className="h-4 w-4" />
+                                <span className="text-[10px] uppercase font-black">Promote Admin</span>
+                              </DropdownMenuItem>
+                            ) : (
+                              <DropdownMenuItem onClick={() => setUserRole(u.id, 'user')} className="gap-2 cursor-pointer text-destructive">
+                                <ShieldOff className="h-4 w-4" />
+                                <span className="text-[10px] uppercase font-black">Revoke Access</span>
+                              </DropdownMenuItem>
+                            )}
+                          </>
                         )}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right px-8">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full hover:bg-muted">
-                            <MoreVertical className="h-5 w-5 text-muted-foreground" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-64 rounded-2xl p-2 shadow-2xl border-none">
-                          <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground px-4 py-3">Management Console</DropdownMenuLabel>
-                          <DropdownMenuSeparator />
-                          {isCurrentUser ? (
-                            <DropdownMenuItem onClick={() => setExpandedUser(isExpanded ? null : u.id)} className="rounded-xl h-12 gap-3 cursor-pointer">
-                              <History className="h-4 w-4" />
-                              <span className="font-black text-[11px] uppercase tracking-widest">My Access Logs</span>
-                            </DropdownMenuItem>
-                          ) : (
-                            <>
-                              {iAmSuperAdmin && (
-                                <DropdownMenuItem onClick={() => transferSuperAdmin(u.id)} className="rounded-xl h-12 gap-3 focus:bg-secondary/10 cursor-pointer text-secondary">
-                                  <ArrowRightLeft className="h-4 w-4" />
-                                  <span className="text-[11px] uppercase tracking-widest font-black">Transfer Super Status</span>
-                                </DropdownMenuItem>
-                              )}
-                              {!isSuperAdmin && (
-                                u.role !== 'admin' ? (
-                                  <DropdownMenuItem onClick={() => setUserRole(u.id, 'admin')} className="rounded-xl h-12 gap-3 focus:bg-primary/5 cursor-pointer text-primary font-black">
-                                    <ShieldCheck className="h-4 w-4 text-secondary" />
-                                    <span className="text-[11px] uppercase tracking-widest">Promote to Admin</span>
-                                  </DropdownMenuItem>
-                                ) : (
-                                  <DropdownMenuItem onClick={() => setUserRole(u.id, 'user')} className="rounded-xl h-12 gap-3 focus:bg-destructive/5 cursor-pointer text-destructive font-black">
-                                    <ShieldOff className="h-4 w-4" />
-                                    <span className="text-[11px] uppercase tracking-widest">Revoke Admin Role</span>
-                                  </DropdownMenuItem>
-                                )
-                              )}
-                            </>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                  {isExpanded && (
-                    <TableRow className="bg-slate-50/50 border-none">
-                      <TableCell colSpan={6} className="p-0">
-                        <div className="p-10 space-y-6 animate-in slide-in-from-top-4 duration-500">
-                          <div className="flex items-center justify-between border-b-2 border-white pb-6">
-                            <div className="flex items-center gap-4">
-                                <History className="h-6 w-6 text-primary" />
-                                <h4 className="font-black text-primary uppercase text-sm tracking-widest italic">Institutional Access History</h4>
-                            </div>
-                            <Badge variant="outline" className="bg-white px-5 py-2 font-black text-[10px] uppercase shadow-sm border-primary/10">{userVisits.length} Records Found</Badge>
-                          </div>
-                          {userVisits.length === 0 ? (
-                            <div className="py-20 text-center italic text-muted-foreground text-sm font-bold uppercase tracking-widest bg-white/40 rounded-3xl border-2 border-dashed">No access records detected for this member.</div>
-                          ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                              {userVisits.map((visit) => (
-                                <Card key={visit.id} className="shadow-sm border-none bg-white rounded-2xl overflow-hidden hover:scale-105 transition-transform duration-300">
-                                  <CardContent className="p-6 space-y-4">
-                                    <div className="flex justify-between items-start">
-                                      <div className="space-y-1">
-                                        <p className="text-[10px] font-black text-primary uppercase tracking-tight italic leading-tight mb-1">{visit.purpose}</p>
-                                        <div className="flex items-center gap-2 text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
-                                          <Building2 className="h-3 w-3" /> {visit.college}
-                                        </div>
-                                      </div>
-                                    </div>
-                                    <div className="flex items-center justify-between pt-4 border-t border-slate-50">
-                                      <div className="flex items-center gap-2">
-                                        <CalendarDays className="h-3.5 w-3.5 text-slate-400" />
-                                        <span className="text-[10px] font-bold text-slate-700">{visit.timestamp?.seconds ? format(visit.timestamp.seconds * 1000, 'MMM dd, yyyy') : 'Now'}</span>
-                                      </div>
-                                      <div className="flex items-center gap-1.5">
-                                        <Clock className="h-3 w-3 text-primary/40" />
-                                        <span className={cn("text-[9px] font-black uppercase italic", visit.exitTimestamp ? "text-green-600" : "text-amber-600 animate-pulse")}>
-                                          {visit.exitTimestamp ? `${visit.durationMinutes}m` : "ACTIVE"}
-                                        </span>
-                                      </div>
-                                    </div>
-                                  </CardContent>
-                                </Card>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </React.Fragment>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
               );
             })}
           </TableBody>
