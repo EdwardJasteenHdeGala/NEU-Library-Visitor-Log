@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -97,11 +98,11 @@ export function WelcomeScreen({ onLogin, onGuest }: WelcomeScreenProps) {
                <Sparkles className="h-5 w-5 text-secondary animate-pulse" />
                Institutional Excellence Since 1975
             </div>
-            <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-black text-primary leading-[0.9] tracking-[-0.05em] drop-shadow-2xl">
+            <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black text-primary leading-[1] tracking-[-0.05em] drop-shadow-2xl uppercase">
               ADVANCING <br />
-              <span className="text-secondary italic">FUTURE.</span>
+              <span className="text-secondary italic">THE FUTURE.</span>
             </h1>
-            <p className="text-lg md:text-2xl text-muted-foreground font-medium max-w-3xl mx-auto leading-relaxed opacity-90 px-4">
+            <p className="text-base md:text-xl text-muted-foreground font-medium max-w-2xl mx-auto leading-relaxed opacity-90 px-4">
               Welcome to the New Era University Library Portal. Streamline your academic journey with automated access and real-time research synchronization.
             </p>
           </div>
@@ -111,7 +112,7 @@ export function WelcomeScreen({ onLogin, onGuest }: WelcomeScreenProps) {
               size="lg" 
               variant="neu"
               onClick={onLogin}
-              className="w-full sm:w-auto group flex gap-6 h-16 md:h-20 px-12 md:px-16 text-xl md:text-2xl rounded-[1.5rem] shadow-2xl hover:scale-105 transition-all duration-500 relative overflow-hidden"
+              className="w-full sm:w-auto group flex gap-6 h-16 md:h-18 px-12 md:px-14 text-lg md:text-xl rounded-[1.5rem] shadow-2xl hover:scale-105 transition-all duration-500 relative overflow-hidden"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
               Portal Access
@@ -121,7 +122,7 @@ export function WelcomeScreen({ onLogin, onGuest }: WelcomeScreenProps) {
               variant="outline" 
               size="lg"
               onClick={onGuest}
-              className="w-full sm:w-auto border-2 border-white/60 bg-white/40 backdrop-blur-3xl text-primary hover:bg-white h-16 md:h-20 px-12 md:px-16 text-xl md:text-2xl rounded-[1.5rem] shadow-xl hover:scale-105 transition-all duration-500"
+              className="w-full sm:w-auto border-2 border-white/60 bg-white/40 backdrop-blur-3xl text-primary hover:bg-white h-16 md:h-18 px-12 md:px-14 text-lg md:text-xl rounded-[1.5rem] shadow-xl hover:scale-105 transition-all duration-500"
             >
               Guest Inquiry
             </Button>

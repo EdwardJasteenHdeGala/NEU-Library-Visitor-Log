@@ -1,9 +1,10 @@
+
 "use client";
 
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Search, Users, Trash2, Download, Filter, Calendar } from "lucide-react";
+import { Search, Users, Trash2, Download, Filter, Calendar, Loader2 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { collection, query, orderBy, doc } from "firebase/firestore";
 import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
@@ -29,6 +30,8 @@ export function VisitorLog() {
   const firestore = useFirestore();
   const { toast } = useToast();
   const { profile } = useAuth();
+  
+  // Guard admin-only listener to prevent permission errors
   const isAdmin = profile?.role === 'admin';
 
   const visitsQuery = useMemoFirebase(() => {
@@ -72,7 +75,7 @@ export function VisitorLog() {
             <div className="relative max-w-sm">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input 
-                    placeholder="Search name, college, or AY..." 
+                    placeholder="Search registry..." 
                     className="pl-10 h-12 rounded-xl shadow-sm border-2 w-[280px]"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -87,12 +90,12 @@ export function VisitorLog() {
                     disabled={!visits || visits.length === 0}
                 >
                     <Trash2 className="h-4 w-4" />
-                    Reset Data
+                    Reset Registry
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent className="rounded-2xl">
                 <AlertDialogHeader>
-                  <AlertDialogTitle className="text-2xl font-black text-primary">Reset Visitor Data?</AlertDialogTitle>
+                  <AlertDialogTitle className="text-2xl font-black text-primary italic uppercase tracking-tighter">Reset Data Registry?</AlertDialogTitle>
                   <AlertDialogDescription className="text-base font-medium">
                     This action will permanently delete all {visits?.length} recorded visit logs from the database. This is irreversible and will reset all dashboard analytics.
                   </AlertDialogDescription>
@@ -115,14 +118,14 @@ export function VisitorLog() {
         <div className="bg-primary p-6 rounded-2xl flex items-center justify-between text-white shadow-xl">
             <div>
                 <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60">Total Logs</p>
-                <span className="text-3xl font-black">{visits?.length || 0}</span>
+                <span className="text-3xl font-black">{isLoading ? "---" : (visits?.length || 0)}</span>
             </div>
             <Users className="h-8 w-8 opacity-20" />
         </div>
         <div className="bg-secondary p-6 rounded-2xl flex items-center justify-between text-primary shadow-xl">
             <div>
                 <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60">Unique Visitors</p>
-                <span className="text-3xl font-black">{uniqueUserCount}</span>
+                <span className="text-3xl font-black">{isLoading ? "---" : uniqueUserCount}</span>
             </div>
             <Users className="h-8 w-8 opacity-20" />
         </div>
@@ -148,9 +151,9 @@ export function VisitorLog() {
           <TableBody>
             {isLoading ? (
               <TableRow><TableCell colSpan={5} className="text-center py-12">
-                <div className="flex flex-col items-center gap-2">
-                    <div className="h-8 w-8 border-4 border-primary border-t-transparent animate-spin rounded-full" />
-                    <span className="text-xs font-bold text-muted-foreground animate-pulse">Syncing logs...</span>
+                <div className="flex flex-col items-center gap-3">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    <span className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground animate-pulse">Synchronizing Registry...</span>
                 </div>
               </TableCell></TableRow>
             ) : filteredVisits.length === 0 ? (

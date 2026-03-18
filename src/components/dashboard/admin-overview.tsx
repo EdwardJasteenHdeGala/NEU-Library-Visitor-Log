@@ -1,7 +1,8 @@
+
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Users, History, TrendingUp, Filter, BarChart3, PieChart, Building2, LayoutDashboard } from "lucide-react";
+import { Users, History, TrendingUp, Filter, BarChart3, PieChart, Building2, LayoutDashboard, Loader2 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { 
   Select, 
@@ -30,6 +31,8 @@ import { useAuth } from "@/hooks/use-auth";
 export function AdminOverview() {
   const firestore = useFirestore();
   const { profile } = useAuth();
+  
+  // Ensure we only fetch if the user has confirmed admin role to prevent permission errors
   const isAdmin = profile?.role === 'admin';
 
   const visitsQuery = useMemoFirebase(() => {
@@ -42,8 +45,10 @@ export function AdminOverview() {
     return query(collection(firestore, 'visits'), orderBy('timestamp', 'desc'), limit(500));
   }, [firestore, isAdmin]);
 
-  const { data: recentVisits, isLoading } = useCollection(visitsQuery);
-  const { data: allVisits } = useCollection(allVisitsQuery);
+  const { data: recentVisits, isLoading: isLoadingRecent } = useCollection(visitsQuery);
+  const { data: allVisits, isLoading: isLoadingAll } = useCollection(allVisitsQuery);
+
+  const isLoading = isLoadingRecent || isLoadingAll;
 
   const purposeData = allVisits ? Object.entries(
     allVisits.reduce((acc: any, visit) => {
@@ -80,7 +85,7 @@ export function AdminOverview() {
              Institutional Dashboard
           </div>
           <h2 className="text-4xl md:text-5xl font-black text-primary italic tracking-tighter uppercase leading-none">Intelligence</h2>
-          <p className="text-muted-foreground font-medium text-sm md:text-lg italic opacity-70">Real-time analytical data streaming.</p>
+          <p className="text-muted-foreground font-medium text-sm md:text-lg opacity-70">Real-time analytical data streaming.</p>
         </div>
         <div className="flex items-center">
           <div className="bg-white/80 backdrop-blur-md p-2 rounded-2xl shadow-xl border flex items-center gap-4 text-[10px] font-black text-muted-foreground px-5">
@@ -129,7 +134,12 @@ export function AdminOverview() {
             <CardDescription className="text-sm font-medium opacity-70">Utilization counts across institutional units.</CardDescription>
           </CardHeader>
           <CardContent className="h-[300px] md:h-[350px] p-6 md:p-10 pt-4">
-            {collegeData.length > 0 ? (
+            {isLoading ? (
+              <div className="flex flex-col items-center justify-center h-full text-muted-foreground gap-4 animate-pulse">
+                <Loader2 className="h-8 w-8 animate-spin" />
+                <span className="text-xs font-black uppercase tracking-widest">Synthesizing...</span>
+              </div>
+            ) : collegeData.length > 0 ? (
               <ChartContainer config={chartConfig} className="h-full w-full">
                 <BarChart data={collegeData} layout="vertical" margin={{ left: 10, right: 10 }}>
                   <XAxis type="number" hide />
@@ -165,7 +175,12 @@ export function AdminOverview() {
             <CardDescription className="text-sm font-medium opacity-70">Contextual distribution of hub activities.</CardDescription>
           </CardHeader>
           <CardContent className="h-[300px] md:h-[350px] p-6 md:p-10 flex items-center justify-center">
-            {purposeData.length > 0 ? (
+            {isLoading ? (
+               <div className="flex flex-col items-center justify-center h-full text-muted-foreground gap-4 animate-pulse">
+                 <Loader2 className="h-8 w-8 animate-spin" />
+                 <span className="text-xs font-black uppercase tracking-widest">Analyzing...</span>
+               </div>
+            ) : purposeData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <RePieChart>
                   <Pie
@@ -218,7 +233,7 @@ export function AdminOverview() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {isLoading ? (
+              {isLoadingRecent ? (
                 <TableRow><TableCell colSpan={4} className="text-center py-20 text-sm font-bold text-muted-foreground animate-pulse">Syncing institutional records...</TableCell></TableRow>
               ) : recentVisits?.length === 0 ? (
                 <TableRow><TableCell colSpan={4} className="text-center py-20 text-sm text-muted-foreground italic font-medium">No live telemetry detected.</TableCell></TableRow>
