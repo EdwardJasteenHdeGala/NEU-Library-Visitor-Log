@@ -11,6 +11,8 @@ export type LibraryStatus =
   | 'Open (Manual Override)' 
   | 'Closed (Manual Override)';
 
+export type AnnouncementCategory = 'general' | 'emergency' | 'institutional';
+
 interface Schedule {
   open: string; // HH:mm (24h)
   close: string; // HH:mm (24h)
@@ -42,7 +44,9 @@ export function useLibraryStatus() {
         label: 'Closed (Automatic)' as LibraryStatus, 
         nextEvent: 'Syncing...',
         isManual: false,
-        reason: ''
+        reason: '',
+        category: 'general' as AnnouncementCategory,
+        updatedAt: null
       };
     }
 
@@ -54,7 +58,9 @@ export function useLibraryStatus() {
         label: (isManualOpen ? 'Open (Manual Override)' : 'Closed (Manual Override)') as LibraryStatus,
         nextEvent: 'Manual control active',
         isManual: true,
-        reason: config.manualReason || ''
+        reason: config.manualReason || '',
+        category: (config.manualCategory || 'general') as AnnouncementCategory,
+        updatedAt: config.updatedAt
       };
     }
 
@@ -68,7 +74,9 @@ export function useLibraryStatus() {
         label: 'Closed (Automatic)' as LibraryStatus, 
         nextEvent: 'Opens Monday at 08:00 AM',
         isManual: false,
-        reason: ''
+        reason: '',
+        category: 'general' as AnnouncementCategory,
+        updatedAt: null
       };
     }
 
@@ -87,7 +95,9 @@ export function useLibraryStatus() {
         label: 'Closed (Automatic)' as LibraryStatus, 
         nextEvent: `Opens today at ${openTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
         isManual: false,
-        reason: ''
+        reason: '',
+        category: 'general' as AnnouncementCategory,
+        updatedAt: null
       };
     }
 
@@ -97,7 +107,9 @@ export function useLibraryStatus() {
         label: 'Closed (Automatic)' as LibraryStatus, 
         nextEvent: 'Opens tomorrow at 08:00 AM',
         isManual: false,
-        reason: ''
+        reason: '',
+        category: 'general' as AnnouncementCategory,
+        updatedAt: null
       };
     }
 
@@ -106,7 +118,9 @@ export function useLibraryStatus() {
       label: 'Open (Automatic)' as LibraryStatus, 
       nextEvent: `Closes at ${closeTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
       isManual: false,
-      reason: ''
+      reason: '',
+      category: 'general' as AnnouncementCategory,
+      updatedAt: null
     };
   }, [now, config, isConfigLoading]);
 

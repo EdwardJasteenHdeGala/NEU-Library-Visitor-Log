@@ -151,7 +151,7 @@
     "LibraryConfig": {
       "title": "LibraryConfig",
       "type": "object",
-      "description": "Stores the library's operational configuration, including manual overrides.",
+      "description": "Stores the library's operational configuration, including manual overrides and announcements.",
       "properties": {
         "mode": {
           "type": "string",
@@ -165,7 +165,12 @@
         },
         "manualReason": {
           "type": "string",
-          "description": "The reason for manual closure (e.g., Typhoon, Holiday)."
+          "description": "The formal reason/note for manual status change."
+        },
+        "manualCategory": {
+          "type": "string",
+          "enum": ["general", "emergency", "institutional"],
+          "description": "The classification of the manual override announcement."
         },
         "updatedBy": {
           "type": "string",

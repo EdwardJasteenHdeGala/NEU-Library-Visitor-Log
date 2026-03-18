@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -20,7 +21,10 @@ import {
   ArrowRight,
   AlertCircle,
   ShieldAlert,
-  Users
+  Users,
+  Megaphone,
+  AlertTriangle,
+  Info
 } from "lucide-react";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
@@ -49,6 +53,7 @@ import { FeedbackView } from "./feedback-view";
 import { HelpView } from "./help-view";
 import { ProfileView } from "./profile-view";
 import { useLibraryStatus } from "@/hooks/use-library-status";
+import { format } from "date-fns";
 
 const NEU_COLLEGES = [
   { id: "CICS", name: "Computer & Info Sciences" },
@@ -71,7 +76,7 @@ export function UserGreeting() {
   const { logout, profile, switchRole } = useAuth();
   const { firestore } = useFirebase();
   const { toast } = useToast();
-  const { isOpen, label, nextEvent, isManual, reason } = useLibraryStatus();
+  const { isOpen, label, nextEvent, isManual, reason, category, updatedAt } = useLibraryStatus();
   
   const [subView, setSubView] = useState<UserSubView>('log-entry');
   const [purpose, setPurpose] = useState<string>("");
@@ -308,19 +313,60 @@ export function UserGreeting() {
                     </CardHeader>
                     <CardContent className="p-8 space-y-8">
                       {!isOpen ? (
-                        <div className={cn("p-8 border-2 border-dashed rounded-xl flex flex-col items-center text-center gap-4", isManual ? "bg-amber-50/50 border-amber-200" : "bg-slate-50/50 border-slate-200")}>
-                          {isManual ? <ShieldAlert className="h-10 w-10 text-amber-500" /> : <AlertCircle className="h-10 w-10 text-red-400" />}
-                          <div className="space-y-2">
-                            <h3 className={cn("font-bold uppercase", isManual ? "text-amber-900" : "text-slate-900")}>
-                              {isManual ? "Manual Closure Active" : "Library Closed"}
-                            </h3>
-                            <p className="text-sm text-muted-foreground font-medium leading-relaxed">
-                              {isManual && reason ? (
-                                <span className="font-bold text-amber-700 italic block mb-2">“{reason}”</span>
-                              ) : null}
-                              Access logging is currently disabled. <br />
-                              <span className="text-primary font-bold">{nextEvent}</span>
-                            </p>
+                        <div className="space-y-8">
+                          <div className={cn("p-8 border-2 border-dashed rounded-xl flex flex-col items-center text-center gap-4", 
+                            isManual ? (
+                              category === 'emergency' ? "bg-red-50 border-red-200" :
+                              category === 'institutional' ? "bg-amber-50 border-amber-200" :
+                              "bg-blue-50 border-blue-200"
+                            ) : "bg-slate-50 border-slate-200"
+                          )}>
+                            {isManual ? (
+                              category === 'emergency' ? <AlertTriangle className="h-10 w-10 text-red-500" /> :
+                              category === 'institutional' ? <ShieldAlert className="h-10 w-10 text-amber-500" /> :
+                              <Megaphone className="h-10 w-10 text-blue-500" />
+                            ) : <AlertCircle className="h-10 w-10 text-slate-400" />}
+                            
+                            <div className="space-y-2">
+                              <h3 className={cn("font-bold uppercase tracking-tight", 
+                                isManual ? (
+                                  category === 'emergency' ? "text-red-900" :
+                                  category === 'institutional' ? "text-amber-900" :
+                                  "text-blue-900"
+                                ) : "text-slate-900"
+                              )}>
+                                {isManual ? (
+                                  category === 'emergency' ? "Emergency Shutdown" :
+                                  category === 'institutional' ? "Institutional Suspension" :
+                                  "Manual Closure"
+                                ) : "Library Closed"}
+                              </h3>
+                              
+                              <p className="text-sm text-muted-foreground font-medium leading-relaxed">
+                                {isManual && reason ? (
+                                  <div className="space-y-4">
+                                    <span className={cn("font-bold block text-base italic", 
+                                      category === 'emergency' ? "text-red-700" :
+                                      category === 'institutional' ? "text-amber-700" :
+                                      "text-blue-700"
+                                    )}>
+                                      “{reason}”
+                                    </span>
+                                    {updatedAt && (
+                                      <span className="text-[10px] font-bold uppercase tracking-widest opacity-60 flex items-center justify-center gap-2">
+                                        <Clock className="h-3 w-3" />
+                                        Posted: {format(updatedAt.toDate(), 'MMM dd, h:mm a')}
+                                      </span>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <>
+                                    Access logging is currently disabled. <br />
+                                    <span className="text-primary font-bold">{nextEvent}</span>
+                                  </>
+                                )}
+                              </p>
+                            </div>
                           </div>
                         </div>
                       ) : (
@@ -388,7 +434,7 @@ export function UserGreeting() {
                         <p className="text-white/70 text-sm font-medium">Checked In At: <span className="text-secondary">{activeVisit.timestamp.toDate().toLocaleTimeString()}</span></p>
                         <p className="text-white/50 text-[10px] font-bold uppercase tracking-widest mt-1">{activeVisit.purpose}</p>
                       </div>
-                      <div className="flex flex-col sm:flex-row gap-4 w-full max-w-sm">
+                      <div className="flex flex-col sm:flex-row gap-4 w-full max-sm:px-4">
                         <Button 
                           onClick={handleCheckOut} 
                           disabled={isLogging}
@@ -446,9 +492,21 @@ export function UserGreeting() {
                     <p className="text-xs font-medium text-slate-700 italic">{nextEvent}</p>
                   </div>
                   {isManual && (
-                    <div className="p-3 bg-amber-50 border border-amber-100 rounded-lg flex items-start gap-2">
-                      <ShieldAlert className="h-3 w-3 text-amber-500 shrink-0 mt-0.5" />
-                      <p className="text-[9px] font-bold text-amber-800 uppercase leading-tight">Manual Override Active</p>
+                    <div className={cn("p-3 border border-amber-100 rounded-lg flex items-start gap-2", 
+                      category === 'emergency' ? "bg-red-50" : 
+                      category === 'institutional' ? "bg-amber-50" : 
+                      "bg-blue-50"
+                    )}>
+                      <ShieldAlert className={cn("h-3 w-3 shrink-0 mt-0.5", 
+                        category === 'emergency' ? "text-red-500" : 
+                        category === 'institutional' ? "text-amber-500" : 
+                        "text-blue-500"
+                      )} />
+                      <p className={cn("text-[9px] font-bold uppercase leading-tight",
+                        category === 'emergency' ? "text-red-800" : 
+                        category === 'institutional' ? "text-amber-800" : 
+                        "text-blue-800"
+                      )}>Manual Override: {category}</p>
                     </div>
                   )}
                   <div className="flex items-center gap-2 text-green-600 font-bold text-[9px] uppercase tracking-widest">

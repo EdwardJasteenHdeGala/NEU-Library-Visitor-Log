@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -15,7 +16,9 @@ import {
   LogIn,
   AlertCircle,
   ShieldAlert,
-  Activity
+  Activity,
+  Megaphone,
+  AlertTriangle
 } from "lucide-react";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
@@ -23,6 +26,7 @@ import { cn } from "@/lib/utils";
 import { useLibraryStatus } from "@/hooks/use-library-status";
 import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
 import { collection, query, where } from "firebase/firestore";
+import { format } from "date-fns";
 
 interface GuestViewProps {
   onBack: () => void;
@@ -32,7 +36,7 @@ interface GuestViewProps {
 export function GuestView({ onBack, onLogin }: GuestViewProps) {
   const coverImage = PlaceHolderImages.find(img => img.id === 'neu-cover');
   const logoImage = PlaceHolderImages.find(img => img.id === 'neu-logo');
-  const { isOpen, label, nextEvent, isManual, reason } = useLibraryStatus();
+  const { isOpen, label, nextEvent, isManual, reason, category, updatedAt } = useLibraryStatus();
   const firestore = useFirestore();
 
   // Real-time occupancy tracking for Guests
@@ -195,18 +199,41 @@ export function GuestView({ onBack, onLogin }: GuestViewProps) {
           </div>
 
           <aside className="lg:col-span-4 space-y-8 lg:sticky lg:top-24">
-            <Card className={cn("shadow-md p-8 space-y-6 transition-all duration-500 rounded-xl", isOpen ? "bg-primary text-white" : isManual ? "bg-amber-600 text-white" : "bg-slate-200 text-slate-700")}>
-              <div className="space-y-2">
+            <Card className={cn("shadow-md p-8 space-y-6 transition-all duration-500 rounded-xl", 
+              isOpen ? "bg-primary text-white" : 
+              isManual ? (
+                category === 'emergency' ? "bg-red-600 text-white" :
+                category === 'institutional' ? "bg-amber-600 text-white" :
+                "bg-blue-600 text-white"
+              ) : "bg-slate-200 text-slate-700"
+            )}>
+              <div className="space-y-4">
                 <h3 className="text-2xl font-bold tracking-tight uppercase">
-                  {isOpen ? "Portal Access" : isManual ? "Manual Closure" : "Access Restricted"}
+                  {isOpen ? "Portal Access" : 
+                   isManual ? (
+                     category === 'emergency' ? "Emergency Notice" :
+                     category === 'institutional' ? "Academic Suspension" :
+                     "Manual Closure"
+                   ) : "Access Restricted"}
                 </h3>
+                
                 <div className={cn("text-sm font-medium leading-relaxed opacity-80", isOpen ? "text-white" : isManual ? "text-white" : "text-slate-500")}>
                   {isOpen ? (
                     "Please sign in with your institutional credentials to log attendance and access facilities."
                   ) : isManual ? (
-                    <div className="space-y-3">
-                      <p>The library has been manually closed by administration for unexpected protocols.</p>
-                      {reason && <p className="font-bold italic bg-white/10 p-3 rounded-lg border border-white/20">“{reason}”</p>}
+                    <div className="space-y-4">
+                      {reason ? (
+                        <div className="space-y-3">
+                          <p className="font-bold italic bg-white/10 p-4 rounded-lg border border-white/20">“{reason}”</p>
+                          {updatedAt && (
+                            <p className="text-[9px] font-bold uppercase tracking-widest opacity-60">
+                              Updated: {format(updatedAt.toDate(), 'MMM dd, h:mm a')}
+                            </p>
+                          )}
+                        </div>
+                      ) : (
+                        <p>The library has been manually closed by administration for unexpected protocols.</p>
+                      )}
                     </div>
                   ) : (
                     `The library is currently closed. ${nextEvent}`
@@ -224,9 +251,13 @@ export function GuestView({ onBack, onLogin }: GuestViewProps) {
                 </Button>
               ) : (
                 <div className={cn("p-4 rounded-lg flex items-center gap-3 border", isManual ? "bg-white/10 border-white/20" : "bg-white/50 border-slate-300")}>
-                  {isManual ? <ShieldAlert className="h-5 w-5 text-white" /> : <AlertCircle className="h-5 w-5 text-slate-400" />}
+                  {isManual ? (
+                    category === 'emergency' ? <AlertTriangle className="h-5 w-5 text-white" /> :
+                    category === 'institutional' ? <ShieldAlert className="h-5 w-5 text-white" /> :
+                    <Megaphone className="h-5 w-5 text-white" />
+                  ) : <AlertCircle className="h-5 w-5 text-slate-400" />}
                   <span className="text-[10px] font-bold uppercase tracking-widest opacity-80 italic">
-                    {isManual ? "Emergency Shutdown Active" : "Scheduled Shutdown Active"}
+                    {isManual ? `${category.toUpperCase()} Protocol` : "Scheduled Shutdown Active"}
                   </span>
                 </div>
               )}

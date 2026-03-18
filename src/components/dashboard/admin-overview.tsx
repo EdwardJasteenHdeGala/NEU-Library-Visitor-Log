@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -19,7 +20,8 @@ import {
   MessageSquare,
   XCircle,
   TrendingUp,
-  Activity
+  Activity,
+  AlertTriangle
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { collection, limit, orderBy, query, doc, serverTimestamp } from "firebase/firestore";
@@ -44,10 +46,18 @@ import { useAuth } from "@/hooks/use-auth";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import { useLibraryStatus } from "@/hooks/use-library-status";
+import { useLibraryStatus, AnnouncementCategory } from "@/hooks/use-library-status";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface AdminOverviewProps {
   onNavigate?: (view: any) => void;
@@ -57,9 +67,10 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
   const firestore = useFirestore();
   const { profile } = useAuth();
   const { toast } = useToast();
-  const { isOpen, label, nextEvent, isManual, reason } = useLibraryStatus();
+  const { isOpen, label, nextEvent, isManual, reason, category } = useLibraryStatus();
   
   const [manualReason, setManualReason] = useState("");
+  const [manualCategory, setManualCategory] = useState<AnnouncementCategory>("general");
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
   const isAdmin = profile?.role === 'admin';
@@ -88,13 +99,6 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
       ? "text-green-600" 
       : "text-muted-foreground";
 
-  const purposeData = allVisits ? Object.entries(
-    allVisits.reduce((acc: any, visit) => {
-      acc[visit.purpose] = (acc[visit.purpose] || 0) + 1;
-      return acc;
-    }, {})
-  ).map(([name, value]) => ({ name, value })) : [];
-
   const collegeData = allVisits ? Object.entries(
     allVisits.reduce((acc: any, visit) => {
       acc[visit.college] = (acc[visit.college] || 0) + 1;
@@ -107,7 +111,6 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
     ? Math.round(allVisits.filter(v => !!v.exitTimestamp).reduce((acc, v) => acc + (v.durationMinutes || 0), 0) / (allVisits.filter(v => !!v.exitTimestamp).length || 1)) || 0
     : 0;
 
-  // Mocked Trend Data for formal visualization
   const trendData = [
     { time: '08:00', count: 5 },
     { time: '10:00', count: 25 },
@@ -126,6 +129,7 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
       mode,
       manualStatus: status || null,
       manualReason: status === 'closed' ? manualReason : "",
+      manualCategory: status === 'closed' ? manualCategory : "general",
       updatedBy: profile.id,
       updatedAt: serverTimestamp()
     }, { merge: true });
@@ -136,7 +140,10 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
         title: mode === 'automatic' ? "Automatic Mode Restored" : `Manual ${status?.toUpperCase()} Active`,
         description: "The institutional access protocol has been updated.",
       });
-      if (mode === 'automatic') setManualReason("");
+      if (mode === 'automatic') {
+        setManualReason("");
+        setManualCategory("general");
+      }
     }, 500);
   };
 
@@ -275,6 +282,7 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
                       <ShieldAlert className="h-3 w-3" /> Manual Control Active
                     </p>
                     {reason && <p className="text-[10px] font-medium text-amber-800 italic">{reason}</p>}
+                    <p className="text-[8px] font-bold text-amber-700/60 uppercase tracking-widest">Category: {category}</p>
                   </div>
                 )}
 
@@ -315,16 +323,35 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
                 )}
               </div>
 
-              <div className="space-y-3 pt-4 border-t">
-                <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
-                  <MessageSquare className="h-3 w-3" /> Closure Announcement
-                </label>
-                <Input 
-                  placeholder="e.g. Typhoon Suspension, Holiday..." 
-                  value={manualReason}
-                  onChange={(e) => setManualReason(e.target.value)}
-                  className="h-10 text-[10px] font-medium rounded-lg border-2"
-                />
+              <div className="space-y-4 pt-4 border-t">
+                <div className="space-y-1.5">
+                  <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
+                    <AlertTriangle className="h-3 w-3" /> Note Classification
+                  </label>
+                  <Select value={manualCategory} onValueChange={(v: AnnouncementCategory) => setManualCategory(v)}>
+                    <SelectTrigger className="h-9 text-[10px] font-bold uppercase tracking-widest rounded-lg border-2">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl">
+                      <SelectItem value="general" className="text-[10px] font-bold uppercase tracking-widest">General Announcement</SelectItem>
+                      <SelectItem value="emergency" className="text-[10px] font-bold uppercase tracking-widest">Emergency Notice</SelectItem>
+                      <SelectItem value="institutional" className="text-[10px] font-bold uppercase tracking-widest">Institutional Suspension</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
+                    <MessageSquare className="h-3 w-3" /> Announcement Note
+                  </label>
+                  <Textarea 
+                    placeholder="Provide a formal reason for closure..." 
+                    value={manualReason}
+                    onChange={(e) => setManualReason(e.target.value)}
+                    className="min-h-[80px] text-[10px] font-medium rounded-lg border-2 resize-none"
+                  />
+                  <p className="text-[8px] text-muted-foreground italic">Note: Announcement is required for professional manual closures.</p>
+                </div>
               </div>
             </CardContent>
           </Card>
