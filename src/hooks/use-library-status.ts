@@ -1,8 +1,15 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { doc } from 'firebase/firestore';
 
-export type LibraryStatus = 'Open (Automatic)' | 'Closed (Automatic)';
+export type LibraryStatus = 
+  | 'Open (Automatic)' 
+  | 'Closed (Automatic)' 
+  | 'Open (Manual Override)' 
+  | 'Closed (Manual Override)';
 
 interface Schedule {
   open: string; // HH:mm (24h)
@@ -13,6 +20,14 @@ const WEEKDAY_SCHEDULE: Schedule = { open: '08:00', close: '17:00' };
 
 export function useLibraryStatus() {
   const [now, setNow] = useState<Date | null>(null);
+  const firestore = useFirestore();
+
+  const configRef = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return doc(firestore, 'library_config', 'main');
+  }, [firestore]);
+
+  const { data: config, isLoading: isConfigLoading } = useDoc(configRef);
 
   useEffect(() => {
     setNow(new Date());
@@ -21,8 +36,29 @@ export function useLibraryStatus() {
   }, []);
 
   const status = useMemo(() => {
-    if (!now) return { isOpen: false, label: 'Closed (Automatic)' as LibraryStatus, nextEvent: '' };
+    if (!now || isConfigLoading) {
+      return { 
+        isOpen: false, 
+        label: 'Closed (Automatic)' as LibraryStatus, 
+        nextEvent: 'Syncing...',
+        isManual: false,
+        reason: ''
+      };
+    }
 
+    // 1. Check for Manual Override
+    if (config && config.mode === 'manual') {
+      const isManualOpen = config.manualStatus === 'open';
+      return {
+        isOpen: isManualOpen,
+        label: (isManualOpen ? 'Open (Manual Override)' : 'Closed (Manual Override)') as LibraryStatus,
+        nextEvent: 'Manual control active',
+        isManual: true,
+        reason: config.manualReason || ''
+      };
+    }
+
+    // 2. Fallback to Automatic Schedule
     const day = now.getDay();
     const isWeekend = day === 0 || day === 6;
     
@@ -30,7 +66,9 @@ export function useLibraryStatus() {
       return { 
         isOpen: false, 
         label: 'Closed (Automatic)' as LibraryStatus, 
-        nextEvent: 'Opens Monday at 08:00 AM' 
+        nextEvent: 'Opens Monday at 08:00 AM',
+        isManual: false,
+        reason: ''
       };
     }
 
@@ -47,7 +85,9 @@ export function useLibraryStatus() {
       return { 
         isOpen: false, 
         label: 'Closed (Automatic)' as LibraryStatus, 
-        nextEvent: `Opens today at ${openTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` 
+        nextEvent: `Opens today at ${openTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
+        isManual: false,
+        reason: ''
       };
     }
 
@@ -55,16 +95,20 @@ export function useLibraryStatus() {
       return { 
         isOpen: false, 
         label: 'Closed (Automatic)' as LibraryStatus, 
-        nextEvent: 'Opens tomorrow at 08:00 AM' 
+        nextEvent: 'Opens tomorrow at 08:00 AM',
+        isManual: false,
+        reason: ''
       };
     }
 
     return { 
       isOpen: true, 
       label: 'Open (Automatic)' as LibraryStatus, 
-      nextEvent: `Closes at ${closeTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` 
+      nextEvent: `Closes at ${closeTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
+      isManual: false,
+      reason: ''
     };
-  }, [now]);
+  }, [now, config, isConfigLoading]);
 
   return status;
 }

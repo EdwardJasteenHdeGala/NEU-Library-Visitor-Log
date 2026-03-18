@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -18,7 +19,8 @@ import {
   Loader2,
   Clock,
   ArrowRight,
-  AlertCircle
+  AlertCircle,
+  ShieldAlert
 } from "lucide-react";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
@@ -69,7 +71,7 @@ export function UserGreeting() {
   const { logout, profile, switchRole } = useAuth();
   const { firestore } = useFirebase();
   const { toast } = useToast();
-  const { isOpen, label, nextEvent } = useLibraryStatus();
+  const { isOpen, label, nextEvent, isManual, reason } = useLibraryStatus();
   
   const [subView, setSubView] = useState<UserSubView>('log-entry');
   const [purpose, setPurpose] = useState<string>("");
@@ -100,8 +102,8 @@ export function UserGreeting() {
   const handleCheckIn = () => {
     if (!isOpen) {
       toast({
-        title: "Facility Closed",
-        description: "Library entries are currently disabled based on the institutional schedule.",
+        title: "Access Restricted",
+        description: isManual ? "The library has been manually closed by administration." : "Library entries are currently disabled based on the institutional schedule.",
         variant: "destructive"
       });
       return;
@@ -284,8 +286,8 @@ export function UserGreeting() {
 
               {!isLoadingVisit ? (
                 !activeVisit ? (
-                  <Card className="shadow-sm border-border rounded-xl overflow-hidden">
-                    <CardHeader className="bg-slate-50 border-b p-6 flex flex-row items-center justify-between">
+                  <Card className={cn("shadow-sm border-border rounded-xl overflow-hidden", isManual && !isOpen && "border-amber-500 shadow-amber-100")}>
+                    <CardHeader className={cn("bg-slate-50 border-b p-6 flex flex-row items-center justify-between", isManual && !isOpen && "bg-amber-50 border-amber-100")}>
                       <CardTitle className="text-sm font-bold flex items-center gap-2 uppercase tracking-tight">
                         <History className="h-4 w-4 text-primary" />
                         Check-In Registration
@@ -296,11 +298,16 @@ export function UserGreeting() {
                     </CardHeader>
                     <CardContent className="p-8 space-y-8">
                       {!isOpen ? (
-                        <div className="p-8 border-2 border-dashed rounded-xl bg-slate-50/50 flex flex-col items-center text-center gap-4">
-                          <AlertCircle className="h-10 w-10 text-red-400" />
-                          <div className="space-y-1">
-                            <h3 className="font-bold text-slate-900 uppercase">Library Closed</h3>
+                        <div className={cn("p-8 border-2 border-dashed rounded-xl flex flex-col items-center text-center gap-4", isManual ? "bg-amber-50/50 border-amber-200" : "bg-slate-50/50 border-slate-200")}>
+                          {isManual ? <ShieldAlert className="h-10 w-10 text-amber-500" /> : <AlertCircle className="h-10 w-10 text-red-400" />}
+                          <div className="space-y-2">
+                            <h3 className={cn("font-bold uppercase", isManual ? "text-amber-900" : "text-slate-900")}>
+                              {isManual ? "Manual Closure Active" : "Library Closed"}
+                            </h3>
                             <p className="text-sm text-muted-foreground font-medium leading-relaxed">
+                              {isManual && reason ? (
+                                <span className="font-bold text-amber-700 italic block mb-2">“{reason}”</span>
+                              ) : null}
                               Access logging is currently disabled. <br />
                               <span className="text-primary font-bold">{nextEvent}</span>
                             </p>
@@ -413,6 +420,12 @@ export function UserGreeting() {
                     <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest">Next Schedule Change</p>
                     <p className="text-xs font-medium text-slate-700 italic">{nextEvent}</p>
                   </div>
+                  {isManual && (
+                    <div className="p-3 bg-amber-50 border border-amber-100 rounded-lg flex items-start gap-2">
+                      <ShieldAlert className="h-3 w-3 text-amber-500 shrink-0 mt-0.5" />
+                      <p className="text-[9px] font-bold text-amber-800 uppercase leading-tight">Manual Override Active</p>
+                    </div>
+                  )}
                   <div className="flex items-center gap-2 text-green-600 font-bold text-[9px] uppercase tracking-widest">
                     <div className="h-1.5 w-1.5 bg-green-500 rounded-full animate-pulse" />
                     Registry Online
