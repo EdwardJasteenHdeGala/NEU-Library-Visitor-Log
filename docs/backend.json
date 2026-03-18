@@ -70,6 +70,18 @@
         "timestamp": { "type": "string", "format": "date-time" }
       },
       "required": ["userId", "title", "message", "timestamp"]
+    },
+    "LibraryConfig": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "LibraryConfig",
+      "type": "object",
+      "description": "Global institutional library state.",
+      "properties": {
+        "mode": { "type": "string", "enum": ["automatic", "manual"] },
+        "manualStatus": { "type": "string", "enum": ["open", "closed"] },
+        "manualReason": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      }
     }
   },
   "auth": {
@@ -115,6 +127,14 @@
           "entityName": "Feedback",
           "schema": { "$ref": "#/backend/entities/Feedback" },
           "description": "User feedback."
+        }
+      },
+      {
+        "path": "/library_config/{configId}",
+        "definition": {
+          "entityName": "LibraryConfig",
+          "schema": { "$ref": "#/backend/entities/LibraryConfig" },
+          "description": "Institutional operational state."
         }
       }
     ]
