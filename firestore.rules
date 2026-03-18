@@ -35,9 +35,8 @@ service cloud.firestore {
     }
 
     match /visits/{visitId} {
-      // Allow all signed-in users to read visits for occupancy tracking and personal history
-      // Simplified to 'read' to ensure list and get operations are both authorized for institutional telemetry
-      allow read: if isSignedIn();
+      // Use explicit get and list to ensure institutional telemetry is authorized
+      allow get, list: if isSignedIn();
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow update, delete: if isAnyAdmin();
     }
@@ -50,7 +49,8 @@ service cloud.firestore {
     }
 
     match /library_config/{configId} {
-      allow read: if isSignedIn();
+      // Explicitly allow get and list for status tracking
+      allow get, list: if isSignedIn();
       allow write: if isAnyAdmin();
     }
   }

@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState } from "react";
@@ -21,7 +20,8 @@ import {
   ChevronDown,
   ChevronUp,
   Clock,
-  History
+  History,
+  CalendarDays
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { collection, query, orderBy } from "firebase/firestore";
@@ -416,7 +416,7 @@ export function UserManagement({ onBack }: UserManagementProps) {
                                     </div>
                                     <div className="flex items-center justify-between pt-4 border-t border-slate-50">
                                       <div className="flex items-center gap-2">
-                                        <Clock className="h-3.5 w-3.5 text-slate-400" />
+                                        <CalendarDays className="h-3.5 w-3.5 text-slate-400" />
                                         <span className="text-[10px] font-bold text-slate-700">
                                           {visit.timestamp?.seconds ? format(visit.timestamp.seconds * 1000, 'MMM dd, yyyy') : 'Recently'}
                                         </span>
