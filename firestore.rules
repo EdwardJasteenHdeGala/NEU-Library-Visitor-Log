@@ -6,36 +6,52 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    // Optimized admin check - avoid recursion by separating profile access logic
+    // Optimized admin check - avoids recursion by using token email first
+    // and ensuring profile lookup is safe.
     function isAnyAdmin() {
+      let email = request.auth.token.email;
       return isSignedIn() && (
-        request.auth.token.email == 'edwardjasteen.degala@neu.edu.ph' ||
-        request.auth.token.email == 'jcesperanza@neu.edu.ph' ||
-        get(/databases/$(database)/documents/user_profiles/$(request.auth.uid)).data.role == 'admin'
+        email == 'edwardjasteen.degala@neu.edu.ph' ||
+        email == 'jcesperanza@neu.edu.ph' ||
+        // Defensive check: only use get() if the document exists to avoid evaluation errors
+        (exists(/databases/$(database)/documents/user_profiles/$(request.auth.uid)) && 
+         get(/databases/$(database)/documents/user_profiles/$(request.auth.uid)).data.role == 'admin')
       );
     }
 
     // Collection: user_profiles
     match /user_profiles/{userId} {
-      // Rule 1: User can always read their own profile without recursive checks
-      allow get: if isSignedIn() && request.auth.uid == userId;
+      // Users can always read and update their own profile
+      allow get, update: if isSignedIn() && request.auth.uid == userId;
       
-      // Rule 2: Admins can read all profiles
-      allow get, list: if isAnyAdmin();
-      
-      // Rule 3: Allow authenticated users to list profiles to support the invitation/claiming mechanism
-      // (Used in use-auth.tsx to find pre-authorized email profiles)
-      allow list: if isSignedIn();
+      // Admins can manage all profiles
+      // We use a more direct check here to avoid recursion within the same collection
+      allow get, list, update, delete: if isSignedIn() && (
+        request.auth.token.email == 'edwardjasteen.degala@neu.edu.ph' ||
+        request.auth.token.email == 'jcesperanza@neu.edu.ph' ||
+        (exists(/databases/$(database)/documents/user_profiles/$(request.auth.uid)) && 
+         get(/databases/$(database)/documents/user_profiles/$(request.auth.uid)).data.role == 'admin')
+      );
+
+      // Support for the invitation/claiming mechanism
+      allow list: if isSignedIn() && (
+        resource.data.email == request.auth.token.email || 
+        request.auth.uid == userId
+      );
 
       allow create: if isSignedIn() && request.auth.uid == userId;
-      allow update: if isSignedIn() && (request.auth.uid == userId || isAnyAdmin());
-      allow delete: if isAnyAdmin();
     }
 
     // Collection: visits
     match /visits/{visitId} {
-      // Allow read (get and list) for all authenticated users to enable occupancy telemetry and personal logs.
-      allow get, list: if isSignedIn();
+      // Allow read (get and list) if the user is an admin OR if they are accessing their own data.
+      // For listing, this requires the client to filter by userId.
+      allow list: if isSignedIn() && (
+        isAnyAdmin() || 
+        (request.query.limit <= 50 && resource.data.userId == request.auth.uid)
+      );
+      
+      allow get: if isSignedIn() && (isAnyAdmin() || resource.data.userId == request.auth.uid);
       
       // Users can only create logs for themselves.
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
