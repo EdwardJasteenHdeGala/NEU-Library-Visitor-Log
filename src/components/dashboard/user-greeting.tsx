@@ -523,7 +523,7 @@ export function UserGreeting() {
                           category === 'emergency' ? "text-red-900" : 
                           category === 'institutional' ? "text-amber-900" : 
                           "text-blue-900"
-                        )}>{category} Priority</p>
+                        )}>{category} Protocol</p>
                         <p className="text-[8px] font-medium opacity-60">Manual override active</p>
                       </div>
                     </div>
