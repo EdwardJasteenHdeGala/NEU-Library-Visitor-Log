@@ -53,11 +53,10 @@ service cloud.firestore {
     match /visits/{visitId} {
       /**
        * Secure List Access:
-       * 1. Admins see everything.
-       * 2. Authenticated institutional members can perform list operations for telemetry and personal history.
+       * 1. All signed-in users can perform list operations to see occupancy telemetry
+       *    and their own personal visit history.
        */
-      allow list: if isSignedIn();
-      allow get: if isSignedIn();
+      allow read: if isSignedIn();
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow update, delete: if isAnyAdmin();
     }
