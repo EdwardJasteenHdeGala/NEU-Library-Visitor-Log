@@ -15,9 +15,10 @@ const firebaseConfig = {
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const auth = getAuth(app);
 const db = getFirestore(app);
+
+// Google Provider configuration
 const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({
-  hd: 'neu.edu.ph',
   prompt: 'select_account'
 });
 
