@@ -1,142 +1,144 @@
-
 {
   "entities": {
-    "UserProfile": {
+    "User": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "UserProfile",
+      "title": "User",
       "type": "object",
-      "description": "Represents a user's profile within the NEU Access Hub.",
+      "description": "Stores user profile information for the NEU Access Hub, including institutional email, student ID, role, and department. This entity is used for authentication and role-based access control.",
       "properties": {
-        "id": { "type": "string" },
-        "email": { "type": "string", "format": "email" },
-        "studentId": { "type": "string" },
-        "role": { "type": "string", "enum": ["guest", "user", "admin"] },
-        "isAuthorizedAdmin": { "type": "boolean" },
-        "isSuperAdmin": { "type": "boolean" },
-        "college": { "type": "string" },
-        "displayName": { "type": "string" },
-        "photoURL": { "type": "string" },
-        "createdAt": { "type": "string", "format": "date-time" },
-        "updatedAt": { "type": "string", "format": "date-time" },
-        "theme": { "type": "string", "enum": ["light", "dark"], "default": "light" }
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the User entity."
+        },
+        "email": {
+          "type": "string",
+          "description": "The user's institutional email address (e.g., from the 'neu.edu.ph' domain).",
+          "format": "email"
+        },
+        "studentId": {
+          "type": "string",
+          "description": "The user's unique student identification number, used for login and identification."
+        },
+        "role": {
+          "type": "string",
+          "description": "The assigned role of the user within the application (e.g., 'user', 'admin', 'professor'), determining access privileges."
+        },
+        "department": {
+          "type": "string",
+          "description": "The academic department or college the user is affiliated with."
+        }
       },
-      "required": ["id", "email", "role", "createdAt", "updatedAt"]
+      "required": [
+        "id",
+        "email",
+        "studentId",
+        "role",
+        "department"
+      ]
     },
     "Visit": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Visit",
       "type": "object",
-      "description": "Records details of a visitor's entry and exit.",
+      "description": "Records individual visits to the NEU Library, including details about the visitor, their purpose, and the timestamp of their entry. This entity supports tracking library usage.",
       "properties": {
-        "id": { "type": "string" },
-        "userId": { "type": "string" },
-        "userName": { "type": "string" },
-        "college": { "type": "string" },
-        "roleAtTime": { "type": "string", "enum": ["guest", "user", "admin"] },
-        "purpose": { "type": "string" },
-        "timestamp": { "type": "string", "format": "date-time" },
-        "exitTimestamp": { "type": "string", "format": "date-time" },
-        "durationMinutes": { "type": "number" },
-        "academicYear": { "type": "string" }
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Visit entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The full name of the visitor."
+        },
+        "college": {
+          "type": "string",
+          "description": "The college or institutional affiliation of the visitor at the time of the visit."
+        },
+        "role": {
+          "type": "string",
+          "description": "The role of the visitor during this specific visit (e.g., 'student', 'faculty', 'guest')."
+        },
+        "purpose": {
+          "type": "string",
+          "description": "The stated purpose or reason for the visit to the library."
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "The date and time when the visit was recorded.",
+          "format": "date-time"
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to the User entity if the visitor is an authenticated user. (Relationship: User 1:N Visit)"
+        }
       },
-      "required": ["id", "userId", "userName", "purpose", "timestamp"]
-    },
-    "AuditLog": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "AuditLog",
-      "type": "object",
-      "description": "Administrative action logs.",
-      "properties": {
-        "id": { "type": "string" },
-        "adminId": { "type": "string" },
-        "adminName": { "type": "string" },
-        "action": { "type": "string" },
-        "details": { "type": "string" },
-        "timestamp": { "type": "string", "format": "date-time" }
-      },
-      "required": ["adminId", "action", "timestamp"]
-    },
-    "Notification": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Notification",
-      "type": "object",
-      "description": "User notifications.",
-      "properties": {
-        "id": { "type": "string" },
-        "userId": { "type": "string" },
-        "title": { "type": "string" },
-        "message": { "type": "string" },
-        "read": { "type": "boolean" },
-        "timestamp": { "type": "string", "format": "date-time" }
-      },
-      "required": ["userId", "title", "message", "timestamp"]
-    },
-    "LibraryConfig": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "LibraryConfig",
-      "type": "object",
-      "description": "Global institutional library state.",
-      "properties": {
-        "mode": { "type": "string", "enum": ["automatic", "manual"] },
-        "manualStatus": { "type": "string", "enum": ["open", "closed"] },
-        "manualReason": { "type": "string" },
-        "updatedAt": { "type": "string", "format": "date-time" }
-      }
+      "required": [
+        "id",
+        "name",
+        "college",
+        "role",
+        "purpose",
+        "timestamp"
+      ]
     }
   },
   "auth": {
-    "providers": ["google.com"]
+    "providers": [
+      "password",
+      "anonymous"
+    ]
   },
   "firestore": {
     "structure": [
       {
-        "path": "/user_profiles/{userId}",
+        "path": "/users/{userId}",
         "definition": {
-          "entityName": "UserProfile",
-          "schema": { "$ref": "#/backend/entities/UserProfile" },
-          "description": "User profiles."
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores individual user profiles including their institutional email, student ID, department, and an application-level role. Each user can read/write their own document. The 'role' field here is for UI/application logic; security-rule-level roles are handled via the '/roles_admin/{userId}' collection to ensure Authorization Independence.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique ID of the user, derived from Firebase Authentication's request.auth.uid."
+            }
+          ]
         }
       },
       {
         "path": "/visits/{visitId}",
         "definition": {
           "entityName": "Visit",
-          "schema": { "$ref": "#/backend/entities/Visit" },
-          "description": "Library visits."
+          "schema": {
+            "$ref": "#/backend/entities/Visit"
+          },
+          "description": "Contains all library visit logs, including visitor details, purpose, and timestamp. Access to this collection is restricted to users with the 'admin' role, as verified by the '/roles_admin/{userId}' collection. The 'userId' field links a visit to an authenticated user for data purposes, but is not used for authorization in this collection.",
+          "params": [
+            {
+              "name": "visitId",
+              "description": "The unique ID of the library visit record."
+            }
+          ]
         }
       },
       {
-        "path": "/audit_logs/{logId}",
+        "path": "/roles_admin/{userId}",
         "definition": {
-          "entityName": "AuditLog",
-          "schema": { "$ref": "#/backend/entities/AuditLog" },
-          "description": "Administrative audit trail."
-        }
-      },
-      {
-        "path": "/notifications/{notificationId}",
-        "definition": {
-          "entityName": "Notification",
-          "schema": { "$ref": "#/backend/entities/Notification" },
-          "description": "User notifications."
-        }
-      },
-      {
-        "path": "/feedback/{feedbackId}",
-        "definition": {
-          "entityName": "Feedback",
-          "schema": { "$ref": "#/backend/entities/Feedback" },
-          "description": "User feedback."
-        }
-      },
-      {
-        "path": "/library_config/{configId}",
-        "definition": {
-          "entityName": "LibraryConfig",
-          "schema": { "$ref": "#/backend/entities/LibraryConfig" },
-          "description": "Institutional operational state."
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "A dedicated collection for defining global administrator roles. The mere existence of a document at '/roles_admin/{userId}' grants the corresponding user (whose ID matches 'userId') admin privileges. This structure ensures Authorization Independence by allowing security rules to check for admin status via an efficient 'exists()' call, rather than fetching user profile data. Documents in this collection are minimalist, serving as markers.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique ID of the user who possesses the admin role, matching request.auth.uid for security rule evaluations."
+            }
+          ]
         }
       }
-    ]
+    ],
+    "reasoning": "The Firestore structure is designed to be secure, scalable, and highly debuggable, strictly adhering to the core design principles, especially Authorization Independence and Query as Predicate (QAP).\n\n1.  **User Profiles (`/users/{userId}`):**\n    *   This collection stores the core profile information for each user, indexed by their Firebase Authentication `uid`. This includes their `email`, `studentId`, `department`, and an application-level `role` (e.g., 'user', 'admin', 'professor').\n    *   **Authorization Independence & QAPs:** Access to a user's *own* profile document is straightforward; security rules are path-based, matching `request.auth.uid` with `{userId}`. This makes read/write operations for individual users highly efficient and secure. Since `userId` is part of the path, `list` queries scoped to the authenticated user's ID are inherently secure and satisfy QAPs.\n    *   The `role` field within this document is primarily for application logic and UI presentation (e.g., displaying a "
   }
 }
