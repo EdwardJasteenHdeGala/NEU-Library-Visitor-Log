@@ -6,7 +6,7 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    // Optimized admin check to avoid recursive loops in user_profiles
+    // Optimized admin check
     function isAnyAdmin() {
       return isSignedIn() && (
         request.auth.token.email == 'edwardjasteen.degala@neu.edu.ph' ||
@@ -16,8 +16,8 @@ service cloud.firestore {
 
     // Collection: user_profiles
     match /user_profiles/{userId} {
-      // Avoid recursive isAnyAdmin check for self-access
-      allow get: if isSignedIn() && (request.auth.uid == userId || (request.auth.token.email == 'edwardjasteen.degala@neu.edu.ph' || get(/databases/$(database)/documents/user_profiles/$(request.auth.uid)).data.role == 'admin'));
+      // Users can always read their own profile; Admins can read all profiles.
+      allow get: if isSignedIn() && (request.auth.uid == userId || isAnyAdmin());
       allow list: if isAnyAdmin();
       allow create: if isSignedIn() && request.auth.uid == userId;
       allow update: if isSignedIn() && (request.auth.uid == userId || isAnyAdmin());
@@ -26,17 +26,18 @@ service cloud.firestore {
 
     // Collection: visits
     match /visits/{visitId} {
-      // Explicitly allow list and get for all authenticated users
-      // Required for real-time occupancy tracking and personal log history
-      allow list, get: if isSignedIn();
+      // Allow list and get for all authenticated users to enable occupancy telemetry and personal logs.
+      allow read: if isSignedIn();
+      // Users can only create logs for themselves.
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      // Only admins can modify or purge the registry.
       allow update, delete: if isAnyAdmin();
     }
 
     // Collection: library_config
     match /library_config/{configId} {
-      // Essential for all users to see institutional operational state (Open/Closed)
-      allow get, list: if isSignedIn();
+      // Institutional state must be visible to all portal members.
+      allow read: if isSignedIn();
       allow write: if isAnyAdmin();
     }
 

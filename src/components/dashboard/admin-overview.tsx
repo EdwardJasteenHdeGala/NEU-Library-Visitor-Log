@@ -33,12 +33,13 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
 
   // Real-time queries for telemetry - strictly guarded by isAdmin state to prevent permission errors for non-admins
   const recentVisitsQuery = useMemoFirebase(() => {
-    // Only initiate broad collection list if explicitly authorized
+    // Only initiate broad collection list if explicitly authorized as admin
     if (!isAdmin || !firestore) return null;
     return query(collection(firestore, 'visits'), orderBy('timestamp', 'desc'), limit(15));
   }, [firestore, isAdmin]);
 
   const occupancyQuery = useMemoFirebase(() => {
+    // Only initiate broad collection list if explicitly authorized as admin
     if (!isAdmin || !firestore) return null;
     return query(collection(firestore, 'visits'), where('exitTimestamp', '==', null));
   }, [firestore, isAdmin]);
