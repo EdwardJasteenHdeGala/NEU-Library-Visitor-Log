@@ -446,7 +446,7 @@ export function UserGreeting() {
                           </p>
                         </div>
                       </div>
-                      <div className="flex flex-col sm:flex-row gap-6 w-full max-w-md">
+                      <div className="flex flex-col sm:flex-row gap-6 w-full max-md">
                         <Button 
                           onClick={handleCheckOut} 
                           disabled={isLogging}
