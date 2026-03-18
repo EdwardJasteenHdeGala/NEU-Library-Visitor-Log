@@ -1,4 +1,3 @@
-
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,12 +28,12 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
   const { profile, loading: authLoading } = useAuth();
   const status = useLibraryStatus();
   
-  // Robust admin check - only proceed if profile is definitely loaded and user is admin
-  const isAdmin = !authLoading && (profile?.role === 'admin' || profile?.isSuperAdmin);
+  // Robust admin check - only proceed if profile is definitely loaded and user is explicitly an admin
+  const isAdmin = !authLoading && profile && (profile.role === 'admin' || profile.isSuperAdmin);
 
-  // Real-time queries for telemetry - strictly guarded by isAdmin state
+  // Real-time queries for telemetry - strictly guarded by isAdmin state to prevent permission errors for non-admins
   const recentVisitsQuery = useMemoFirebase(() => {
-    // Only fetch if explicitly authorized and profile is loaded.
+    // Only initiate broad collection list if explicitly authorized
     if (!isAdmin || !firestore) return null;
     return query(collection(firestore, 'visits'), orderBy('timestamp', 'desc'), limit(15));
   }, [firestore, isAdmin]);
@@ -49,7 +48,7 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
 
   const effectiveOccupancy = activeVisits?.length || 0;
 
-  // If not admin, show a simplified dashboard or restricted view
+  // Defensive rendering for non-admin users who might reach this component during state transitions
   if (!isAdmin && !authLoading) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center space-y-4 animate-in fade-in duration-500">

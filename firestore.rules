@@ -1,11 +1,12 @@
-
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Utility functions
     function isSignedIn() {
       return request.auth != null;
     }
 
+    // Optimized admin check to avoid recursive loops in user_profiles
     function isAnyAdmin() {
       return isSignedIn() && (
         request.auth.token.email == 'edwardjasteen.degala@neu.edu.ph' ||
@@ -13,14 +14,17 @@ service cloud.firestore {
       );
     }
 
+    // Collection: user_profiles
     match /user_profiles/{userId} {
-      allow get: if isSignedIn() && (request.auth.uid == userId || isAnyAdmin());
+      // Avoid recursive isAnyAdmin check for self-access
+      allow get: if isSignedIn() && (request.auth.uid == userId || (request.auth.token.email == 'edwardjasteen.degala@neu.edu.ph' || get(/databases/$(database)/documents/user_profiles/$(request.auth.uid)).data.role == 'admin'));
       allow list: if isAnyAdmin();
       allow create: if isSignedIn() && request.auth.uid == userId;
       allow update: if isSignedIn() && (request.auth.uid == userId || isAnyAdmin());
       allow delete: if isAnyAdmin();
     }
 
+    // Collection: visits
     match /visits/{visitId} {
       // Explicitly allow list and get for all authenticated users
       // Required for real-time occupancy tracking and personal log history
@@ -29,6 +33,14 @@ service cloud.firestore {
       allow update, delete: if isAnyAdmin();
     }
 
+    // Collection: library_config
+    match /library_config/{configId} {
+      // Essential for all users to see institutional operational state (Open/Closed)
+      allow get, list: if isSignedIn();
+      allow write: if isAnyAdmin();
+    }
+
+    // Collection: feedback
     match /feedback/{feedbackId} {
       allow list: if isAnyAdmin();
       allow get: if isSignedIn() && (isAnyAdmin() || resource.data.userId == request.auth.uid);
@@ -36,21 +48,16 @@ service cloud.firestore {
       allow update, delete: if isAnyAdmin();
     }
 
+    // Collection: audit_logs
     match /audit_logs/{logId} {
-      allow read: if isAnyAdmin();
-      allow create: if isAnyAdmin();
+      allow read, create: if isAnyAdmin();
     }
 
+    // Collection: notifications
     match /notifications/{notificationId} {
       allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
       allow create: if isAnyAdmin();
       allow update: if isSignedIn() && resource.data.userId == request.auth.uid;
-    }
-
-    match /library_config/{configId} {
-      // Allow all authenticated users to read the institutional operational state
-      allow get, list: if isSignedIn();
-      allow write: if isAnyAdmin();
     }
   }
 }
