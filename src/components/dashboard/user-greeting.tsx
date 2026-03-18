@@ -6,7 +6,6 @@ import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
-  Library, 
   LogOut, 
   CheckCircle2, 
   ShieldCheck, 
@@ -17,7 +16,6 @@ import {
   X, 
   Settings, 
   Loader2,
-  Users,
   Activity
 } from "lucide-react";
 import Image from "next/image";
@@ -94,16 +92,9 @@ export function UserGreeting() {
     );
   }, [profile, firestore]);
 
-  const occupancyQuery = useMemoFirebase(() => {
-    if (!firestore) return null;
-    return query(collection(firestore, 'visits'), where('exitTimestamp', '==', null));
-  }, [firestore]);
-
   const { data: visits } = useCollection(activeVisitQuery);
-  const { data: activeVisits } = useCollection(occupancyQuery);
 
   const activeVisit = visits && visits[0] && !visits[0].exitTimestamp ? visits[0] : null;
-  const currentOccupancy = activeVisits?.length || 0;
 
   const handleCheckIn = () => {
     if (!purpose || !profile || !firestore || !currentCollege) {
@@ -282,16 +273,6 @@ export function UserGreeting() {
             </div>
 
             <aside className="lg:col-span-4 space-y-8 lg:sticky lg:top-24">
-              <Card className="shadow-sm border-border rounded-xl bg-white">
-                <CardHeader className="bg-primary text-white p-6"><CardTitle className="text-[10px] font-bold flex items-center gap-2 uppercase tracking-widest"><Library className="h-4 w-4 text-secondary" /> Telemetry</CardTitle></CardHeader>
-                <CardContent className="p-8 space-y-8">
-                  <div className="flex items-center gap-5 p-5 bg-slate-50 border rounded-xl shadow-inner">
-                    <div className="p-3 rounded-xl bg-primary/10"><Users className="h-6 w-6 text-primary" /></div>
-                    <div><p className="text-[9px] font-bold text-muted-foreground uppercase mb-1">Occupancy</p><p className="text-sm font-bold text-slate-700">{currentOccupancy} Members</p></div>
-                  </div>
-                  <div className="text-green-600 font-bold text-[9px] uppercase tracking-widest flex items-center gap-2"><div className="h-2 w-2 bg-green-500 rounded-full animate-pulse" /> Secure Sync Active</div>
-                </CardContent>
-              </Card>
               <LiveClock className="shadow-sm border-border bg-white p-8 !flex-col !items-start rounded-xl" showSelector={false} />
             </aside>
           </div>

@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { 
   ArrowLeft, 
-  Users, 
   Info, 
   ShieldCheck, 
   MapPin, 
@@ -14,14 +13,10 @@ import {
   Mail,
   LogIn,
   AlertCircle,
-  Activity,
   Megaphone
 } from "lucide-react";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
-import { cn } from "@/lib/utils";
-import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
-import { collection, query, where } from "firebase/firestore";
 
 interface GuestViewProps {
   onBack: () => void;
@@ -31,19 +26,6 @@ interface GuestViewProps {
 export function GuestView({ onBack, onLogin }: GuestViewProps) {
   const coverImage = PlaceHolderImages.find(img => img.id === 'neu-cover');
   const logoImage = PlaceHolderImages.find(img => img.id === 'neu-logo');
-  const firestore = useFirestore();
-
-  // Real-time occupancy tracking for Guests
-  const activeVisitsQuery = useMemoFirebase(() => {
-    if (!firestore) return null;
-    return query(collection(firestore, 'visits'), where('exitTimestamp', '==', null));
-  }, [firestore]);
-
-  const { data: activeVisits } = useCollection(activeVisitsQuery);
-
-  const currentOccupancy = activeVisits?.length || 0;
-  const maxCapacity = 150;
-  const occupancyPercentage = (currentOccupancy / maxCapacity) * 100;
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
@@ -94,7 +76,7 @@ export function GuestView({ onBack, onLogin }: GuestViewProps) {
                 Library Resource Center
               </h1>
               <p className="text-xl text-muted-foreground leading-relaxed max-w-3xl font-medium">
-                Welcome to the official visitor information portal. Access real-time facility telemetry, institutional protocols, and academic resource guidelines.
+                Welcome to the official visitor information portal. Access institutional protocols, academic resource guidelines, and official announcements.
               </p>
             </div>
 
@@ -117,32 +99,9 @@ export function GuestView({ onBack, onLogin }: GuestViewProps) {
                 </div>
               </div>
               <CardContent className="p-10 bg-white">
-                <div className="space-y-8">
-                  <div className="flex items-center gap-3">
-                    <Activity className="h-5 w-5 text-primary/60" />
-                    <h4 className="font-bold text-[10px] uppercase tracking-widest text-slate-500">Live Population Telemetry</h4>
-                  </div>
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-end">
-                      <span className="text-5xl font-bold tracking-tighter italic text-primary">
-                        {currentOccupancy} 
-                        <span className="text-2xl font-medium text-slate-300 ml-3">/ {maxCapacity}</span>
-                      </span>
-                      <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5">
-                        {Math.round(occupancyPercentage)}% Utilized
-                      </span>
-                    </div>
-                    <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden border shadow-inner">
-                        <div 
-                          className="h-full bg-primary transition-all duration-1000 ease-in-out"
-                          style={{ width: `${occupancyPercentage}%` }}
-                        />
-                    </div>
-                    <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest italic text-right">
-                       Capacity Limit: 150 Individuals
-                    </p>
-                  </div>
-                </div>
+                <p className="text-sm text-muted-foreground leading-relaxed italic">
+                  New Era University provides state-of-the-art library facilities for its students and authorized guests. Please log in to the portal to manage your visit logs and access institutional resources.
+                </p>
               </CardContent>
             </Card>
 
@@ -157,7 +116,7 @@ export function GuestView({ onBack, onLogin }: GuestViewProps) {
                 <ul className="space-y-4">
                   {[
                     { text: 'Institutional ID Required', icon: Info },
-                    { text: 'Digital Registry Entry', icon: Activity },
+                    { text: 'Digital Registry Entry', icon: LogIn },
                     { text: 'Academic Silence Protocol', icon: Megaphone },
                     { text: 'No Outside Food Permitted', icon: AlertCircle }
                   ].map((rule, i) => (
@@ -233,11 +192,6 @@ export function GuestView({ onBack, onLogin }: GuestViewProps) {
                     <p className="font-bold text-slate-800 text-base tracking-tight underline">library@neu.edu.ph</p>
                   </div>
                 </div>
-              </div>
-              <div className="pt-4 text-center">
-                 <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.2em] italic">
-                   New Era University Main Campus
-                 </p>
               </div>
             </Card>
           </aside>

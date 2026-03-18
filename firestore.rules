@@ -53,10 +53,11 @@ service cloud.firestore {
     match /visits/{visitId} {
       /**
        * Secure Registry Access:
-       * All signed-in users can read (list and get) visits to see 
-       * occupancy telemetry and their own log history.
+       * Admins can list all visits.
+       * Regular users can only list their own visits (requires userId filter in query).
        */
-      allow read: if isSignedIn();
+      allow list: if isSignedIn() && (isAnyAdmin() || request.query.filters.userId == request.auth.uid);
+      allow get: if isSignedIn() && (isAnyAdmin() || resource.data.userId == request.auth.uid);
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow update, delete: if isAnyAdmin();
     }
