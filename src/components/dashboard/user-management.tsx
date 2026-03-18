@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { 
@@ -25,7 +25,8 @@ import {
   ChevronDown,
   ChevronUp,
   Clock,
-  CalendarDays
+  CalendarDays,
+  History
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { collection, query, orderBy } from "firebase/firestore";
@@ -72,7 +73,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 const NEU_COLLEGES = [
   { id: "CICS", name: "Computer & Info Sciences" },
@@ -317,7 +317,7 @@ export function UserManagement({ onBack }: UserManagementProps) {
               <TableRow><TableCell colSpan={6} className="text-center py-8">Loading Directory...</TableCell></TableRow>
             ) : filteredUsers.length === 0 ? (
               <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground italic">No users matching search criteria.</TableCell></TableRow>
-            ) : filteredUsers.map((u, i) => {
+            ) : filteredUsers.map((u) => {
               const userInitials = u.displayName
                 ?.split(' ')
                 .map((n: string) => n[0])
