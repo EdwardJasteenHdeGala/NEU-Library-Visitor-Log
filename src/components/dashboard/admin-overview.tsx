@@ -6,7 +6,8 @@ import {
   History, 
   LayoutDashboard, 
   Activity,
-  Clock
+  Clock,
+  XCircle
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { collection, limit, orderBy, query, where } from "firebase/firestore";
@@ -27,10 +28,12 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
   const { profile } = useAuth();
   const status = useLibraryStatus();
   
+  // Robust admin check
   const isAdmin = profile?.role === 'admin' || profile?.isSuperAdmin;
 
   // Real-time queries for telemetry - strictly guarded by isAdmin
   const recentVisitsQuery = useMemoFirebase(() => {
+    // Only fetch if explicitly authorized. This prevents permission errors for non-admin users.
     if (!isAdmin || !firestore) return null;
     return query(collection(firestore, 'visits'), orderBy('timestamp', 'desc'), limit(15));
   }, [firestore, isAdmin]);
@@ -40,10 +43,23 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
     return query(collection(firestore, 'visits'), where('exitTimestamp', '==', null));
   }, [firestore, isAdmin]);
 
-  const { data: recentVisits } = useCollection(recentVisitsQuery);
+  const { data: recentVisits, isLoading: isLoadingRecent } = useCollection(recentVisitsQuery);
   const { data: activeVisits } = useCollection(occupancyQuery);
 
   const effectiveOccupancy = activeVisits?.length || 0;
+
+  // If not admin, show a simplified dashboard or restricted view
+  if (!isAdmin) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
+        <XCircle className="h-12 w-12 text-destructive opacity-20" />
+        <h2 className="text-xl font-bold text-primary">Access Restricted</h2>
+        <p className="text-muted-foreground text-sm max-w-xs">
+          The institutional overview is reserved for authorized administrators. Please use your member portal.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -121,10 +137,12 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {recentVisits?.length === 0 ? (
+                {isLoadingRecent ? (
+                  <TableRow><TableCell colSpan={4} className="text-center py-20 animate-pulse text-[10px] uppercase">Syncing Registry...</TableCell></TableRow>
+                ) : recentVisits?.length === 0 ? (
                   <TableRow><TableCell colSpan={4} className="text-center py-20 italic text-[10px] uppercase">No Logs Recorded</TableCell></TableRow>
                 ) : recentVisits?.map((visit, i) => (
-                  <TableRow key={i} className="hover:bg-slate-50 transition-colors">
+                  <TableRow key={visit.id} className="hover:bg-slate-50 transition-colors">
                     <TableCell className="font-bold px-6 text-xs">{visit.userName}</TableCell>
                     <TableCell className="text-[9px] font-bold text-primary/70 uppercase">{visit.college}</TableCell>
                     <TableCell>

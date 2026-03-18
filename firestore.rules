@@ -40,11 +40,10 @@ service cloud.firestore {
     match /visits/{visitId} {
       /**
        * Registry Access:
-       * For development stability, we allow all signed-in users to list the collection.
-       * In production, queries should still use userId filters for performance.
+       * We allow all signed-in users to list the collection.
+       * This is required for real-time occupancy stats and personal history tracking.
        */
-      allow list: if isSignedIn();
-      allow get: if isSignedIn() && (isAnyAdmin() || resource.data.userId == request.auth.uid);
+      allow read: if isSignedIn();
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow update, delete: if isAnyAdmin();
     }
