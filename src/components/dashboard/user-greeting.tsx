@@ -492,7 +492,9 @@ export function UserGreeting() {
 
                   <div className="flex items-center gap-5 p-5 bg-slate-50 border rounded-xl shadow-inner">
                     <div className={cn("p-3 rounded-xl shadow-sm", currentOccupancy > 0 ? "bg-primary/10" : "bg-slate-200")}>
-                      <Users className={cn("h-6 w-6", currentOccupancy > 0 ? "text-primary" : "text-slate-400")} />
+                      <span className="flex items-center justify-center">
+                        <Users className={cn("h-6 w-6", currentOccupancy > 0 ? "text-primary" : "text-slate-400")} />
+                      </span>
                     </div>
                     <div className="leading-tight">
                       <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Live Population</p>
