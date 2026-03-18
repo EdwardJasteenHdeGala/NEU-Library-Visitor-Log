@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -21,7 +20,8 @@ import {
   ShieldAlert,
   Power,
   RotateCcw,
-  MessageSquare
+  MessageSquare,
+  XCircle
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { 
@@ -53,6 +53,7 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useLibraryStatus } from "@/hooks/use-library-status";
 import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
 
 interface AdminOverviewProps {
   onNavigate?: (view: any) => void;
