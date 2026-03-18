@@ -19,11 +19,19 @@ service cloud.firestore {
     }
 
     function isAnyAdmin() {
-      return isBootstrapAdmin() || (isSignedIn() && exists(/databases/$(database)/documents/user_profiles/$(request.auth.uid)) && (getUserData().role == 'admin' || getUserData().isSuperAdmin == true));
+      return isBootstrapAdmin() || (
+        isSignedIn() && 
+        exists(/databases/$(database)/documents/user_profiles/$(request.auth.uid)) && 
+        (getUserData().role == 'admin' || getUserData().isSuperAdmin == true)
+      );
     }
 
     function isSuperAdmin() {
-      return isBootstrapAdmin() || (isSignedIn() && exists(/databases/$(database)/documents/user_profiles/$(request.auth.uid)) && getUserData().isSuperAdmin == true);
+      return isBootstrapAdmin() || (
+        isSignedIn() && 
+        exists(/databases/$(database)/documents/user_profiles/$(request.auth.uid)) && 
+        getUserData().isSuperAdmin == true
+      );
     }
 
     match /user_profiles/{userId} {
@@ -35,8 +43,9 @@ service cloud.firestore {
     }
 
     match /visits/{visitId} {
-      // Essential for occupancy telemetry and personal logs
-      allow read: if isSignedIn(); 
+      // Essential for occupancy telemetry (listing active visits) and personal logs
+      allow list: if isSignedIn();
+      allow get: if isSignedIn() && (isAnyAdmin() || resource.data.userId == request.auth.uid);
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow update, delete: if isAnyAdmin();
     }
