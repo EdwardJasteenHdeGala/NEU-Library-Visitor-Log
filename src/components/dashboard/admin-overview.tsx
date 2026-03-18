@@ -90,7 +90,7 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
     setTimeout(() => {
       setIsUpdatingStatus(false);
       toast({
-        title: mode === 'automatic' ? "Automatic Mode Restored" : `Manual ${status?.toUpperCase()} Active`,
+        title: mode === 'automatic' ? "System Schedule Restored" : `Manual Control Active`,
         description: "The institutional access protocol has been updated.",
       });
       if (mode === 'automatic') {
@@ -105,22 +105,14 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div className="space-y-1">
           <div className="flex items-center gap-2 text-primary/60 text-[10px] font-bold uppercase tracking-widest">
-            <LayoutDashboard className="h-3.5 w-3.5" />
-            Institutional Overview
+            <LayoutDashboard className="h-3.5 w-3.5" /> Institutional Overview
           </div>
           <h2 className="text-3xl font-bold tracking-tight text-slate-900 uppercase italic">Admin Console</h2>
-          <div className="flex items-center gap-2">
-            <div className={cn("h-2 w-2 rounded-full", isOpen ? "bg-green-500 animate-pulse" : "bg-red-500")} />
-            <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">
-              Library {label} • {nextEvent}
-            </p>
-          </div>
+          <div className="flex items-center gap-2"><div className={cn("h-2 w-2 rounded-full", isOpen ? "bg-green-500 animate-pulse" : "bg-red-500")} /><p className="text-[10px] text-muted-foreground font-bold uppercase">Library {label}</p></div>
         </div>
         <div className="bg-white border rounded-lg p-2 px-4 flex items-center gap-3 shadow-sm">
           {isOpen ? <DoorOpen className="h-4 w-4 text-green-600" /> : <DoorClosed className="h-4 w-4 text-red-600" />}
-          <span className={cn("text-[10px] font-bold uppercase tracking-widest", isOpen ? "text-green-600" : "text-red-600")}>
-            Status: {label}
-          </span>
+          <span className={cn("text-[10px] font-bold uppercase", isOpen ? "text-green-600" : "text-red-600")}>Status: {label}</span>
         </div>
       </div>
 
@@ -134,50 +126,30 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
               </CardHeader>
               <CardContent>
                 <div className="flex items-baseline gap-2">
-                  <span className={cn("text-3xl font-bold tracking-tight", !isOpen ? "text-red-600" : effectiveOccupancy > 0 ? "text-green-600" : "text-slate-400")}>
-                    {!isOpen ? "Restricted" : effectiveOccupancy}
-                  </span>
-                  {isOpen && (
-                    <span className="text-[10px] font-bold text-muted-foreground uppercase">
-                      {effectiveOccupancy === 1 ? 'Person' : 'People'}
-                    </span>
-                  )}
+                  <span className={cn("text-3xl font-bold tracking-tight", !isOpen ? "text-red-600" : "text-slate-900")}>{!isOpen ? "Restricted" : effectiveOccupancy}</span>
+                  {isOpen && <span className="text-[10px] font-bold text-muted-foreground uppercase">Members</span>}
                 </div>
-                <p className="text-[9px] font-bold text-muted-foreground uppercase mt-1">
-                  {!isOpen ? "Facility Logging Disabled" : effectiveOccupancy === 0 ? "No one inside" : "Active Session Tracking"}
-                </p>
               </CardContent>
             </Card>
-
             <Card className="shadow-sm border-border rounded-xl">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Next Shift</span>
-                <Clock className="h-4 w-4 text-primary/60" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-xl font-bold text-primary truncate">{nextEvent}</div>
-                <p className="text-[9px] font-bold text-muted-foreground uppercase mt-1 italic">System Schedule</p>
-              </CardContent>
-            </Card>
-
-            <Card className="shadow-sm border-border rounded-xl bg-slate-50/50">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Registry State</span>
                 <Activity className="h-4 w-4 text-primary/60" />
               </CardHeader>
-              <CardContent>
-                <div className="text-xl font-bold text-green-600 uppercase tracking-tight">Healthy</div>
-                <p className="text-[9px] font-bold text-muted-foreground uppercase mt-1">Syncing with Firestore</p>
-              </CardContent>
+              <CardContent><div className="text-xl font-bold text-green-600 uppercase">Healthy</div></CardContent>
+            </Card>
+            <Card className="shadow-sm border-border rounded-xl bg-slate-50/50">
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">System Schedule</span>
+                <Clock className="h-4 w-4 text-primary/60" />
+              </CardHeader>
+              <CardContent><div className="text-sm font-bold text-primary truncate">{nextEvent}</div></CardContent>
             </Card>
           </div>
 
           <Card className="shadow-sm rounded-xl overflow-hidden">
             <CardHeader className="pb-4 border-b p-6 bg-slate-50/50 flex flex-row items-center justify-between">
-              <CardTitle className="text-[10px] font-bold flex items-center gap-2 uppercase tracking-widest">
-                <History className="h-4 w-4 text-primary" />
-                Live Registry History
-              </CardTitle>
+              <CardTitle className="text-[10px] font-bold flex items-center gap-2 uppercase tracking-widest"><History className="h-4 w-4 text-primary" /> Live Registry History</CardTitle>
               <Badge variant="outline" className="text-[9px] font-bold uppercase">{recentVisits?.length || 0} Recent</Badge>
             </CardHeader>
             <CardContent className="p-0">
@@ -185,8 +157,8 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
                 <Table>
                   <TableHeader className="sticky top-0 bg-white z-10 shadow-sm">
                     <TableRow>
-                      <TableHead className="text-[9px] font-bold uppercase tracking-widest px-6">Visitor</TableHead>
-                      <TableHead className="text-[9px] font-bold uppercase tracking-widest">Department</TableHead>
+                      <TableHead className="text-[9px] font-bold uppercase tracking-widest px-6">Member</TableHead>
+                      <TableHead className="text-[9px] font-bold uppercase tracking-widest">Unit</TableHead>
                       <TableHead className="text-[9px] font-bold uppercase tracking-widest">Status</TableHead>
                       <TableHead className="text-[9px] font-bold uppercase tracking-widest px-6 text-right">Timestamp</TableHead>
                     </TableRow>
@@ -212,111 +184,33 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
                 </Table>
               </ScrollArea>
             </CardContent>
-            <CardFooter className="bg-slate-50 border-t p-3 flex justify-center">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => onNavigate?.('visitor-log')}
-                className="text-[9px] font-bold uppercase tracking-widest text-primary gap-2"
-              >
-                Access Full Institutional Registry
-                <ArrowRight className="h-3 w-3" />
-              </Button>
-            </CardFooter>
           </Card>
         </div>
 
         <div className="lg:col-span-4 space-y-8">
           <Card className={cn("shadow-sm border-none rounded-xl overflow-hidden ring-1", isManual ? "ring-amber-500/30 bg-amber-50/50" : "ring-primary/10 bg-white")}>
             <CardHeader className={cn("p-6 text-white flex flex-row items-center justify-between shadow-sm", isManual ? "bg-amber-600" : "bg-primary")}>
-              <div className="flex items-center gap-3">
-                <ShieldAlert className="h-5 w-5" />
-                <CardTitle className="text-[10px] font-bold uppercase tracking-widest">Library Control Protocol</CardTitle>
-              </div>
-              <Settings className="h-4 w-4 opacity-40" />
+              <div className="flex items-center gap-3"><ShieldAlert className="h-5 w-5" /><CardTitle className="text-[10px] font-bold uppercase tracking-widest">Library Control Protocol</CardTitle></div>
             </CardHeader>
             <CardContent className="p-6 space-y-6">
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Current Strategy</span>
-                  <Badge variant={isManual ? "secondary" : "default"} className="text-[8px] font-black uppercase h-5 px-2">
-                    {isManual ? "Manual Override" : "Automatic Schedule"}
-                  </Badge>
-                </div>
-                
-                {isManual && (
-                  <div className="p-4 bg-amber-100/50 border border-amber-200 rounded-lg space-y-2">
-                    <p className="text-[9px] font-bold text-amber-900 uppercase tracking-widest flex items-center gap-2">
-                      <ShieldAlert className="h-3 w-3" /> Priority Access Restricted
-                    </p>
-                    {reason && <p className="text-[10px] font-medium text-amber-800 italic leading-relaxed">"{reason}"</p>}
-                  </div>
-                )}
-
+                <div className="flex items-center justify-between"><span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Mode</span><Badge variant={isManual ? "secondary" : "default"} className="text-[8px] font-black uppercase">{isManual ? "Manual Override" : "System Automatic"}</Badge></div>
+                {isManual && reason && <div className="p-4 bg-amber-100/50 border border-amber-200 rounded-lg"><p className="text-[10px] font-medium text-amber-800 italic">“{reason}”</p></div>}
                 <div className="grid grid-cols-2 gap-3">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => handleOverride('manual', 'open')}
-                    disabled={isUpdatingStatus}
-                    className="h-10 text-[9px] font-bold uppercase tracking-widest gap-2 rounded-lg border-2 hover:bg-green-50 hover:text-green-700 hover:border-green-200 shadow-sm"
-                  >
-                    <Power className="h-3.5 w-3.5" />
-                    Force Open
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => handleOverride('manual', 'closed')}
-                    disabled={isUpdatingStatus}
-                    className="h-10 text-[9px] font-bold uppercase tracking-widest gap-2 rounded-lg border-2 hover:bg-red-50 hover:text-red-700 hover:border-red-200 shadow-sm"
-                  >
-                    <XCircle className="h-3.5 w-3.5" />
-                    Force Close
-                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => handleOverride('manual', 'open')} disabled={isUpdatingStatus} className="h-10 text-[9px] font-bold uppercase tracking-widest gap-2"><Power className="h-3 w-3" /> Force Open</Button>
+                  <Button variant="outline" size="sm" onClick={() => handleOverride('manual', 'closed')} disabled={isUpdatingStatus} className="h-10 text-[9px] font-bold uppercase tracking-widest gap-2"><XCircle className="h-3 w-3" /> Force Close</Button>
                 </div>
-
-                {isManual && (
-                  <Button 
-                    variant="secondary" 
-                    size="sm" 
-                    onClick={() => handleOverride('automatic')}
-                    disabled={isUpdatingStatus}
-                    className="w-full h-10 text-[9px] font-bold uppercase tracking-widest gap-2 rounded-lg shadow-md"
-                  >
-                    <RotateCcw className="h-3.5 w-3.5" />
-                    Restore System Schedule
-                  </Button>
-                )}
+                {isManual && <Button variant="secondary" size="sm" onClick={() => handleOverride('automatic')} disabled={isUpdatingStatus} className="w-full h-10 text-[9px] font-bold uppercase gap-2"><RotateCcw className="h-3 w-3" /> Restore Schedule</Button>}
               </div>
-
               <div className="space-y-4 pt-6 border-t">
-                <div className="space-y-1.5">
-                  <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
-                    <Megaphone className="h-3 w-3" /> Announcement Type
-                  </label>
+                <div className="space-y-1.5"><label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2"><Megaphone className="h-3 w-3" /> Announcement Type</label>
                   <Select value={manualCategory} onValueChange={(v: AnnouncementCategory) => setManualCategory(v)}>
-                    <SelectTrigger className="h-10 text-[10px] font-bold uppercase tracking-widest rounded-lg border-2 bg-white">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl">
-                      <SelectItem value="general" className="text-[10px] font-bold uppercase tracking-widest">General Announcement</SelectItem>
-                      <SelectItem value="emergency" className="text-[10px] font-bold uppercase tracking-widest text-red-600">Emergency Notice</SelectItem>
-                      <SelectItem value="institutional" className="text-[10px] font-bold uppercase tracking-widest text-amber-600">Institutional Suspension</SelectItem>
-                    </SelectContent>
+                    <SelectTrigger className="h-10 text-[10px] font-bold uppercase rounded-lg"><SelectValue /></SelectTrigger>
+                    <SelectContent><SelectItem value="general">General</SelectItem><SelectItem value="emergency">Emergency</SelectItem><SelectItem value="institutional">Institutional</SelectItem></SelectContent>
                   </Select>
                 </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
-                    <MessageSquare className="h-3 w-3" /> Institutional Note
-                  </label>
-                  <Textarea 
-                    placeholder="Provide a formal reason for closure..." 
-                    value={manualReason}
-                    onChange={(e) => setManualReason(e.target.value)}
-                    className="min-h-[100px] text-[10px] font-medium rounded-lg border-2 resize-none bg-white p-3"
-                  />
+                <div className="space-y-1.5"><label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2"><MessageSquare className="h-3 w-3" /> Institutional Note</label>
+                  <Textarea placeholder="Formal reason for closure..." value={manualReason} onChange={(e) => setManualReason(e.target.value)} className="min-h-[100px] text-[10px] font-medium rounded-lg" />
                 </div>
               </div>
             </CardContent>

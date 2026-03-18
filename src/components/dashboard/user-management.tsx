@@ -19,7 +19,6 @@ import {
   ArrowLeft,
   ChevronDown,
   ChevronUp,
-  Clock,
   History,
   CalendarDays
 } from "lucide-react";
@@ -134,14 +133,14 @@ export function UserManagement({ onBack }: UserManagementProps) {
 
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-black text-primary mb-2 italic uppercase tracking-tighter">User Directory</h2>
-          <p className="text-muted-foreground font-medium text-lg">Consolidated institutional audit and identity management.</p>
+          <h2 className="text-3xl font-black text-primary mb-2 italic uppercase tracking-tighter">Institutional Directory</h2>
+          <p className="text-muted-foreground font-medium text-lg">Consolidated audit and identity management console.</p>
         </div>
         <div className="flex items-center gap-3">
             <div className="relative max-w-sm hidden sm:block">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input 
-                    placeholder="Search users..." 
+                    placeholder="Search members..." 
                     className="pl-10 h-12 rounded-xl shadow-sm border-2 w-[280px]"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -158,9 +157,7 @@ export function UserManagement({ onBack }: UserManagementProps) {
               <DialogContent className="rounded-[2rem] sm:max-w-[425px]">
                 <DialogHeader>
                   <DialogTitle className="text-2xl font-black text-primary italic uppercase tracking-tighter">Authorize Access</DialogTitle>
-                  <DialogDescription>
-                    Pre-authorize an email for institutional portal access.
-                  </DialogDescription>
+                  <DialogDescription>Pre-authorize an email for institutional portal access.</DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-6 py-4">
                   <div className="space-y-2">
@@ -177,23 +174,14 @@ export function UserManagement({ onBack }: UserManagementProps) {
                     </div>
                   </div>
                 </div>
-                <DialogFooter className="pt-2">
+                <DialogFooter>
                   <Button 
                     onClick={handleAddUser} 
                     disabled={isAdding || !newEmail.includes('@')}
-                    className="w-full h-14 text-lg font-black italic uppercase rounded-2xl shadow-xl gap-2"
+                    className="w-full h-14 text-lg font-black uppercase rounded-2xl shadow-xl gap-2"
                   >
-                    {isAdding ? (
-                      <>
-                        <Loader2 className="h-5 w-5 animate-spin" />
-                        INVITING...
-                      </>
-                    ) : (
-                      <>
-                        <Send className="h-5 w-5" />
-                        GRANT ACCESS
-                      </>
-                    )}
+                    {isAdding ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
+                    GRANT ACCESS
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -206,7 +194,7 @@ export function UserManagement({ onBack }: UserManagementProps) {
           <TableHeader>
             <TableRow className="bg-muted/50 border-none">
               <TableHead className="w-16"></TableHead>
-              <TableHead className="font-black text-primary py-5 uppercase text-[10px] tracking-widest px-8">User Identity</TableHead>
+              <TableHead className="font-black text-primary py-5 uppercase text-[10px] tracking-widest px-8">Member Identity</TableHead>
               <TableHead className="font-black text-primary py-5 uppercase text-[10px] tracking-widest">ID Reference</TableHead>
               <TableHead className="font-black text-primary py-5 uppercase text-[10px] tracking-widest">Unit/Origin</TableHead>
               <TableHead className="font-black text-primary py-5 uppercase text-[10px] tracking-widest">Permissions</TableHead>
@@ -215,17 +203,11 @@ export function UserManagement({ onBack }: UserManagementProps) {
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              <TableRow><TableCell colSpan={6} className="text-center py-20 font-bold text-muted-foreground uppercase tracking-widest animate-pulse">Retrieving Directory...</TableCell></TableRow>
+              <TableRow><TableCell colSpan={6} className="text-center py-20 font-bold text-muted-foreground uppercase tracking-widest animate-pulse">Syncing Directory...</TableCell></TableRow>
             ) : filteredUsers.length === 0 ? (
               <TableRow><TableCell colSpan={6} className="text-center py-20 italic text-muted-foreground">No institutional records found.</TableCell></TableRow>
             ) : filteredUsers.map((u) => {
-              const userInitials = u.displayName
-                ?.split(' ')
-                .map((n: string) => n[0])
-                .join('')
-                .toUpperCase()
-                .slice(0, 2) || 'U';
-
+              const userInitials = u.displayName?.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2) || 'U';
               const isSuperAdmin = u.isSuperAdmin === true;
               const isCurrentUser = u.id === currentUserProfile?.id;
               const iAmSuperAdmin = currentUserProfile?.isSuperAdmin === true;
@@ -249,9 +231,7 @@ export function UserManagement({ onBack }: UserManagementProps) {
                       <div className="flex items-center gap-4">
                         <Avatar className="h-12 w-12 border-2 border-primary/10 shadow-sm">
                           <AvatarImage src={u.photoURL} alt={u.displayName} />
-                          <AvatarFallback className="bg-muted text-primary font-black text-sm">
-                            {userInitials}
-                          </AvatarFallback>
+                          <AvatarFallback className="bg-muted text-primary font-black text-sm">{userInitials}</AvatarFallback>
                         </Avatar>
                         <div className="flex flex-col">
                           <span className="font-black text-primary text-base flex items-center gap-2 italic">
@@ -262,16 +242,13 @@ export function UserManagement({ onBack }: UserManagementProps) {
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell className="font-black text-[10px] text-muted-foreground tracking-widest">
-                      {u.studentId || 'NO-ID'}
-                    </TableCell>
+                    <TableCell className="font-black text-[10px] text-muted-foreground tracking-widest">{u.studentId || 'NO-ID'}</TableCell>
                     <TableCell className="text-[11px] font-black uppercase tracking-tight italic text-primary/70">{u.college || 'Guest'}</TableCell>
                     <TableCell>
                       <div className="flex flex-wrap gap-2">
                         {isSuperAdmin ? (
                           <Badge className="bg-secondary text-primary text-[9px] uppercase font-black px-3 py-1 flex items-center gap-2 shadow-sm border border-primary/20">
-                            <ShieldAlert className="h-3.5 w-3.5" />
-                            Super Admin
+                            <ShieldAlert className="h-3.5 w-3.5" /> Super Admin
                           </Badge>
                         ) : u.role === 'admin' ? (
                           <Badge className="bg-primary text-white text-[9px] uppercase font-black px-3 py-1">Administrator</Badge>
@@ -290,15 +267,10 @@ export function UserManagement({ onBack }: UserManagementProps) {
                         <DropdownMenuContent align="end" className="w-64 rounded-2xl p-2 shadow-2xl border-none">
                           <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground px-4 py-3">Management Console</DropdownMenuLabel>
                           <DropdownMenuSeparator />
-                          
                           {isCurrentUser ? (
                             <AlertDialog>
                                 <AlertDialogTrigger asChild>
-                                  <DropdownMenuItem 
-                                    onSelect={(e) => e.preventDefault()}
-                                    disabled={isSuperAdmin}
-                                    className="rounded-xl h-12 gap-3 focus:bg-destructive/5 cursor-pointer text-destructive font-black"
-                                  >
+                                  <DropdownMenuItem onSelect={(e) => e.preventDefault()} disabled={isSuperAdmin} className="rounded-xl h-12 gap-3 focus:bg-destructive/5 cursor-pointer text-destructive font-black">
                                     <ShieldOff className="h-4 w-4" />
                                     <span className="font-black text-[11px] uppercase tracking-widest">Resign Credentials</span>
                                   </DropdownMenuItem>
@@ -306,18 +278,11 @@ export function UserManagement({ onBack }: UserManagementProps) {
                                 <AlertDialogContent className="rounded-2xl">
                                   <AlertDialogHeader>
                                     <AlertDialogTitle className="text-2xl font-black text-primary italic uppercase tracking-tighter">Confirm Resignation</AlertDialogTitle>
-                                    <AlertDialogDescription className="text-base font-medium">
-                                      Revoking your administrative status will immediately demote your identity to a standard Institutional role.
-                                    </AlertDialogDescription>
+                                    <AlertDialogDescription className="text-base font-medium">Revoking your administrative status will immediately demote your identity to a standard role.</AlertDialogDescription>
                                   </AlertDialogHeader>
                                   <AlertDialogFooter>
                                     <AlertDialogCancel className="rounded-xl font-bold">Cancel</AlertDialogCancel>
-                                    <AlertDialogAction 
-                                      onClick={resignAdmin}
-                                      className="bg-destructive hover:bg-destructive/90 text-white rounded-xl font-black"
-                                    >
-                                      Demote Now
-                                    </AlertDialogAction>
+                                    <AlertDialogAction onClick={resignAdmin} className="bg-destructive hover:bg-destructive/90 text-white rounded-xl font-black">Demote Now</AlertDialogAction>
                                   </AlertDialogFooter>
                                 </AlertDialogContent>
                             </AlertDialog>
@@ -326,10 +291,7 @@ export function UserManagement({ onBack }: UserManagementProps) {
                               {iAmSuperAdmin && (
                                 <AlertDialog>
                                   <AlertDialogTrigger asChild>
-                                    <DropdownMenuItem 
-                                      onSelect={(e) => e.preventDefault()}
-                                      className="rounded-xl h-12 gap-3 focus:bg-secondary/10 cursor-pointer text-secondary font-black"
-                                    >
+                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="rounded-xl h-12 gap-3 focus:bg-secondary/10 cursor-pointer text-secondary font-black">
                                       <ArrowRightLeft className="h-4 w-4" />
                                       <span className="text-[11px] uppercase tracking-widest">Transfer Ownership</span>
                                     </DropdownMenuItem>
@@ -337,37 +299,23 @@ export function UserManagement({ onBack }: UserManagementProps) {
                                   <AlertDialogContent className="rounded-2xl border-2 border-secondary/20 shadow-3xl">
                                     <AlertDialogHeader>
                                       <AlertDialogTitle className="text-2xl font-black text-primary italic uppercase tracking-tighter text-center">Transfer Super Status</AlertDialogTitle>
-                                      <AlertDialogDescription className="text-center text-base font-medium">
-                                        You are transferring ultimate oversight to <strong className="text-primary italic">{u.displayName}</strong>. This action is irreversible.
-                                      </AlertDialogDescription>
+                                      <AlertDialogDescription className="text-center text-base font-medium">You are transferring ultimate oversight to <strong className="text-primary italic">{u.displayName}</strong>.</AlertDialogDescription>
                                     </AlertDialogHeader>
                                     <AlertDialogFooter className="sm:justify-center gap-4 pt-4">
                                       <AlertDialogCancel className="rounded-xl font-bold border-2 h-12 px-8">Cancel</AlertDialogCancel>
-                                      <AlertDialogAction 
-                                        onClick={() => transferSuperAdmin(u.id)}
-                                        className="bg-secondary text-primary rounded-xl font-black h-12 px-8 shadow-lg"
-                                      >
-                                        Execute Transfer
-                                      </AlertDialogAction>
+                                      <AlertDialogAction onClick={() => transferSuperAdmin(u.id)} className="bg-secondary text-primary rounded-xl font-black h-12 px-8 shadow-lg">Execute Transfer</AlertDialogAction>
                                     </AlertDialogFooter>
                                   </AlertDialogContent>
                                 </AlertDialog>
                               )}
-
                               {!isSuperAdmin && (
                                 u.role !== 'admin' ? (
-                                  <DropdownMenuItem 
-                                    onClick={() => setUserRole(u.id, 'admin')}
-                                    className="rounded-xl h-12 gap-3 focus:bg-primary/5 cursor-pointer text-primary"
-                                  >
+                                  <DropdownMenuItem onClick={() => setUserRole(u.id, 'admin')} className="rounded-xl h-12 gap-3 focus:bg-primary/5 cursor-pointer text-primary">
                                     <ShieldCheck className="h-4 w-4 text-secondary" />
                                     <span className="font-black text-[11px] uppercase tracking-widest">Promote to Admin</span>
                                   </DropdownMenuItem>
                                 ) : (
-                                  <DropdownMenuItem 
-                                    onClick={() => setUserRole(u.id, 'user')}
-                                    className="rounded-xl h-12 gap-3 focus:bg-destructive/5 cursor-pointer text-destructive"
-                                  >
+                                  <DropdownMenuItem onClick={() => setUserRole(u.id, 'user')} className="rounded-xl h-12 gap-3 focus:bg-destructive/5 cursor-pointer text-destructive">
                                     <ShieldOff className="h-4 w-4" />
                                     <span className="font-black text-[11px] uppercase tracking-widest">Revoke Admin Role</span>
                                   </DropdownMenuItem>
@@ -379,7 +327,6 @@ export function UserManagement({ onBack }: UserManagementProps) {
                       </DropdownMenu>
                     </TableCell>
                   </TableRow>
-                  
                   {isExpanded && (
                     <TableRow className="bg-slate-50/50 border-none">
                       <TableCell colSpan={6} className="p-0">
@@ -389,15 +336,10 @@ export function UserManagement({ onBack }: UserManagementProps) {
                                 <History className="h-6 w-6 text-primary" />
                                 <h4 className="font-black text-primary uppercase text-sm tracking-widest italic">Institutional Access History</h4>
                             </div>
-                            <Badge variant="outline" className="bg-white px-5 py-2 font-black text-[10px] uppercase shadow-sm border-primary/10">
-                                {userVisits.length} Recorded Sessions
-                            </Badge>
+                            <Badge variant="outline" className="bg-white px-5 py-2 font-black text-[10px] uppercase shadow-sm border-primary/10">{userVisits.length} Sessions</Badge>
                           </div>
-                          
                           {userVisits.length === 0 ? (
-                            <div className="py-20 text-center italic text-muted-foreground text-sm font-bold uppercase tracking-widest bg-white/40 rounded-3xl border-2 border-dashed">
-                              No institutional access records detected.
-                            </div>
+                            <div className="py-20 text-center italic text-muted-foreground text-sm font-bold uppercase tracking-widest bg-white/40 rounded-3xl border-2 border-dashed">No access records detected.</div>
                           ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                               {userVisits.map((visit) => (
@@ -406,20 +348,13 @@ export function UserManagement({ onBack }: UserManagementProps) {
                                     <div className="flex justify-between items-start">
                                       <div className="space-y-1">
                                         <p className="text-xs font-black text-primary uppercase tracking-tight italic leading-tight">{visit.purpose}</p>
-                                        <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                                          <Building2 className="h-3 w-3" /> {visit.college}
-                                        </div>
+                                        <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest"><Building2 className="h-3 w-3" /> {visit.college}</div>
                                       </div>
-                                      <Badge variant="secondary" className="text-[9px] font-black uppercase h-5 px-2 bg-slate-100 border-none">
-                                        AY {visit.academicYear}
-                                      </Badge>
                                     </div>
                                     <div className="flex items-center justify-between pt-4 border-t border-slate-50">
                                       <div className="flex items-center gap-2">
                                         <CalendarDays className="h-3.5 w-3.5 text-slate-400" />
-                                        <span className="text-[10px] font-bold text-slate-700">
-                                          {visit.timestamp?.seconds ? format(visit.timestamp.seconds * 1000, 'MMM dd, yyyy') : 'Recently'}
-                                        </span>
+                                        <span className="text-[10px] font-bold text-slate-700">{visit.timestamp?.seconds ? format(visit.timestamp.seconds * 1000, 'MMM dd, yyyy') : 'Recently'}</span>
                                       </div>
                                       <span className={cn("text-[10px] font-black uppercase italic", visit.exitTimestamp ? "text-green-600" : "text-amber-600 animate-pulse")}>
                                         {visit.exitTimestamp ? `STAY: ${visit.durationMinutes}m` : "ACTIVE"}
