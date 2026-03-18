@@ -6,9 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/componen
 import { 
   Users, 
   History, 
-  Building2, 
   LayoutDashboard, 
-  Loader2, 
   ArrowRight, 
   Clock, 
   ShieldCheck, 
@@ -24,7 +22,7 @@ import {
   Megaphone 
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { collection, limit, orderBy, query, doc, serverTimestamp } from "firebase/firestore";
+import { collection, limit, orderBy, query, doc, serverTimestamp, where } from "firebase/firestore";
 import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
 import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { format } from "date-fns";
@@ -195,9 +193,7 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {isLoadingRecent ? (
-                      <TableRow><TableCell colSpan={4} className="text-center py-20 uppercase font-bold text-[9px] tracking-widest text-muted-foreground animate-pulse">Syncing Registry...</TableCell></TableRow>
-                    ) : recentVisits?.length === 0 ? (
+                    {recentVisits?.length === 0 ? (
                       <TableRow><TableCell colSpan={4} className="text-center py-20 italic text-[10px] uppercase">No Logs Recorded</TableCell></TableRow>
                     ) : recentVisits?.map((visit, i) => (
                       <TableRow key={i} className="hover:bg-slate-50 transition-colors">
