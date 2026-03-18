@@ -86,7 +86,7 @@ export function UserGreeting() {
     setAcademicYear(getAcademicYear());
   }, []);
 
-  // Secure Personal Visit Query
+  // Secure Personal Visit Query - Matches userId check in Rules
   const activeVisitQuery = useMemoFirebase(() => {
     if (!profile || !firestore) return null;
     return query(
@@ -97,7 +97,7 @@ export function UserGreeting() {
     );
   }, [profile, firestore]);
 
-  // Secure Occupancy Telemetry Query
+  // Secure Occupancy Telemetry Query - Matches exitTimestamp null check in Rules
   const occupancyQuery = useMemoFirebase(() => {
     if (!firestore) return null;
     return query(collection(firestore, 'visits'), where('exitTimestamp', '==', null));
