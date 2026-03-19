@@ -26,8 +26,6 @@ service cloud.firestore {
 
     // USERS collection: Identity management
     match /users/{userId} {
-      // Allow users to read their own profile even if blocked (to see status)
-      // But only allow write if NOT blocked
       allow read: if isOwner(userId) || isAdmin();
       allow write: if (isOwner(userId) && isNotBlocked()) || isAdmin();
     }
@@ -44,9 +42,16 @@ service cloud.firestore {
     // NOTIFICATIONS: Alert center
     match /notifications/{notifId} {
       allow read, write: if isAdmin();
-      // Users can only read their own notifications
       allow read: if request.auth != null && resource.data.userId == request.auth.uid;
       allow update: if request.auth != null && resource.data.userId == request.auth.uid && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']);
+    }
+
+    // LIBRARY_CONFIG: Operational status and manual overrides
+    match /library_config/{configId} {
+      // All institutional members need to see if the library is open
+      allow read: if request.auth != null;
+      // Only admins can override the operational status
+      allow write: if isAdmin();
     }
 
     // Default deny for all other paths

@@ -105,6 +105,19 @@
         "timestamp": { "type": "string", "format": "date-time" },
         "type": { "type": "string", "enum": ["info", "warning", "alert"] }
       }
+    },
+    "LibraryConfig": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "LibraryConfig",
+      "type": "object",
+      "description": "Global operational settings and manual status overrides.",
+      "properties": {
+        "mode": { "type": "string", "enum": ["automatic", "manual"] },
+        "manualStatus": { "type": "string", "enum": ["open", "closed"] },
+        "manualReason": { "type": "string" },
+        "manualCategory": { "type": "string", "enum": ["general", "emergency", "institutional"] },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      }
     }
   },
   "auth": {
@@ -136,6 +149,14 @@
           "entityName": "Notification",
           "schema": { "$ref": "#/backend/entities/Notification" },
           "description": "User-specific alerts and warnings."
+        }
+      },
+      {
+        "path": "/library_config/{configId}",
+        "definition": {
+          "entityName": "LibraryConfig",
+          "schema": { "$ref": "#/backend/entities/LibraryConfig" },
+          "description": "Operational mode and status overrides."
         }
       }
     ]
