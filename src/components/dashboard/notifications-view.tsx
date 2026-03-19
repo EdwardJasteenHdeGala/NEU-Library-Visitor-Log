@@ -3,7 +3,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Bell, CheckCircle2, ShieldAlert, Clock, ArrowLeft, Trash2 } from "lucide-react";
+import { Bell, CheckCircle2, ShieldAlert, Clock, ArrowLeft } from "lucide-react";
 import { collection, query, where, orderBy, doc, writeBatch } from "firebase/firestore";
 import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
 import { useAuth } from "@/hooks/use-auth";
@@ -23,7 +23,7 @@ export function NotificationsView({ onBack }: NotificationsViewProps) {
 
   const notificationsQuery = useMemoFirebase(() => {
     if (!profile?.id || !firestore) return null;
-    // CRITICAL: Ensure the query filter matches the intended row-level privacy
+    // Applied the successful pattern from feedback collection: explicit userId filter
     return query(
       collection(firestore, 'notifications'),
       where('userId', '==', profile.id),
@@ -54,9 +54,11 @@ export function NotificationsView({ onBack }: NotificationsViewProps) {
     <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div className="space-y-1">
-          <Button variant="ghost" size="sm" onClick={onBack} className="mb-2 -ml-2 text-primary/50 hover:text-primary font-black text-[10px] uppercase gap-2">
-            <ArrowLeft className="h-3 w-3" /> Back
-          </Button>
+          {onBack && (
+            <Button variant="ghost" size="sm" onClick={onBack} className="mb-2 -ml-2 text-primary/50 hover:text-primary font-black text-[10px] uppercase gap-2">
+              <ArrowLeft className="h-3 w-3" /> Back
+            </Button>
+          )}
           <h2 className="text-3xl font-black text-primary italic uppercase tracking-tighter">System Alerts</h2>
           <p className="text-muted-foreground font-medium text-lg">Institutional updates and activity logs.</p>
         </div>

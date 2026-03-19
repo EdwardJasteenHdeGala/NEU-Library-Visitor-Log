@@ -12,13 +12,12 @@ import {
   History, 
   MessageSquare, 
   HelpCircle, 
-  Menu, 
-  X, 
   Settings, 
   Loader2,
   Activity,
   Globe,
-  Library
+  Library,
+  Bell
 } from "lucide-react";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
@@ -47,6 +46,7 @@ import { useLibraryStatus } from "@/hooks/use-library-status";
 import { FeedbackView } from "./feedback-view";
 import { HelpView } from "./help-view";
 import { ProfileView } from "./profile-view";
+import { NotificationsView } from "./notifications-view";
 import { Badge } from "@/components/ui/badge";
 
 const NEU_COLLEGES = [
@@ -78,7 +78,7 @@ const GUEST_PURPOSES = [
   { value: "media use", label: "Media Consultation" },
 ];
 
-type UserSubView = 'log-entry' | 'feedback' | 'help' | 'profile';
+type UserSubView = 'log-entry' | 'feedback' | 'help' | 'profile' | 'notifications';
 
 export function UserGreeting() {
   const { logout, profile, switchRole } = useAuth();
@@ -91,7 +91,6 @@ export function UserGreeting() {
   const [currentCollege, setCurrentCollege] = useState<string>(profile?.college || "EXTERNAL");
   const [isLogging, setIsLogging] = useState(false);
   const [academicYear, setAcademicYear] = useState("");
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const logoImage = PlaceHolderImages.find(img => img.id === 'neu-logo');
   const isGuest = profile?.role === 'guest';
@@ -123,7 +122,7 @@ export function UserGreeting() {
     setIsLogging(true);
     addDocumentNonBlocking(collection(firestore, 'visits'), {
       userId: profile.id,
-      name: profile.displayName,
+      userName: profile.displayName,
       college: currentCollege,
       role: profile.designation,
       purpose: purpose,
@@ -161,8 +160,10 @@ export function UserGreeting() {
   };
 
   const userInitials = profile?.displayName?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'V';
+  
   const navItems = [
     { id: 'log-entry', label: 'Attendance', icon: Library },
+    { id: 'notifications', label: 'Alerts', icon: Bell },
     { id: 'feedback', label: 'Sentiments', icon: MessageSquare },
     { id: 'help', label: 'Protocols', icon: HelpCircle },
     { id: 'profile', label: 'Identity', icon: Settings },
@@ -170,7 +171,6 @@ export function UserGreeting() {
 
   const handleNavClick = (view: UserSubView) => {
     setSubView(view);
-    setIsMobileMenuOpen(false);
   };
 
   const purposes = isGuest ? GUEST_PURPOSES : MEMBER_PURPOSES;
@@ -215,6 +215,7 @@ export function UserGreeting() {
               <DropdownMenuContent align="end" className="w-56 mt-2 rounded-xl shadow-2xl border-none bg-white">
                 <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Registry Identity</DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => handleNavClick('notifications')} className="gap-2 cursor-pointer font-medium text-xs"><Bell className="h-4 w-4" /> Alerts</DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleNavClick('profile')} className="gap-2 cursor-pointer font-medium text-xs"><Settings className="h-4 w-4" /> Identity Sync</DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={logout} className="gap-2 text-destructive cursor-pointer font-medium text-xs"><LogOut className="h-4 w-4" /> Terminate Session</DropdownMenuItem>
@@ -315,6 +316,7 @@ export function UserGreeting() {
             </div>
           </div>
         )}
+        {subView === 'notifications' && <NotificationsView onBack={() => handleNavClick('log-entry')} />}
         {subView === 'feedback' && <FeedbackView onBack={() => handleNavClick('log-entry')} />}
         {subView === 'help' && <HelpView onBack={() => handleNavClick('log-entry')} />}
         {subView === 'profile' && <ProfileView onBack={() => handleNavClick('log-entry')} />}
