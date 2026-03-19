@@ -1,104 +1,53 @@
-/**
- * NEU Library Visitor Log - Firestore Security Rules
- *
- * Core Philosophy:
- * This ruleset implements a robust, multi-tier authorization model for the NEU Library Visitor Log. 
- * It prioritizes "Authorization Independence" by using a dedicated marker collection for 
- * administrative privileges, ensuring that role checks do not depend on potentially mutable 
- * user profile data.
- *
- * Data Structure:
- * - /users/{userId}: Private user profiles containing institutional data (studentId, department).
- * - /roles_admin/{adminId}: A marker collection where the presence of a UID grants global admin rights.
- * - /visits/{visitId}: A centralized log of all library entries.
- *
- * Key Security Decisions:
- * - Role Management: Administrative status is determined by document existence in /roles_admin,
- *   preventing privilege escalation via profile field manipulation.
- * - Data Consistency: Users are required to link their UID to their specific profile and visit 
- *   entries at the point of creation.
- * - Privacy: While users can create and view their own visit logs, the ability to list/export 
- *   the entire visitor history is strictly restricted to administrators.
- * - Prototyping Flexibility: Rules enforce strict authorization (who can access) but remain 
- *   flexible on data schema (what is stored) to allow for rapid development of the library log features.
- */
 
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // --- Helper Functions ---
-
-    /** 
-     * @description Checks if the request is from an authenticated user.
-     */
+    // --- Helpers ---
     function isSignedIn() {
       return request.auth != null;
     }
 
-    /** 
-     * @description Checks if the authenticated user matches the provided ID.
-     */
-    function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
-    }
-
-    /** 
-     * @description Verifies administrative privileges using the DBAC marker collection.
-     */
     function isAdmin() {
       return isSignedIn() && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
     }
 
-    /** 
-     * @description Ensures a document exists and the requester is the owner.
-     */
-    function isExistingOwner(userId) {
-      return resource != null && isOwner(userId);
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
     }
 
-    // --- Collection Rules ---
+    // --- Collections ---
 
-    /**
-     * @description Rules for the UserProfile entity. Users manage their own profiles.
-     * @path /users/{userId}
-     * @allow (get/list/create/update) if the authenticated UID matches the {userId} path.
-     * @deny (create) if the user tries to create a profile for a different UID.
-     * @principle Enforces path-based ownership and self-creation logic.
-     */
+    // USERS: Private profile data
     match /users/{userId} {
       allow get, list: if isOwner(userId) || isAdmin();
       allow create: if isOwner(userId) && request.resource.data.id == userId;
-      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
-      allow delete: if isAdmin(); // Only admins can delete user accounts in this system.
+      allow update: if isOwner(userId) && request.resource.data.id == resource.data.id;
+      allow delete: if isAdmin();
     }
 
-    /**
-     * @description Rules for Admin Role markers.
-     * @path /roles_admin/{adminId}
-     * @allow (get) for signed-in users to verify roles.
-     * @deny (write) No client-side modification; roles are managed via console or admin scripts.
-     * @principle Authorization Independence: Separates role data from user profile data.
-     */
+    // ADMIN ROLES: Marker collection
     match /roles_admin/{adminId} {
       allow get: if isSignedIn();
-      allow list, create, update, delete: if false; 
+      allow write: if false; // Managed via console/onboarding logic
     }
 
-    /**
-     * @description Rules for the VisitorLogEntry entity.
-     * @path /visits/{visitId}
-     * @allow (create) for any signed-in user, provided they link their own UID.
-     * @allow (get) for the original creator or an admin.
-     * @allow (list) for admins only to prevent guest data scraping.
-     * @deny (list) for standard users and guests to maintain QAP compliance.
-     * @principle Restricts bulk access to sensitive visitor logs while allowing individual logging.
-     */
+    // VISITS: Library log
     match /visits/{visitId} {
-      allow get: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
-      allow list: if isAdmin();
+      // Admins have full oversight
+      allow read, write: if isAdmin();
+
+      // Individual creation and personal retrieval
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow update, delete: if isAdmin(); // Log entries are immutable for visitors to ensure audit integrity.
+      allow get: if isSignedIn() && resource.data.userId == request.auth.uid;
+      
+      // List/Export restricted to admins to prevent data scraping
+      allow list: if isAdmin();
+    }
+    
+    // Fallback
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }

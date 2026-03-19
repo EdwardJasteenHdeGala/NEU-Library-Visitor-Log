@@ -17,8 +17,8 @@ import {
   Settings, 
   Loader2,
   Activity,
-  User as UserIcon,
-  Globe
+  Globe,
+  Library
 } from "lucide-react";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
@@ -116,16 +116,16 @@ export function UserGreeting() {
 
   const handleCheckIn = () => {
     if (!purpose || !profile || !firestore || !currentCollege) {
-      toast({ title: "Required Information", description: "Select department and purpose.", variant: "destructive" });
+      toast({ title: "Incomplete Protocol", description: "Select academic unit and purpose.", variant: "destructive" });
       return;
     }
 
     setIsLogging(true);
     addDocumentNonBlocking(collection(firestore, 'visits'), {
       userId: profile.id,
-      userName: profile.displayName,
+      name: profile.displayName,
       college: currentCollege,
-      roleAtTime: profile.role,
+      role: profile.designation,
       purpose: purpose,
       timestamp: new Date(),
       exitTimestamp: null,
@@ -134,7 +134,7 @@ export function UserGreeting() {
     });
 
     setTimeout(() => {
-      toast({ title: "Check-In Confirmed", description: isGuest ? "Visitor log entry synchronized." : "Entry recorded in registry." });
+      toast({ title: "Check-In Confirmed", description: "Registry entry synchronized." });
       setIsLogging(false);
     }, 600);
   };
@@ -162,10 +162,10 @@ export function UserGreeting() {
 
   const userInitials = profile?.displayName?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'V';
   const navItems = [
-    { id: 'log-entry', label: 'Dashboard', icon: History },
-    { id: 'feedback', label: 'Feedback', icon: MessageSquare },
-    { id: 'help', label: 'Help', icon: HelpCircle },
-    { id: 'profile', label: 'Profile', icon: Settings },
+    { id: 'log-entry', label: 'Attendance', icon: Library },
+    { id: 'feedback', label: 'Sentiments', icon: MessageSquare },
+    { id: 'help', label: 'Protocols', icon: HelpCircle },
+    { id: 'profile', label: 'Identity', icon: Settings },
   ];
 
   const handleNavClick = (view: UserSubView) => {
@@ -184,9 +184,9 @@ export function UserGreeting() {
               <Image src={logoImage?.imageUrl || ""} alt="NEU" fill priority className="object-contain p-1.5" />
             </div>
             <div className="flex flex-col leading-none">
-              <h1 className="text-xs font-bold tracking-tight text-white uppercase">NEU Access Hub</h1>
+              <h1 className="text-xs font-bold tracking-tight text-white uppercase italic">NEU Access Hub</h1>
               <span className="text-[7px] font-bold text-secondary uppercase tracking-widest">
-                {isGuest ? "External Visitor" : "Institutional Portal"}
+                {isGuest ? "Guest Portal" : "Library Member"}
               </span>
             </div>
           </div>
@@ -202,7 +202,7 @@ export function UserGreeting() {
           <div className="flex items-center gap-4">
             {profile?.isAuthorizedAdmin && (
               <Button variant="secondary" size="sm" onClick={() => switchRole('admin')} className="h-8 px-4 gap-2 font-bold text-[9px] uppercase rounded-lg hidden sm:flex">
-                <ShieldCheck className="h-3.5 w-3.5" /> Admin
+                <ShieldCheck className="h-3.5 w-3.5" /> Admin Portal
               </Button>
             )}
             <DropdownMenu>
@@ -212,163 +212,107 @@ export function UserGreeting() {
                   <AvatarFallback className="bg-secondary text-primary font-bold text-[10px]">{userInitials}</AvatarFallback>
                 </Avatar>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 mt-2 rounded-xl shadow-2xl border-none">
-                <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Account</DropdownMenuLabel>
+              <DropdownMenuContent align="end" className="w-56 mt-2 rounded-xl shadow-2xl border-none bg-white">
+                <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Registry Identity</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => handleNavClick('profile')} className="gap-2 cursor-pointer font-medium text-xs"><Settings className="h-4 w-4" /> Profile</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleNavClick('profile')} className="gap-2 cursor-pointer font-medium text-xs"><Settings className="h-4 w-4" /> Identity Sync</DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={logout} className="gap-2 text-destructive cursor-pointer font-medium text-xs"><LogOut className="h-4 w-4" /> Sign Out</DropdownMenuItem>
+                <DropdownMenuItem onClick={logout} className="gap-2 text-destructive cursor-pointer font-medium text-xs"><LogOut className="h-4 w-4" /> Terminate Session</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <Button variant="ghost" size="icon" className="lg:hidden text-white h-10 w-10" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
-              {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-            </Button>
           </div>
         </div>
       </header>
 
-      {/* Mobile Menu Overlay */}
-      {isMobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 z-[100] bg-primary animate-in fade-in slide-in-from-top duration-300">
-          <div className="p-6 flex justify-between items-center border-b border-white/10">
-            <div className="flex items-center gap-3">
-              <Image src={logoImage?.imageUrl || ""} alt="NEU" width={32} height={32} />
-              <span className="font-black text-white uppercase italic tracking-tighter">NEU Access Hub</span>
-            </div>
-            <Button variant="ghost" size="icon" className="text-white h-10 w-10" onClick={() => setIsMobileMenuOpen(false)}>
-              <X className="h-8 w-8" />
-            </Button>
-          </div>
-          <nav className="p-10 flex flex-col gap-6">
-            {navItems.map((item) => (
-              <button 
-                key={item.id} 
-                onClick={() => handleNavClick(item.id as UserSubView)} 
-                className={cn(
-                  "flex items-center gap-6 text-2xl font-black uppercase italic tracking-tighter transition-all",
-                  subView === item.id ? "text-secondary" : "text-white/60 hover:text-white"
-                )}
-              >
-                <item.icon className="h-8 w-8" />
-                {item.label}
-              </button>
-            ))}
-            <div className="pt-10 mt-10 border-t border-white/10">
-              <button onClick={logout} className="flex items-center gap-6 text-2xl font-black uppercase italic tracking-tighter text-destructive">
-                <LogOut className="h-8 w-8" />
-                Sign Out
-              </button>
-            </div>
-          </nav>
-        </div>
-      )}
-
       <main className="flex-1 w-full max-w-7xl mx-auto p-6 md:p-10">
         {subView === 'log-entry' && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start animate-in fade-in duration-500">
-            <div className="lg:col-span-8 space-y-10">
-              <div className="flex flex-col sm:flex-row items-center sm:items-start gap-8">
-                <Avatar className="h-24 w-24 md:h-32 md:w-32 border-4 border-white shadow-xl ring-1 ring-border">
-                  <AvatarImage src={profile?.photoURL} alt={profile?.displayName} />
-                  <AvatarFallback className="bg-slate-200 text-slate-500 font-bold text-2xl">{userInitials}</AvatarFallback>
-                </Avatar>
-                <div className="space-y-3 pt-4 text-center sm:text-left">
-                  <div className="flex items-center justify-center sm:justify-start gap-2">
-                    <div className={cn("h-2 w-2 rounded-full", status.isOpen ? "bg-green-500 animate-pulse" : "bg-red-500")} />
-                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{status.label}</span>
-                  </div>
-                  <div className="flex flex-col sm:flex-row items-center gap-3">
-                    <h1 className="text-3xl md:text-5xl font-bold text-primary tracking-tight leading-none italic">Welcome, <span className="text-slate-900 not-italic">{profile?.displayName?.split(' ')[0]}</span></h1>
-                    {isGuest && (
-                      <Badge variant="outline" className="border-secondary text-primary font-bold uppercase italic text-[10px] px-4 py-1.5 rounded-full bg-secondary/5">
-                        <Globe className="h-3 w-3 mr-2" /> Guest Account
-                      </Badge>
-                    )}
-                  </div>
-                  <p className="text-muted-foreground font-medium">New Era University Institutional Registry</p>
+          <div className="space-y-10 animate-in fade-in duration-700">
+            <div className="text-center space-y-4 py-12 bg-primary text-white rounded-[2rem] shadow-2xl relative overflow-hidden">
+                <div className="absolute inset-0 bg-dot-pattern opacity-10" />
+                <Library className="h-16 w-16 mx-auto mb-4 text-secondary opacity-80" />
+                <h2 className="text-4xl md:text-6xl font-black italic tracking-tighter uppercase">Welcome to NEU Library!</h2>
+                <p className="text-lg opacity-80 font-medium">Your gateway to academic excellence and research discovery.</p>
+                <div className="flex items-center justify-center gap-2 pt-4">
+                    <Badge variant="outline" className="text-white border-white/20 uppercase tracking-widest text-[9px] px-4 py-1">
+                        Syncing: {profile?.displayName}
+                    </Badge>
                 </div>
-              </div>
-
-              <Card className="shadow-xl border-border rounded-xl overflow-hidden">
-                <CardHeader className="bg-slate-50 border-b p-6 flex flex-row items-center justify-between">
-                  <CardTitle className="text-xs font-bold flex items-center gap-2 uppercase tracking-widest">
-                    <History className="h-4 w-4 text-primary" /> {isGuest ? "Visitor Registration" : "Log Attendance"}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-10 space-y-10">
-                  {activeVisit ? (
-                    <div className="shadow-2xl border-none bg-primary text-white p-16 rounded-xl overflow-hidden relative">
-                      <div className="absolute inset-0 bg-dot-pattern opacity-10" />
-                      <div className="relative z-10 flex flex-col items-center text-center space-y-10">
-                        <div className="h-20 w-20 bg-white/10 rounded-full flex items-center justify-center border-2 border-white/20 animate-pulse shadow-xl">
-                          <Activity className="h-10 w-10 text-secondary" />
-                        </div>
-                        <div className="space-y-4">
-                          <h2 className="text-3xl font-bold uppercase tracking-tighter italic">Active Session Confirmed</h2>
-                          <p className="text-white/80 text-lg">Entry: <span className="text-secondary font-bold">{activeVisit.timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span></p>
-                        </div>
-                        <Button onClick={handleCheckOut} disabled={isLogging} variant="secondary" className="w-full max-w-xs h-14 font-black uppercase text-xs tracking-widest shadow-xl rounded-xl">
-                          {isLogging ? <Loader2 className="h-4 w-4 animate-spin" /> : "Terminate Session"}
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="animate-in slide-in-from-bottom-4 duration-500">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
-                            {isGuest ? "Identification Scope" : "Assigned Unit"}
-                          </label>
-                          <Select value={currentCollege} onValueChange={setCurrentCollege}>
-                            <SelectTrigger className="h-14 font-bold rounded-xl border-2"><SelectValue placeholder="Select Dept" /></SelectTrigger>
-                            <SelectContent className="rounded-xl">
-                              {isGuest ? (
-                                <SelectItem value="EXTERNAL">External / Guest Visitor</SelectItem>
-                              ) : (
-                                NEU_COLLEGES.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)
-                              )}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
-                            {isGuest ? "Purpose of Visit" : "Purpose of Access"}
-                          </label>
-                          <Select value={purpose} onValueChange={setPurpose}>
-                            <SelectTrigger className="h-14 font-bold rounded-xl border-2"><SelectValue placeholder="Select Purpose" /></SelectTrigger>
-                            <SelectContent className="rounded-xl">
-                              {purposes.map(p => (
-                                <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-                      <Button onClick={handleCheckIn} disabled={!purpose || !currentCollege || isLogging} className="w-full h-16 text-lg font-bold gap-4 rounded-xl shadow-lg transition-all active:scale-95">
-                        {isLogging ? <Loader2 className="h-5 w-5 animate-spin" /> : <CheckCircle2 className="h-5 w-5 text-secondary" />}
-                        {isGuest ? "Confirm Visitor Entry" : "Confirm Attendance Entry"}
-                      </Button>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
             </div>
 
-            <aside className="lg:col-span-4 space-y-8 lg:sticky lg:top-24">
-              <LiveClock className="shadow-sm border-border bg-white p-8 !flex-col !items-start rounded-xl" showSelector={false} />
-              
-              {isGuest && (
-                <Card className="p-8 space-y-4 border-none shadow-xl bg-primary text-white rounded-xl">
-                  <div className="flex items-center gap-3">
-                    <ShieldCheck className="h-5 w-5 text-secondary" />
-                    <span className="font-bold text-[10px] uppercase tracking-widest">Visitor Protocol</span>
-                  </div>
-                  <p className="text-xs opacity-80 leading-relaxed font-medium">
-                    Guests are required to log their entry manually. Access is limited to authorized research and visitation zones.
-                  </p>
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+              <div className="lg:col-span-8 space-y-10">
+                <Card className="shadow-2xl border-none rounded-[2rem] overflow-hidden bg-white">
+                  <CardHeader className="bg-slate-50 border-b p-8 flex flex-row items-center justify-between">
+                    <CardTitle className="text-lg font-black italic flex items-center gap-3 uppercase tracking-tighter text-primary">
+                      <History className="h-6 w-6 text-secondary" /> Attendance Registry
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-10 space-y-10">
+                    {activeVisit ? (
+                      <div className="bg-primary/5 border-2 border-dashed border-primary/20 p-16 rounded-[2rem] text-center space-y-8 animate-in zoom-in-95 duration-500">
+                        <Activity className="h-12 w-12 mx-auto text-primary animate-pulse" />
+                        <div className="space-y-2">
+                          <h3 className="text-2xl font-black text-primary italic uppercase tracking-tighter">Active Attendance Protocol</h3>
+                          <p className="text-muted-foreground font-medium">Logged at {activeVisit.timestamp.toDate().toLocaleTimeString()}</p>
+                        </div>
+                        <Button onClick={handleCheckOut} disabled={isLogging} variant="destructive" className="h-16 px-12 font-black uppercase tracking-widest rounded-2xl shadow-xl">
+                          {isLogging ? <Loader2 className="h-5 w-5 animate-spin" /> : "Terminate Session"}
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="space-y-10">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                          <div className="space-y-3">
+                            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] ml-2">Academic Unit</label>
+                            <Select value={currentCollege} onValueChange={setCurrentCollege}>
+                              <SelectTrigger className="h-16 font-black text-lg rounded-2xl border-2 shadow-inner bg-slate-50/50">
+                                <SelectValue placeholder="Select Dept" />
+                              </SelectTrigger>
+                              <SelectContent className="rounded-2xl border-none shadow-3xl">
+                                {isGuest ? (
+                                  <SelectItem value="EXTERNAL" className="font-bold">External Visitor</SelectItem>
+                                ) : (
+                                  NEU_COLLEGES.map(c => <SelectItem key={c.id} value={c.id} className="font-bold">{c.name} ({c.id})</SelectItem>)
+                                )}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-3">
+                            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] ml-2">Purpose of Access</label>
+                            <Select value={purpose} onValueChange={setPurpose}>
+                              <SelectTrigger className="h-16 font-black text-lg rounded-2xl border-2 shadow-inner bg-slate-50/50">
+                                <SelectValue placeholder="Select Purpose" />
+                              </SelectTrigger>
+                              <SelectContent className="rounded-2xl border-none shadow-3xl">
+                                {purposes.map(p => (
+                                  <SelectItem key={p.value} value={p.value} className="font-bold">{p.label}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                        <Button onClick={handleCheckIn} disabled={!purpose || isLogging} className="w-full h-20 text-2xl font-black gap-4 rounded-[1.5rem] shadow-3xl bg-primary hover:bg-primary/95 transition-all">
+                          {isLogging ? <Loader2 className="h-8 w-8 animate-spin" /> : <CheckCircle2 className="h-8 w-8 text-secondary" />}
+                          Confirm Attendance Entry
+                        </Button>
+                      </div>
+                    )}
+                  </CardContent>
                 </Card>
-              )}
-            </aside>
+              </div>
+
+              <aside className="lg:col-span-4 space-y-8">
+                <LiveClock className="shadow-2xl border-none bg-white p-8 rounded-[2rem]" showSelector={false} />
+                <Card className="p-8 bg-secondary text-primary rounded-[2rem] shadow-xl border-none">
+                    <h4 className="font-black text-xs uppercase tracking-[0.2em] mb-4 flex items-center gap-3">
+                        <Globe className="h-4 w-4" /> Institutional Mode
+                    </h4>
+                    <p className="text-sm font-bold italic leading-relaxed">
+                        Registry synchronization active. All entries are logged for academic oversight and facility optimization.
+                    </p>
+                </Card>
+              </aside>
+            </div>
           </div>
         )}
         {subView === 'feedback' && <FeedbackView onBack={() => handleNavClick('log-entry')} />}

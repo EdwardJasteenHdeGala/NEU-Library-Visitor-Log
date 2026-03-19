@@ -8,9 +8,9 @@ import {
   getDoc, 
   serverTimestamp, 
   collection,
-  addDoc
+  setDoc
 } from 'firebase/firestore';
-import { useFirebase, useUser, setDocumentNonBlocking, updateDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase';
+import { useFirebase, useUser, setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 
 export interface UserProfile {
@@ -25,6 +25,8 @@ export interface UserProfile {
   displayName: string;
   photoURL?: string;
   college?: string;
+  department?: string;
+  designation: 'student' | 'professor' | 'staff' | 'guest';
   createdAt: any;
   updatedAt: any;
   theme?: 'light' | 'dark';
@@ -39,14 +41,12 @@ interface AuthContextType {
   updateProfileData: (data: Partial<UserProfile>) => Promise<boolean>;
   switchRole: (newRole: 'user' | 'admin') => Promise<void>;
   setUserRole: (userId: string, newRole: 'user' | 'admin' | 'guest') => Promise<void>;
-  blockUser: (userId: string, reason: string, details: string, duration: string) => Promise<void>;
-  unblockUser: (userId: string) => Promise<void>;
-  sendWarning: (userId: string, title: string, message: string) => Promise<void>;
   resignAdmin: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// TEST ACCOUNTS & AUTHORIZED ADMINS
 export const BOOTSTRAP_SUPER_ADMIN_EMAIL = 'edwardjasteen.degala@neu.edu.ph';
 const AUTHORIZED_ADMIN_EMAILS = [
   BOOTSTRAP_SUPER_ADMIN_EMAIL,
@@ -59,7 +59,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { user, isUserLoading } = useUser();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [intendedRole, setIntendedRole] = useState<'user' | 'admin' | 'guest' | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -75,83 +74,69 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     checkProfile();
-  }, [user, isUserLoading, auth]);
+  }, [user, isUserLoading]);
 
   const fetchOrCreateProfile = async (uid: string) => {
     if (!user || !firestore) return;
     try {
       const docRef = doc(firestore, 'users', uid);
-      let docSnap = await getDoc(docRef);
+      const docSnap = await getDoc(docRef);
       
-      const userEmail = user.email?.toLowerCase();
-      const isInstitutional = userEmail && userEmail.endsWith('@neu.edu.ph');
-      const isBootstrapAdmin = userEmail === BOOTSTRAP_SUPER_ADMIN_EMAIL;
-      const isAuthorized = userEmail && AUTHORIZED_ADMIN_EMAILS.includes(userEmail);
+      const userEmail = user.email?.toLowerCase() || '';
+      const isInstitutional = userEmail.endsWith('@neu.edu.ph');
+      const isAuthorized = AUTHORIZED_ADMIN_EMAILS.includes(userEmail);
       
-      const defaultCollege = isInstitutional ? 'General Education' : 'External / Guest';
-      const defaultRole = isInstitutional ? 'user' : 'guest';
-
       if (docSnap.exists()) {
         const data = docSnap.data() as UserProfile;
-        let needsUpdate = false;
-        const updates: any = {};
+        setProfile(data);
 
-        if (user.photoURL && data.photoURL !== user.photoURL) {
-          updates.photoURL = user.photoURL;
-          needsUpdate = true;
-        }
-
-        // Grant admin status to authorized emails if not already set
-        if ((isAuthorized || isBootstrapAdmin) && (!data.isAuthorizedAdmin || (isBootstrapAdmin && !data.isSuperAdmin))) {
-          updates.isAuthorizedAdmin = true;
-          updates.isSuperAdmin = isBootstrapAdmin;
-          if (data.role !== 'admin' && !intendedRole) updates.role = 'admin';
-          needsUpdate = true;
-        }
-
-        if (needsUpdate) {
-          updateDocumentNonBlocking(docRef, { ...updates, updatedAt: serverTimestamp() });
-          setProfile({ ...data, ...updates });
-        } else {
-          setProfile(data);
+        // Ensure Admin Marker exists if authorized
+        if (isAuthorized) {
+          const adminMarkerRef = doc(firestore, 'roles_admin', uid);
+          setDocumentNonBlocking(adminMarkerRef, { active: true }, { merge: true });
         }
       } else {
-        // Create new profile
-        const initialRole = (isAuthorized || isBootstrapAdmin) ? 'admin' : (isInstitutional ? 'user' : 'guest');
-        
+        // Create new profile based on domain logic
+        const defaultRole = isAuthorized ? 'admin' : (isInstitutional ? 'user' : 'guest');
+        const defaultDesignation = isInstitutional ? 'student' : 'guest';
+        const defaultDepartment = isInstitutional ? 'General Education' : 'External';
+
         const profileData = {
           id: user.uid,
           email: userEmail,
           studentId: isInstitutional ? 'PENDING-ID' : 'GUEST-ID',
-          role: initialRole, 
-          isAuthorizedAdmin: !!isAuthorized || isBootstrapAdmin,
-          isSuperAdmin: isBootstrapAdmin,
-          isBlocked: false,
-          blockedReason: '',
+          role: defaultRole, 
+          isAuthorizedAdmin: isAuthorized,
+          isSuperAdmin: userEmail === BOOTSTRAP_SUPER_ADMIN_EMAIL,
           displayName: user.displayName || 'Visitor',
           photoURL: user.photoURL || '',
-          college: defaultCollege,
+          department: defaultDepartment,
+          college: defaultDepartment, // Keep both for backward compatibility
+          designation: defaultDesignation,
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
           theme: 'light'
         };
         
         setDocumentNonBlocking(docRef, profileData, { merge: true });
+        
+        // If admin, create marker
+        if (isAuthorized) {
+          const adminMarkerRef = doc(firestore, 'roles_admin', uid);
+          setDocumentNonBlocking(adminMarkerRef, { active: true }, { merge: true });
+        }
+
         setProfile(profileData as any);
       }
     } catch (error) {
-      console.error("Profile Sync Error:", error);
+      console.error("Institutional Identity Sync Error:", error);
     } finally {
       setLoading(false);
-      setIntendedRole(null);
     }
   };
 
-  const login = async (requestedRole?: 'user' | 'admin' | 'guest') => {
+  const login = async () => {
     try {
-      if (requestedRole) {
-        setIntendedRole(requestedRole);
-      }
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({ 
         prompt: 'select_account'
@@ -159,7 +144,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await signInWithPopup(auth, provider);
     } catch (error: any) {
       toast({
-        title: "Authentication Failed",
+        title: "Synchronization Failed",
         description: error.message,
         variant: "destructive"
       });
@@ -195,8 +180,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
       setProfile({ ...profile, role: newRole });
       toast({
-        title: "Role Switched",
-        description: `Your active role is now ${newRole.toUpperCase()}.`,
+        title: "Protocol Switched",
+        description: `Active role updated to ${newRole.toUpperCase()}.`,
       });
     } catch (error: any) {}
   };
@@ -207,76 +192,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const docRef = doc(firestore, 'users', userId);
       updateDocumentNonBlocking(docRef, {
         role: newRole,
-        isAuthorizedAdmin: newRole === 'admin',
         updatedAt: serverTimestamp()
       });
-    } catch (error: any) {}
-  };
-
-  const blockUser = async (userId: string, reason: string, details: string, duration: string) => {
-    if (!profile?.isAuthorizedAdmin || !firestore) return;
-    try {
-      const userDocRef = doc(firestore, 'users', userId);
-      const blockDocRef = doc(firestore, 'blocked_users', userId);
-
-      let expiresAt: Date | null = null;
-      if (duration !== 'Permanent') {
-        expiresAt = new Date();
-        if (duration === '24 Hours') expiresAt.setHours(expiresAt.getHours() + 24);
-        else if (duration === '7 Days') expiresAt.setDate(expiresAt.getDate() + 7);
-        else if (duration === '30 Days') expiresAt.setDate(expiresAt.getDate() + 30);
+      
+      // Update admin marker accordingly
+      const adminMarkerRef = doc(firestore, 'roles_admin', userId);
+      if (newRole === 'admin') {
+        setDocumentNonBlocking(adminMarkerRef, { active: true }, { merge: true });
       }
-
-      setDocumentNonBlocking(blockDocRef, {
-        userId,
-        adminId: profile.id,
-        reason,
-        details,
-        duration,
-        expiresAt,
-        timestamp: serverTimestamp()
-      }, { merge: true });
-
-      updateDocumentNonBlocking(userDocRef, {
-        isBlocked: true,
-        blockedReason: `${reason}: ${details}`,
-        updatedAt: serverTimestamp()
-      });
-      
-      await sendWarning(userId, "Account Suspended", `Your access has been revoked (${duration}) due to: ${reason}. Details: ${details}`);
-      
-      toast({ title: "Member Suspended", description: `Registry updated for ${duration}.` });
-    } catch (error: any) {}
-  };
-
-  const unblockUser = async (userId: string) => {
-    if (!profile?.isAuthorizedAdmin || !firestore) return;
-    try {
-      const userDocRef = doc(firestore, 'users', userId);
-      const blockDocRef = doc(firestore, 'blocked_users', userId);
-
-      deleteDocumentNonBlocking(blockDocRef);
-
-      updateDocumentNonBlocking(userDocRef, {
-        isBlocked: false,
-        blockedReason: '',
-        updatedAt: serverTimestamp()
-      });
-      toast({ title: "Access Restored", description: "Identity updated." });
-    } catch (error: any) {}
-  };
-
-  const sendWarning = async (userId: string, title: string, message: string) => {
-    if (!profile?.isAuthorizedAdmin || !firestore) return;
-    try {
-      await addDoc(collection(firestore, 'notifications'), {
-        userId,
-        title,
-        message,
-        read: false,
-        type: 'warning',
-        timestamp: serverTimestamp()
-      });
     } catch (error: any) {}
   };
 
@@ -297,15 +220,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     <AuthContext.Provider value={{ 
       user, 
       profile, 
-      loading: loading || isUserLoading, 
+      loading, 
       login, 
       logout, 
       updateProfileData, 
       switchRole, 
       setUserRole,
-      blockUser,
-      unblockUser,
-      sendWarning,
       resignAdmin
     }}>
       {children}
