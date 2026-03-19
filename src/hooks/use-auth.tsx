@@ -1,7 +1,14 @@
+
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
+import { 
+  GoogleAuthProvider, 
+  signInWithPopup, 
+  signOut, 
+  setPersistence, 
+  browserSessionPersistence 
+} from 'firebase/auth';
 import { 
   doc, 
   getDoc, 
@@ -65,7 +72,7 @@ const AUTHORIZED_ADMIN_EMAILS = [
 
 /**
  * AuthProvider manages the institutional identity synchronization logic.
- * It handles role inheritance from pending invites and Super Admin whitelisting.
+ * Enforces session-only persistence to disable auto-login.
  */
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { auth, firestore } = useFirebase();
@@ -155,6 +162,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (roleHint?: 'user' | 'guest') => {
     try {
+      // Institutional Protocol: Disable auto-login by enforcing session persistence
+      await setPersistence(auth, browserSessionPersistence);
+
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({ 
         prompt: 'select_account'
