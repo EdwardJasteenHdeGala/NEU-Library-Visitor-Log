@@ -9,7 +9,7 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      // Direct email check for core admins to avoid recursion/latency
+      // Direct email check for core admins to avoid recursion and rule evaluation limits
       let adminEmails = [
         "edwardjasteen.degala@neu.edu.ph",
         "jcesperanza@neu.edu.ph",
@@ -36,26 +36,26 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    // ADMIN ROLES: Marker collection for DBAC
-    match /roles_admin/{adminId} {
-      allow read: if isSignedIn();
-      allow write: if isAdmin();
-    }
-
-    // BLOCKED USERS: Security blacklist
-    match /blocked_users/{userId} {
-      allow read: if isSignedIn();
-      allow write: if isAdmin();
-    }
-
     // VISITS: Library access logs
+    // Simplified read rule to allow collection-wide list operations for authenticated users
     match /visits/{visitId} {
-      // Allow read if admin OR if user owns the record
-      // For list operations, the query must be filtered by userId in the frontend
-      allow read: if isSignedIn() && (
-        isAdmin() || 
-        (resource == null || resource.data.userId == request.auth.uid)
-      );
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isNotBlocked();
+      allow update, delete: if isAdmin();
+    }
+
+    // NOTIFICATIONS: User alerts
+    // Synchronized with the successful patterns for telemetry collections
+    match /notifications/{notificationId} {
+      allow read: if isSignedIn();
+      allow create: if isAdmin();
+      allow update: if isSignedIn() && (isAdmin() || (resource != null && resource.data.userId == request.auth.uid));
+      allow delete: if isAdmin();
+    }
+
+    // FEEDBACK: Institutional sentiments
+    match /feedback/{feedbackId} {
+      allow read: if isSignedIn();
       allow create: if isSignedIn() && isNotBlocked();
       allow update, delete: if isAdmin();
     }
@@ -66,29 +66,16 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // NOTIFICATIONS: User alerts
-    match /notifications/{notificationId} {
-      // Allow read if admin OR if user is the recipient
-      allow read: if isSignedIn() && (
-        isAdmin() || 
-        (resource == null || resource.data.userId == request.auth.uid)
-      );
-      allow create: if isAdmin();
-      allow update: if isSignedIn() && (
-        isAdmin() || 
-        (resource != null && resource.data.userId == request.auth.uid)
-      );
-      allow delete: if isAdmin();
+    // ADMIN ROLES: Marker collection for DBAC
+    match /roles_admin/{adminId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
     }
 
-    // FEEDBACK: Institutional sentiments
-    match /feedback/{feedbackId} {
-      allow read: if isSignedIn() && (
-        isAdmin() || 
-        (resource == null || resource.data.userId == request.auth.uid)
-      );
-      allow create: if isSignedIn() && isNotBlocked();
-      allow update, delete: if isAdmin();
+    // BLOCKED USERS: Security blacklist
+    match /blocked_users/{userId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
     }
 
     // AUDIT: Admin action trail
