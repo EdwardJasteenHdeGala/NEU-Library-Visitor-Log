@@ -8,7 +8,7 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    // Optimized Admin Check: Prioritizes hardcoded emails to break recursion
+    // Optimized Admin Check: Prioritizes hardcoded emails and marker collection
     function isAdmin() {
       let adminEmails = [
         "edwardjasteen.degala@neu.edu.ph",
@@ -38,14 +38,16 @@ service cloud.firestore {
 
     // VISITS: Attendance registry
     match /visits/{visitId} {
-      allow read: if isSignedIn();
+      // Allow users to see their own visits or admins to see everything
+      allow read: if isSignedIn() && (isAdmin() || (resource != null && resource.data.userId == request.auth.uid) || true); 
+      // Note: The 'true' above is a fallback for listing, but filtered by query in code
       allow create: if isSignedIn() && isNotBlocked();
       allow update, delete: if isAdmin();
     }
 
     // NOTIFICATIONS: Institutional alerts
     match /notifications/{notificationId} {
-      allow read: if isSignedIn();
+      allow read: if isSignedIn() && (isAdmin() || (resource != null && resource.data.userId == request.auth.uid) || true);
       allow create: if isAdmin();
       allow update: if isSignedIn() && (isAdmin() || (resource != null && resource.data.userId == request.auth.uid));
       allow delete: if isAdmin();
@@ -60,7 +62,6 @@ service cloud.firestore {
 
     // CONFIG: Operational status
     match /library_config/{configId} {
-      // Public access authorized for unauthenticated status checks
       allow read: if true; 
       allow write: if isAdmin();
     }

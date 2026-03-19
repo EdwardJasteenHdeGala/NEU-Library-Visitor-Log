@@ -8,8 +8,6 @@ import {
   getDoc, 
   serverTimestamp, 
   collection,
-  setDoc,
-  deleteDoc
 } from 'firebase/firestore';
 import { 
   useFirebase, 
@@ -44,7 +42,7 @@ interface AuthContextType {
   user: any;
   profile: UserProfile | null;
   loading: boolean;
-  login: (requestedRole?: 'user' | 'admin' | 'guest') => Promise<void>;
+  login: (roleHint?: 'user' | 'guest') => Promise<void>;
   logout: () => Promise<void>;
   updateProfileData: (data: Partial<UserProfile>) => Promise<boolean>;
   switchRole: (newRole: 'user' | 'admin') => Promise<void>;
@@ -143,12 +141,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const login = async () => {
+  const login = async (roleHint?: 'user' | 'guest') => {
     try {
       const provider = new GoogleAuthProvider();
-      provider.setCustomParameters({ 
-        prompt: 'select_account'
-      });
+      const params: any = { prompt: 'select_account' };
+      
+      if (roleHint === 'user') {
+        params.hd = 'neu.edu.ph';
+      }
+      
+      provider.setCustomParameters(params);
       await signInWithPopup(auth, provider);
     } catch (error: any) {
       toast({
