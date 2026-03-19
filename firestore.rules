@@ -6,20 +6,10 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    function isSuperAdmin() {
-      return isAuthenticated() && (
-        request.auth.token.email == 'edwardjasteen.degala@neu.edu.ph' ||
-        request.auth.token.email == 'jcesperanza@neu.edu.ph' ||
-        request.auth.token.email == 'nhica.valderas@neu.edu.ph'
-      );
-    }
-
     function isAdmin() {
-      return isSuperAdmin() || (
-        isAuthenticated() && 
+      return isAuthenticated() && 
         exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin"
-      );
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
     }
 
     // USER PROFILES
@@ -29,17 +19,12 @@ service cloud.firestore {
 
     // VISITS REGISTRY
     match /visits/{visitId} {
-      // Split list rules to ensure query-wide access for admins
-      // and filtered access for standard members.
-      allow list: if isAuthenticated() && isAdmin();
-      allow list: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      // Admins can list, read, and write all visits
+      // Standard members can read their own logs but cannot list the entire collection
+      allow read, write: if isAuthenticated() && (isAdmin() || (resource != null && resource.data.userId == request.auth.uid));
       
-      // Retrieval and creation
-      allow get: if isAuthenticated() && (isAdmin() || resource.data.userId == request.auth.uid);
+      // All authenticated members can create new registry entries
       allow create: if isAuthenticated();
-      
-      // Administrative modifications
-      allow update, delete: if isAdmin();
     }
 
     // INSTITUTIONAL CONFIG
@@ -50,16 +35,14 @@ service cloud.firestore {
 
     // NOTIFICATIONS & ALERTS
     match /notifications/{notificationId} {
-      allow list: if isAuthenticated() && (isAdmin() || resource.data.userId == request.auth.uid);
-      allow get: if isAuthenticated() && (isAdmin() || resource.data.userId == request.auth.uid);
+      allow read: if isAuthenticated() && (isAdmin() || resource.data.userId == request.auth.uid);
       allow create, write: if isAdmin();
     }
 
     // FEEDBACK TELEMETRY
     match /feedback/{feedbackId} {
       allow create: if isAuthenticated();
-      allow list: if isAdmin();
-      allow get: if isAdmin() || (isAuthenticated() && resource.data.userId == request.auth.uid);
+      allow read: if isAdmin() || (isAuthenticated() && resource.data.userId == request.auth.uid);
     }
 
     // AUDIT TRAIL
