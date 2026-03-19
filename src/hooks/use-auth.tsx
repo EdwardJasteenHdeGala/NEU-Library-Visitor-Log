@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
@@ -6,12 +5,7 @@ import { GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
 import { 
   doc, 
   getDoc, 
-  serverTimestamp,
-  collection,
-  query,
-  where,
-  getDocs,
-  limit
+  serverTimestamp
 } from 'firebase/firestore';
 import { 
   useFirebase, 
@@ -96,37 +90,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const userEmail = user.email?.toLowerCase() || '';
       const isInstitutional = userEmail.endsWith('@neu.edu.ph');
       const isAuthorized = AUTHORIZED_ADMIN_EMAILS.includes(userEmail);
-      
-      // Role Inheritance from Invites
-      let invitedRole: 'user' | 'admin' | null = null;
-      try {
-        const invitesRef = collection(firestore, 'invites');
-        const q = query(invitesRef, where('email', '==', userEmail), where('status', '==', 'pending'), limit(1));
-        const inviteSnap = await getDocs(q);
-        if (!inviteSnap.empty) {
-          const inviteData = inviteSnap.docs[0].data();
-          invitedRole = inviteData.role;
-          // Synchronize invite status
-          updateDocumentNonBlocking(doc(firestore, 'invites', inviteSnap.docs[0].id), {
-            status: 'accepted',
-            updatedAt: serverTimestamp()
-          });
-        }
-      } catch (e) {
-        // Silent error if invites are unreachable
-      }
 
       if (docSnap.exists()) {
         const data = docSnap.data() as UserProfile;
         const updatedProfile = { 
           ...data, 
-          isAuthorizedAdmin: isAuthorized || data.isAuthorizedAdmin || invitedRole === 'admin',
-          role: invitedRole || data.role,
+          isAuthorizedAdmin: isAuthorized || data.isAuthorizedAdmin,
           isSuperAdmin: userEmail === BOOTSTRAP_SUPER_ADMIN_EMAIL
         };
         setProfile(updatedProfile);
       } else {
-        const defaultRole = invitedRole || (isAuthorized ? 'admin' : (isInstitutional ? 'user' : 'guest'));
+        const defaultRole = isAuthorized ? 'admin' : (isInstitutional ? 'user' : 'guest');
         const defaultDesignation = isInstitutional ? 'student' : 'guest';
         const defaultDepartment = isInstitutional ? 'Pending Assignment' : 'External';
 
@@ -135,7 +109,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           email: userEmail,
           studentId: isInstitutional ? '' : 'GUEST-ID',
           role: defaultRole as any, 
-          isAuthorizedAdmin: isAuthorized || invitedRole === 'admin',
+          isAuthorizedAdmin: isAuthorized,
           isSuperAdmin: userEmail === BOOTSTRAP_SUPER_ADMIN_EMAIL,
           displayName: user.displayName || 'Visitor',
           photoURL: user.photoURL || '',

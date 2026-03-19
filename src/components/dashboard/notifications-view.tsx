@@ -1,10 +1,9 @@
-
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Bell, CheckCircle2, ShieldAlert, Clock, ArrowLeft } from "lucide-react";
-import { collection, query, where, orderBy, doc, writeBatch } from "firebase/firestore";
+import { collection, query, orderBy, doc, writeBatch } from "firebase/firestore";
 import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
 import { useAuth } from "@/hooks/use-auth";
 import { format } from "date-fns";
@@ -22,14 +21,13 @@ export function NotificationsView({ onBack }: NotificationsViewProps) {
   const { toast } = useToast();
 
   const notificationsQuery = useMemoFirebase(() => {
-    if (!profile?.id || !firestore) return null;
-    // Applied the successful pattern from feedback collection: explicit userId filter
+    if (!firestore) return null;
+    // Reverted to global announcements query to ensure visibility for all members
     return query(
       collection(firestore, 'notifications'),
-      where('userId', '==', profile.id),
       orderBy('timestamp', 'desc')
     );
-  }, [firestore, profile?.id]);
+  }, [firestore]);
 
   const { data: notifications, isLoading } = useCollection(notificationsQuery);
 
@@ -91,7 +89,7 @@ export function NotificationsView({ onBack }: NotificationsViewProps) {
                 "p-3 rounded-xl",
                 n.read ? "bg-slate-100 text-slate-400" : "bg-primary/5 text-primary"
               )}>
-                {n.title.toLowerCase().includes('alert') ? <ShieldAlert className="h-6 w-6" /> : <Bell className="h-6 w-6" />}
+                {n.title?.toLowerCase().includes('alert') ? <ShieldAlert className="h-6 w-6" /> : <Bell className="h-6 w-6" />}
               </div>
               <div className="flex-1 space-y-1">
                 <div className="flex items-center justify-between">

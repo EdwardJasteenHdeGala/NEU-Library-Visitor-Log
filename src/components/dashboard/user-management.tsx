@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useMemo } from "react";
@@ -51,13 +50,6 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format } from "date-fns";
@@ -86,10 +78,8 @@ export function UserManagement({ onBack }: UserManagementProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
   const [newEmail, setNewEmail] = useState("");
-  const [newRole, setNewRole] = useState<'user' | 'admin'>('user');
   const [isAdding, setIsAdding] = useState(false);
   
-  // Blocking UI State
   const [isBlockDialogOpen, setIsBlockDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [blockReason, setBlockReason] = useState("");
@@ -111,15 +101,12 @@ export function UserManagement({ onBack }: UserManagementProps) {
   } = useAuth();
 
   const isAdmin = currentUserProfile?.role === 'admin';
-  const isSuperAdmin = currentUserProfile?.isSuperAdmin;
 
-  // Active Users Query
   const usersQuery = useMemoFirebase(() => {
     if (!isAdmin || !firestore) return null;
     return query(collection(firestore, 'users'), orderBy('updatedAt', 'desc'));
   }, [firestore, isAdmin]);
 
-  // Pending Invites Query
   const invitesQuery = useMemoFirebase(() => {
     if (!isAdmin || !firestore) return null;
     return query(collection(firestore, 'invites'), orderBy('timestamp', 'desc'));
@@ -149,7 +136,7 @@ export function UserManagement({ onBack }: UserManagementProps) {
     
     addDocumentNonBlocking(collection(firestore, 'invites'), {
       email: newEmail.toLowerCase().trim(),
-      role: newRole,
+      role: 'user',
       invitedBy: currentUserProfile.id,
       invitedByName: currentUserProfile.displayName,
       timestamp: serverTimestamp(),
@@ -160,8 +147,7 @@ export function UserManagement({ onBack }: UserManagementProps) {
         setIsAdding(false);
         setIsAddUserOpen(false);
         setNewEmail("");
-        setNewRole('user');
-        toast({ title: "Invitation Sent", description: `Pending authorization created for ${newEmail} as ${newRole.toUpperCase()}.` });
+        toast({ title: "Invitation Sent", description: `Pending authorization created for ${newEmail}.` });
     }, 800);
   };
 
@@ -230,23 +216,6 @@ export function UserManagement({ onBack }: UserManagementProps) {
                       className="h-12 rounded-xl border-2 font-bold"
                   />
                 </div>
-                {isSuperAdmin && (
-                  <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
-                      <ShieldAlert className="h-3 w-3 text-secondary" /> Administrative Delegation
-                    </Label>
-                    <Select value={newRole} onValueChange={(v: any) => setNewRole(v)}>
-                      <SelectTrigger className="h-12 rounded-xl border-2 font-bold">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-xl border-none shadow-2xl">
-                        <SelectItem value="user" className="font-bold">Standard Member</SelectItem>
-                        <SelectItem value="admin" className="font-bold text-primary italic">Institutional Admin</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <p className="text-[9px] text-muted-foreground italic">Super Admin: You can pre-assign administrative power to this pending identity.</p>
-                  </div>
-                )}
               </div>
               <DialogFooter>
                 <Button 
@@ -256,8 +225,8 @@ export function UserManagement({ onBack }: UserManagementProps) {
                 >
                   {isAdding ? <Loader2 className="h-5 w-5 animate-spin" /> : (
                     <>
-                      {newRole === 'admin' ? <ShieldCheck className="h-5 w-5 text-secondary" /> : <UserCheck className="h-5 w-5" />}
-                      GRANT {newRole.toUpperCase()} ACCESS
+                      <UserCheck className="h-5 w-5" />
+                      GRANT ACCESS
                     </>
                   )}
                 </Button>
@@ -266,7 +235,6 @@ export function UserManagement({ onBack }: UserManagementProps) {
           </Dialog>
         </div>
 
-        {/* Universal Search Bar */}
         <div className="sticky top-0 z-40 py-2 bg-background/80 backdrop-blur-md -mx-6 px-6 md:mx-0 md:px-0">
           <div className="relative group">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
@@ -343,8 +311,6 @@ export function UserManagement({ onBack }: UserManagementProps) {
                               <Button variant="ghost" size="icon" className="h-11 w-11 rounded-full"><MoreVertical className="h-5 w-5 text-muted-foreground" /></Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="w-56 rounded-xl shadow-xl border-none p-2">
-                              <DropdownMenuLabel className="text-[9px] font-black uppercase tracking-widest text-muted-foreground px-2">Oversight</DropdownMenuLabel>
-                              <DropdownMenuSeparator className="my-1" />
                               {!isCurrentUser && (
                                 <>
                                   <DropdownMenuItem onClick={() => { setSelectedUser(u); setIsWarningDialogOpen(true); }} className="gap-2 cursor-pointer text-primary h-11"><AlertTriangle className="h-4 w-4" /><span className="text-[10px] uppercase font-black">Issue Warning</span></DropdownMenuItem>
@@ -357,7 +323,6 @@ export function UserManagement({ onBack }: UserManagementProps) {
                                   )}
                                 </>
                               )}
-                              {isCurrentUser && <div className="p-2 text-[10px] font-bold italic text-muted-foreground text-center">Self-Guard Active</div>}
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </TableCell>
@@ -377,16 +342,15 @@ export function UserManagement({ onBack }: UserManagementProps) {
                 <TableHeader>
                   <TableRow className="bg-muted/50 border-none">
                     <TableHead className="font-black text-primary py-5 uppercase text-[10px] tracking-widest px-6 md:px-8">Target Email</TableHead>
-                    <TableHead className="font-black text-primary py-5 uppercase text-[10px] tracking-widest">Invited As</TableHead>
                     <TableHead className="font-black text-primary py-5 uppercase text-[10px] tracking-widest">Invited By</TableHead>
                     <TableHead className="font-black text-primary py-5 uppercase text-[10px] tracking-widest text-right px-6 md:px-8">Action</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {isLoadingInvites ? (
-                    <TableRow><TableCell colSpan={4} className="text-center py-20 font-bold text-muted-foreground uppercase animate-pulse">Syncing Invitations...</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={3} className="text-center py-20 font-bold text-muted-foreground uppercase animate-pulse">Syncing Invitations...</TableCell></TableRow>
                   ) : invites?.length === 0 ? (
-                    <TableRow><TableCell colSpan={4} className="text-center py-20 italic text-muted-foreground">No pending invitations recorded.</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={3} className="text-center py-20 italic text-muted-foreground">No pending invitations recorded.</TableCell></TableRow>
                   ) : invites?.map((inv) => (
                     <TableRow key={inv.id} className="hover:bg-muted/30 border-b transition-colors duration-300">
                       <TableCell className="py-5 px-6 md:px-8">
@@ -394,12 +358,6 @@ export function UserManagement({ onBack }: UserManagementProps) {
                           <div className="p-2 bg-primary/5 rounded-lg"><Mail className="h-4 w-4 text-primary" /></div>
                           <span className="font-black text-primary text-sm italic">{inv.email}</span>
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={inv.role === 'admin' ? 'default' : 'outline'} className={cn("text-[8px] font-black uppercase px-2", inv.role === 'admin' ? "bg-primary text-white" : "text-muted-foreground")}>
-                          {inv.role === 'admin' && <ShieldAlert className="h-3 w-3 mr-1 inline" />}
-                          {inv.role}
-                        </Badge>
                       </TableCell>
                       <TableCell className="text-[10px] font-bold text-muted-foreground uppercase">{inv.invitedByName || 'Admin'}</TableCell>
                       <TableCell className="text-right px-6 md:px-8">

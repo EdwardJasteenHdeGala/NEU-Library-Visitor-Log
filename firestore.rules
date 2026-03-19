@@ -2,95 +2,67 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    /**
-     * NEU Access Hub Security Rules
-     * 
-     * Core Philosophy:
-     * This ruleset enforces a strict user-ownership model for personal data (profiles and library visits) 
-     * while utilizing Role-Based Access Control (RBAC) for global administrative actions. 
-     * Security is primary, but data shape validation is minimized to support rapid prototyping.
-     *
-     * Data Structure:
-     * - /users/{userId}: Private user profiles where document ID matches the Firebase Auth UID.
-     * - /users/{userId}/visits/{visitId}: Private subcollection for library entry/exit logs.
-     * - /notifications/{notificationId}: Global announcements collection.
-     *
-     * Key Security Decisions:
-     * - Ownership via Path: Authorization for user data is derived from the document path wildcards, 
-     *   ensuring "Authorization Independence" and high performance.
-     * - Role-Based Writes: Administrative actions (like posting notifications) require a 
-     *   lookup to the user's profile to verify an 'admin' role.
-     * - Public Listing Restricted: Listing the root /users collection is disallowed to prevent 
-     *   user enumeration.
-     * - Authenticated Notifications: To resolve reported permission errors, all authenticated 
-     *   users are granted 'list' and 'get' access to the notifications collection.
-     */
-
     // --- Helper Functions ---
 
-    /** @description Checks if the request is from a signed-in user. */
     function isSignedIn() {
       return request.auth != null;
     }
 
-    /** @description Checks if the authenticated user's UID matches the provided userId. */
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    /** @description Checks ownership and ensures the document already exists for modifications. */
-    function isExistingOwner(userId) {
-      return isOwner(userId) && resource != null;
-    }
-
-    /** @description Determines if the authenticated user has the 'admin' role. */
+    /** 
+     * @description Determines if the user is an admin via role doc OR bootstrap whitelist.
+     * This fallback prevents recursion issues during initial identity sync.
+     */
     function isAdmin() {
-      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+      return isSignedIn() && (
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+        request.auth.token.email in [
+          'edwardjasteen.degala@neu.edu.ph', 
+          'jcesperanza@neu.edu.ph', 
+          'nhica.valderas@neu.edu.ph'
+        ]
+      );
     }
 
     // --- Collection Rules ---
 
-    /**
-     * @description Rules for User profiles. Users can manage their own profile.
-     * @path /users/{userId}
-     * @allow (get) If the user is the owner of the profile.
-     * @deny (list) Requests to list all users are blocked for privacy.
-     * @principle Enforces strict ownership via document ID and UID matching.
-     */
     match /users/{userId} {
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
+      allow get, list: if isOwner(userId) || isAdmin();
       allow create: if isOwner(userId) && request.resource.data.id == userId;
-      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
-      allow delete: if isExistingOwner(userId);
+      allow update: if (isOwner(userId) || isAdmin()) && request.resource.data.id == userId;
+      allow delete: if isAdmin();
 
-      /**
-       * @description Rules for library visit records. Tied to the parent user.
-       * @path /users/{userId}/visits/{visitId}
-       * @allow (list) If the authenticated user matches the userId in the path.
-       * @deny (create) If the userId in the data does not match the path.
-       * @principle Path-based authorization provides clear ownership and prevents cross-user access.
-       */
       match /visits/{visitId} {
-        allow get, list: if isOwner(userId);
-        allow create: if isOwner(userId) && request.resource.data.userId == userId;
-        allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
-        allow delete: if isExistingOwner(userId);
+        allow get, list: if isOwner(userId) || isAdmin();
+        allow create: if isOwner(userId);
+        allow update, delete: if isAdmin();
       }
     }
 
     /**
-     * @description Rules for global notifications/announcements. 
-     * @path /notifications/{notificationId}
-     * @allow (list) Any authenticated user can list announcements (Fixes reported error).
-     * @deny (create) Non-admin users attempting to post announcements.
-     * @principle Combines global read access for users with strict RBAC for content management.
+     * @description Collection Group rule for visits telemetry.
+     * Allows admins to perform system-wide audits.
      */
+    match /{path=**}/visits/{visitId} {
+      allow list: if isAdmin();
+    }
+
     match /notifications/{notificationId} {
       allow get, list: if isSignedIn();
-      allow create: if isAdmin() && request.resource.data.id == notificationId;
-      allow update: if resource != null && isAdmin() && request.resource.data.id == resource.data.id;
-      allow delete: if resource != null && isAdmin();
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /feedback/{feedbackId} {
+      allow create: if isSignedIn();
+      allow get, list: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+    }
+
+    match /invites/{inviteId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isAdmin();
     }
   }
 }
