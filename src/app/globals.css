@@ -53,9 +53,13 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    font-size: 16px; /* Base for rem calculations */
+  }
   body {
     @apply bg-background text-foreground font-body antialiased;
     font-size: 1rem; /* 16px base */
+    line-height: 1.5;
   }
   h1, h2, h3, h4, h5, h6 {
     @apply font-headline tracking-tight;
@@ -64,7 +68,7 @@
 
 @layer components {
   .portal-grid {
-    @apply grid grid-cols-1 md:grid-cols-12 gap-[2rem];
+    @apply grid grid-cols-1 md:grid-cols-12 gap-[clamp(1rem,3vw,2.5rem)];
   }
   
   .portal-card {
@@ -78,9 +82,21 @@
   .portal-status-badge {
     @apply inline-flex items-center gap-[0.5rem] px-[1rem] py-[0.25rem] rounded-full text-[0.75rem] font-black uppercase tracking-widest;
   }
+
+  .responsive-container {
+    @apply w-full max-w-[80rem] mx-auto px-[clamp(1rem,5vw,2.5rem)];
+  }
 }
 
 .bg-dot-pattern {
   background-image: radial-gradient(hsl(var(--primary) / 0.1) 1px, transparent 0);
   background-size: 24px 24px;
+}
+
+.neu-background {
+  @apply bg-slate-50 relative overflow-hidden;
+}
+
+.neu-header {
+  @apply h-[clamp(4rem,10vh,5rem)] bg-primary flex items-center sticky top-0 z-[100] shadow-lg border-b border-white/10;
 }

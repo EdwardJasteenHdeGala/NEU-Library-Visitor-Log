@@ -191,14 +191,14 @@ export function UserGreeting() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-body">
-      <header className="h-[4rem] bg-primary flex items-center sticky top-0 z-[100] shadow-lg border-b border-white/10">
-        <div className="max-w-[80rem] mx-auto flex justify-between items-center px-[1.5rem] w-full">
-          <div className="flex items-center gap-[1rem]">
+      <header className="neu-header">
+        <div className="max-w-[80rem] mx-auto flex justify-between items-center px-[clamp(1rem,5vw,1.5rem)] w-full">
+          <div className="flex items-center gap-[clamp(0.5rem,2vw,1rem)]">
             <div className="bg-white p-[0.25rem] rounded-[0.5rem] w-[2.25rem] h-[2.25rem] relative overflow-hidden flex items-center justify-center cursor-pointer transition-transform hover:scale-105" onClick={() => setSubView('log-entry')}>
               <Image src={logoImage?.imageUrl || ""} alt="NEU" fill priority className="object-contain p-[0.375rem]" />
             </div>
             <div className="flex flex-col leading-none">
-              <h1 className="text-[0.875rem] font-bold tracking-tight text-white uppercase italic">Access Hub</h1>
+              <h1 className="text-[clamp(0.75rem,1.5vw,0.875rem)] font-bold tracking-tight text-white uppercase italic">Access Hub</h1>
               <span className="text-[0.5rem] font-bold text-secondary uppercase tracking-widest">
                 {isGuest ? "Guest Portal" : "Institutional Member"}
               </span>
@@ -249,7 +249,7 @@ export function UserGreeting() {
       </header>
 
       <div className="bg-secondary/10 border-b border-secondary/20 py-[0.75rem] overflow-hidden">
-        <div className="max-w-[80rem] mx-auto px-[1.5rem] flex items-center gap-[1rem]">
+        <div className="max-w-[80rem] mx-auto px-[clamp(1rem,5vw,1.5rem)] flex items-center gap-[1rem]">
           <Megaphone className="h-[1rem] w-[1rem] text-secondary shrink-0" />
           <div className="text-[0.75rem] font-bold text-primary italic transition-all animate-in slide-in-from-right duration-500">
             {announcements[announcementIndex]}
@@ -257,25 +257,25 @@ export function UserGreeting() {
         </div>
       </div>
 
-      <main className="flex-1 w-full max-w-[80rem] mx-auto p-[1.5rem] md:p-[3rem] space-y-[3rem]">
+      <main className="flex-1 w-full max-w-[80rem] mx-auto p-[clamp(1.5rem,5vw,3rem)] space-y-[clamp(2rem,8vh,3rem)]">
         <div className="animate-in fade-in slide-in-from-bottom-[1rem] duration-700">
           <Card className="border-none rounded-[2.5rem] bg-primary text-white overflow-hidden shadow-2xl relative group">
             <div className="absolute inset-0 bg-dot-pattern opacity-10" />
-            <CardContent className="p-[2.5rem] md:p-[4rem] flex flex-col md:flex-row items-center justify-between gap-[2.5rem] relative z-10">
+            <CardContent className="p-[clamp(2rem,8vw,4rem)] flex flex-col md:flex-row items-center justify-between gap-[2.5rem] relative z-10">
               <div className="space-y-[1.5rem] text-center md:text-left">
                 <div className="inline-flex items-center gap-[0.5rem] bg-white/10 px-[1rem] py-[0.5rem] rounded-full border border-white/20">
                   <Sparkles className="h-[1rem] w-[1rem] text-secondary" />
                   <span className="text-[0.625rem] font-bold uppercase tracking-[0.2em]">Institutional Handshake Complete</span>
                 </div>
-                <h2 className="text-[2.5rem] md:text-[4rem] font-black italic tracking-tighter uppercase leading-none drop-shadow-lg">
+                <h2 className="text-[clamp(2rem,6vw,4rem)] font-black italic tracking-tighter uppercase leading-none drop-shadow-lg">
                   Welcome back, <br /> 
                   <span className="text-secondary">{profile?.displayName?.split(' ')[0]}!</span>
                 </h2>
-                <p className="text-[1.125rem] opacity-80 font-medium max-w-[30rem] italic">
+                <p className="text-[clamp(1rem,2vw,1.125rem)] opacity-80 font-medium max-w-[30rem] italic">
                   Advancing academic excellence through precision registry protocols. Access your resources below.
                 </p>
               </div>
-              <div className="flex flex-col items-center gap-[1rem] bg-white/10 p-[2rem] rounded-[2rem] backdrop-blur-md border border-white/20 min-w-[18rem] shadow-inner">
+              <div className="flex flex-col items-center gap-[1rem] bg-white/10 p-[2rem] rounded-[2rem] backdrop-blur-md border border-white/20 min-w-[clamp(15rem,30vw,18rem)] shadow-inner">
                 <LiveClock className="!bg-transparent !border-none !text-white !p-0" showSelector={false} />
                 <div className="h-px w-full bg-white/20" />
                 <div className="flex items-center gap-[0.5rem]">
@@ -288,22 +288,22 @@ export function UserGreeting() {
         </div>
 
         <div className="portal-grid">
-          <div className="lg:col-span-8 space-y-[2.5rem]">
+          <div className="lg:col-span-8 space-y-[clamp(1.5rem,5vh,2.5rem)]">
             <Card className="shadow-3xl border-none rounded-[2rem] overflow-hidden bg-white">
-              <CardHeader className="bg-slate-50 border-b p-[2rem] md:p-[3rem]">
-                <CardTitle className="text-[1.5rem] font-black italic flex items-center gap-[1rem] uppercase tracking-tighter text-primary">
-                  <History className="h-[2rem] w-[2rem] text-secondary" /> 
+              <CardHeader className="bg-slate-50 border-b p-[clamp(1.5rem,5vw,3rem)]">
+                <CardTitle className="text-[clamp(1.25rem,3vw,1.5rem)] font-black italic flex items-center gap-[1rem] uppercase tracking-tighter text-primary">
+                  <History className="h-[clamp(1.5rem,4vw,2rem)] w-[clamp(1.5rem,4vw,2rem)] text-secondary" /> 
                   Attendance Registry
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-[2rem] md:p-[3.5rem] space-y-[2.5rem]">
+              <CardContent className="p-[clamp(1.5rem,5vw,3.5rem)] space-y-[clamp(1.5rem,5vh,2.5rem)]">
                 {activeVisit ? (
-                  <div className="bg-primary/5 border-2 border-dashed border-primary/20 p-[3rem] md:p-[4rem] rounded-[2rem] text-center space-y-[2rem] animate-in zoom-in duration-500">
-                    <div className="h-[6rem] w-[6rem] bg-white rounded-[1.5rem] shadow-xl flex items-center justify-center mx-auto border-4 border-primary/10">
-                      <Activity className="h-[3rem] w-[3rem] text-primary animate-pulse" />
+                  <div className="bg-primary/5 border-2 border-dashed border-primary/20 p-[clamp(2rem,8vw,4rem)] rounded-[2rem] text-center space-y-[clamp(1.5rem,4vh,2rem)] animate-in zoom-in duration-500">
+                    <div className="h-[clamp(4.5rem,10vw,6rem)] w-[clamp(4.5rem,10vw,6rem)] bg-white rounded-[1.5rem] shadow-xl flex items-center justify-center mx-auto border-[4px] border-primary/10">
+                      <Activity className="h-[clamp(2rem,5vw,3rem)] w-[clamp(2rem,5vw,3rem)] text-primary animate-pulse" />
                     </div>
                     <div className="space-y-[0.5rem]">
-                      <h3 className="text-[1.75rem] font-black text-primary italic uppercase tracking-tighter">Active Log Synchronization</h3>
+                      <h3 className="text-[clamp(1.25rem,3vw,1.75rem)] font-black text-primary italic uppercase tracking-tighter">Active Log Synchronization</h3>
                       <p className="text-muted-foreground font-black uppercase text-[0.625rem] tracking-widest bg-white/50 px-[1rem] py-[0.25rem] rounded-full inline-block">
                         Logged entry: {activeVisit.timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </p>
@@ -312,20 +312,21 @@ export function UserGreeting() {
                       onClick={handleCheckOut} 
                       disabled={isLogging} 
                       variant="destructive" 
-                      className="h-[4.5rem] px-[3rem] text-[1.125rem] font-black uppercase tracking-widest rounded-[1rem] shadow-2xl active:scale-95 transition-all w-full md:w-auto"
+                      size="xl"
+                      className="w-full md:w-auto"
                     >
                       {isLogging ? <Loader2 className="h-[1.5rem] w-[1.5rem] animate-spin" /> : "TERMINATE SESSION"}
                     </Button>
                   </div>
                 ) : (
-                  <div className="space-y-[2.5rem]">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-[2rem]">
+                  <div className="space-y-[clamp(1.5rem,5vh,2.5rem)]">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-[clamp(1rem,3vw,2rem)]">
                       <div className="space-y-[0.75rem]">
                         <label className="text-[0.625rem] font-black text-muted-foreground uppercase tracking-[0.3em] ml-[0.75rem] flex items-center gap-[0.5rem]">
                           <Library className="h-[0.75rem] w-[0.75rem] text-primary" /> Academic Unit
                         </label>
                         <Select value={currentCollege} onValueChange={setCurrentCollege}>
-                          <SelectTrigger className="h-[4rem] font-black text-[1.125rem] rounded-[1rem] border-2 shadow-inner bg-slate-50/50 px-[1.5rem] focus:ring-primary">
+                          <SelectTrigger className="h-[clamp(3.5rem,8vh,4rem)] font-black text-[1rem] md:text-[1.125rem] rounded-[1rem] border-[2px] shadow-inner bg-slate-50/50 px-[1.5rem] focus:ring-primary">
                             <SelectValue placeholder="Select Unit" />
                           </SelectTrigger>
                           <SelectContent className="rounded-[1rem] border-none shadow-2xl">
@@ -342,7 +343,7 @@ export function UserGreeting() {
                           <Activity className="h-[0.75rem] w-[0.75rem] text-primary" /> Log Purpose
                         </label>
                         <Select value={purpose} onValueChange={setPurpose}>
-                          <SelectTrigger className="h-[4rem] font-black text-[1.125rem] rounded-[1rem] border-2 shadow-inner bg-slate-50/50 px-[1.5rem] focus:ring-primary">
+                          <SelectTrigger className="h-[clamp(3.5rem,8vh,4rem)] font-black text-[1rem] md:text-[1.125rem] rounded-[1rem] border-[2px] shadow-inner bg-slate-50/50 px-[1.5rem] focus:ring-primary">
                             <SelectValue placeholder="Select Purpose" />
                           </SelectTrigger>
                           <SelectContent className="rounded-[1rem] border-none shadow-2xl">
@@ -356,7 +357,8 @@ export function UserGreeting() {
                     <Button 
                       onClick={handleCheckIn} 
                       disabled={!purpose || isLogging} 
-                      className="w-full h-[5rem] text-[1.5rem] md:text-[2rem] font-black gap-[1.5rem] rounded-[1.25rem] shadow-3xl bg-primary hover:bg-primary/95 transition-all group overflow-hidden relative active:scale-95"
+                      size="xl"
+                      className="w-full relative overflow-hidden active:scale-95"
                     >
                       <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                       {isLogging ? <Loader2 className="h-[2rem] w-[2rem] animate-spin" /> : <CheckCircle2 className="h-[2rem] w-[2rem] text-secondary" />}
@@ -368,9 +370,9 @@ export function UserGreeting() {
             </Card>
           </div>
 
-          <aside className="lg:col-span-4 space-y-[2.5rem]">
-            <Card className="p-[2.5rem] border-none rounded-[2rem] bg-white shadow-2xl space-y-[2rem]">
-              <div className="flex items-center gap-[1rem] border-b pb-[1.5rem]">
+          <aside className="lg:col-span-4 space-y-[clamp(1.5rem,5vh,2.5rem)]">
+            <Card className="p-[clamp(1.5rem,5vw,2.5rem)] border-none rounded-[2rem] bg-white shadow-2xl space-y-[1.5rem]">
+              <div className="flex items-center gap-[1rem] border-b pb-[1rem]">
                 <div className="p-[0.75rem] bg-primary/5 rounded-[0.75rem]">
                   <Globe className="h-[1.5rem] w-[1.5rem] text-primary" />
                 </div>
@@ -379,7 +381,7 @@ export function UserGreeting() {
               <p className="text-[0.875rem] font-bold italic leading-relaxed text-muted-foreground">
                 Registry synchronization is mandatory for all visitors. Your academic logs are archived for institutional oversight and facility optimization compliance.
               </p>
-              <div className="space-y-[1rem]">
+              <div className="space-y-[0.75rem]">
                 <div className="flex items-center gap-[1rem] p-[1rem] bg-slate-50 rounded-[1rem] border">
                   <ShieldCheck className="h-[1.25rem] w-[1.25rem] text-secondary" />
                   <span className="text-[0.625rem] font-black uppercase tracking-widest text-primary/70">Registry Synchronized</span>
@@ -391,7 +393,7 @@ export function UserGreeting() {
               </div>
             </Card>
 
-            <Card className="p-[2.5rem] border-none rounded-[2rem] bg-slate-900 text-white shadow-2xl space-y-[1.5rem] relative overflow-hidden">
+            <Card className="p-[clamp(1.5rem,5vw,2.5rem)] border-none rounded-[2rem] bg-slate-900 text-white shadow-2xl space-y-[1.25rem] relative overflow-hidden">
               <div className="absolute inset-0 bg-dot-pattern opacity-10" />
               <div className="flex items-center gap-[1rem] relative z-10">
                 <Bell className="h-[1.25rem] w-[1.25rem] text-secondary" />
@@ -405,8 +407,8 @@ export function UserGreeting() {
         </div>
       </main>
 
-      <footer className="p-[2.5rem] text-center text-muted-foreground text-[0.625rem] font-black uppercase tracking-[0.4em] opacity-40 mt-auto">
-        © {new Date().getFullYear()} NEW ERA UNIVERSITY • THE HUB • COLLEGE OF INFORMATICS & COMPUTING SCIENCES
+      <footer className="p-[clamp(1.5rem,5vw,2.5rem)] text-center text-muted-foreground text-[0.625rem] font-black uppercase tracking-[0.4em] opacity-40 mt-auto">
+        © 2026 NEW ERA UNIVERSITY • THE HUB • COLLEGE OF INFORMATICS & COMPUTING SCIENCES
       </footer>
     </div>
   );
