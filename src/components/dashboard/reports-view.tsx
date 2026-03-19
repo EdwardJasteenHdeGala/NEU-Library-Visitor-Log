@@ -78,9 +78,9 @@ export function ReportsView({ onBack }: ReportsViewProps) {
 
   const [archives] = useState([
     { name: "Daily Attendance Summary", category: "Audit Trail", timestamp: "Today, 08:00 AM" },
-    { name: "Monthly Utilization Report", category: "Resource Planning", timestamp: "Oct 01, 2024" },
-    { name: "Peak Hours Analysis", category: "Staffing Optimization", timestamp: "Sep 28, 2024" },
-    { name: "CICS Semester Audit", category: "Academic Compliance", timestamp: "Sep 15, 2024" },
+    { name: "Monthly Utilization Report", category: "Resource Planning", timestamp: "Oct 01, 2026" },
+    { name: "Peak Hours Analysis", category: "Staffing Optimization", timestamp: "Sep 28, 2026" },
+    { name: "CICS Semester Audit", category: "Academic Compliance", timestamp: "Sep 15, 2026" },
   ]);
 
   const uniqueUserCount = new Set(visits?.map(v => v.userId)).size;

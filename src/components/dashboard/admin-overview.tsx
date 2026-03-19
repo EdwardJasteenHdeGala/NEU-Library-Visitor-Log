@@ -17,7 +17,7 @@ import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
 import { format } from "date-fns";
 import { useAuth } from "@/hooks/use-auth";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { cn } from "@/lib/utils";
+import { cn, getAcademicYear } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { useLibraryStatus } from "@/hooks/use-library-status";
 import { Button } from "@/components/ui/button";
@@ -144,7 +144,7 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
             <History className="h-5 w-5 text-primary" />
           </CardHeader>
           <CardContent className="pt-8">
-            <div className="text-2xl font-black text-slate-800 uppercase italic leading-none">AY 24-25</div>
+            <div className="text-2xl font-black text-slate-800 uppercase italic leading-none">AY {getAcademicYear()}</div>
             <p className="text-[9px] font-bold text-muted-foreground mt-2 uppercase tracking-tight">Institutional Registry Term</p>
           </CardContent>
         </Card>
