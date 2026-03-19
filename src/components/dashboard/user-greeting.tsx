@@ -19,7 +19,8 @@ import {
   Bell,
   Info,
   ChevronRight,
-  Sparkles
+  Sparkles,
+  Megaphone
 } from "lucide-react";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
@@ -250,7 +251,7 @@ export function UserGreeting() {
       <div className="bg-secondary/10 border-b border-secondary/20 py-[0.75rem] overflow-hidden">
         <div className="max-w-[80rem] mx-auto px-[1.5rem] flex items-center gap-[1rem]">
           <Megaphone className="h-[1rem] w-[1rem] text-secondary shrink-0" />
-          <div className="text-[0.75rem] font-bold text-primary italic transition-all animate-in slide-in-from-right duration-500 key={announcementIndex}">
+          <div className="text-[0.75rem] font-bold text-primary italic transition-all animate-in slide-in-from-right duration-500">
             {announcements[announcementIndex]}
           </div>
         </div>
