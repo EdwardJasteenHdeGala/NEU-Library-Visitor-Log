@@ -37,7 +37,6 @@ service cloud.firestore {
     }
 
     // VISITS: Attendance registry
-    // Pattern: Authorized for all signed-in users to enable personal and admin telemetry.
     match /visits/{visitId} {
       allow read: if isSignedIn();
       allow create: if isSignedIn() && isNotBlocked();
@@ -61,7 +60,8 @@ service cloud.firestore {
 
     // CONFIG: Operational status
     match /library_config/{configId} {
-      allow read: if isSignedIn();
+      // Public access authorized for unauthenticated status checks
+      allow read: if true; 
       allow write: if isAdmin();
     }
 
