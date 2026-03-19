@@ -1,33 +1,30 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-
     // INSTITUTIONAL RBAC HELPERS
     function isAuthenticated() {
       return request.auth != null;
     }
 
     function isAdmin() {
-      return isAuthenticated() && (
-        request.auth.token.email == 'edwardjasteen.degala@neu.edu.ph' ||
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
-      );
+      return isAuthenticated() && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
     }
 
     // USER PROFILES
     match /users/{userId} {
-      allow read, write: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+      allow read, write: if isAuthenticated() && request.auth.uid == userId;
     }
 
     // VISITS REGISTRY
     match /visits/{visitId} {
-      // Admins have full institutional oversight
+      // Admins can list, read, and write all visits
       allow read, write: if isAdmin();
-      
-      // Members and Guests can log their presence
+
+      // All authenticated users can create new visits
       allow create: if isAuthenticated();
       
-      // Members can read their own telemetry logs (required for Active Session check)
+      // Allow users to read their own visits (for active session check)
       allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
     }
 
