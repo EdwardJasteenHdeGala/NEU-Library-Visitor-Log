@@ -38,6 +38,14 @@ service cloud.firestore {
     // INVITES
     match /invites/{inviteId} {
       allow read, write: if isAdmin();
+      // Allow users to check for their own invite during initial registration
+      allow list: if isAuthenticated() && (
+        request.query.filters.size() > 0 && 
+        request.query.filters[0].field == 'email' && 
+        request.query.filters[0].op == '==' && 
+        request.query.filters[0].value == request.auth.token.email
+      );
+      allow get: if isAuthenticated() && request.auth.token.email == resource.data.email;
     }
 
     // INSTITUTIONAL CONFIG

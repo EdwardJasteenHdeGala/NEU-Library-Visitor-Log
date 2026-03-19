@@ -20,7 +20,9 @@ import {
   Mail,
   UserCheck,
   XCircle,
-  History
+  History,
+  ShieldAlert,
+  UserCog
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { collection, query, orderBy, serverTimestamp, doc } from "firebase/firestore";
@@ -49,6 +51,13 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format } from "date-fns";
@@ -77,6 +86,7 @@ export function UserManagement({ onBack }: UserManagementProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
   const [newEmail, setNewEmail] = useState("");
+  const [newRole, setNewRole] = useState<'user' | 'admin'>('user');
   const [isAdding, setIsAdding] = useState(false);
   
   // Blocking UI State
@@ -101,6 +111,7 @@ export function UserManagement({ onBack }: UserManagementProps) {
   } = useAuth();
 
   const isAdmin = currentUserProfile?.role === 'admin';
+  const isSuperAdmin = currentUserProfile?.isSuperAdmin;
 
   // Active Users Query
   const usersQuery = useMemoFirebase(() => {
@@ -138,7 +149,7 @@ export function UserManagement({ onBack }: UserManagementProps) {
     
     addDocumentNonBlocking(collection(firestore, 'invites'), {
       email: newEmail.toLowerCase().trim(),
-      role: 'user',
+      role: newRole,
       invitedBy: currentUserProfile.id,
       invitedByName: currentUserProfile.displayName,
       timestamp: serverTimestamp(),
@@ -149,7 +160,8 @@ export function UserManagement({ onBack }: UserManagementProps) {
         setIsAdding(false);
         setIsAddUserOpen(false);
         setNewEmail("");
-        toast({ title: "Invitation Sent", description: `Pending authorization created for ${newEmail}.` });
+        setNewRole('user');
+        toast({ title: "Invitation Sent", description: `Pending authorization created for ${newEmail} as ${newRole.toUpperCase()}.` });
     }, 800);
   };
 
@@ -218,14 +230,36 @@ export function UserManagement({ onBack }: UserManagementProps) {
                       className="h-12 rounded-xl border-2 font-bold"
                   />
                 </div>
+                {isSuperAdmin && (
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                      <ShieldAlert className="h-3 w-3 text-secondary" /> Administrative Delegation
+                    </Label>
+                    <Select value={newRole} onValueChange={(v: any) => setNewRole(v)}>
+                      <SelectTrigger className="h-12 rounded-xl border-2 font-bold">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl border-none shadow-2xl">
+                        <SelectItem value="user" className="font-bold">Standard Member</SelectItem>
+                        <SelectItem value="admin" className="font-bold text-primary italic">Institutional Admin</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-[9px] text-muted-foreground italic">Super Admin: You can pre-assign administrative power to this pending identity.</p>
+                  </div>
+                )}
               </div>
               <DialogFooter>
                 <Button 
                   onClick={handleInviteUser} 
                   disabled={isAdding || !newEmail.includes('@')}
-                  className="w-full h-14 font-black uppercase rounded-xl"
+                  className="w-full h-14 font-black uppercase rounded-xl gap-3"
                 >
-                  {isAdding ? <Loader2 className="h-5 w-5 animate-spin" /> : "GRANT ACCESS"}
+                  {isAdding ? <Loader2 className="h-5 w-5 animate-spin" /> : (
+                    <>
+                      {newRole === 'admin' ? <ShieldCheck className="h-5 w-5 text-secondary" /> : <UserCheck className="h-5 w-5" />}
+                      GRANT {newRole.toUpperCase()} ACCESS
+                    </>
+                  )}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -343,8 +377,8 @@ export function UserManagement({ onBack }: UserManagementProps) {
                 <TableHeader>
                   <TableRow className="bg-muted/50 border-none">
                     <TableHead className="font-black text-primary py-5 uppercase text-[10px] tracking-widest px-6 md:px-8">Target Email</TableHead>
+                    <TableHead className="font-black text-primary py-5 uppercase text-[10px] tracking-widest">Invited As</TableHead>
                     <TableHead className="font-black text-primary py-5 uppercase text-[10px] tracking-widest">Invited By</TableHead>
-                    <TableHead className="font-black text-primary py-5 uppercase text-[10px] tracking-widest">Date Sent</TableHead>
                     <TableHead className="font-black text-primary py-5 uppercase text-[10px] tracking-widest text-right px-6 md:px-8">Action</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -361,10 +395,13 @@ export function UserManagement({ onBack }: UserManagementProps) {
                           <span className="font-black text-primary text-sm italic">{inv.email}</span>
                         </div>
                       </TableCell>
-                      <TableCell className="text-[10px] font-bold text-muted-foreground uppercase">{inv.invitedByName || 'Admin'}</TableCell>
-                      <TableCell className="text-[10px] font-black text-muted-foreground italic">
-                        {inv.timestamp?.seconds ? format(inv.timestamp.seconds * 1000, 'MMM dd, yyyy') : 'Recently'}
+                      <TableCell>
+                        <Badge variant={inv.role === 'admin' ? 'default' : 'outline'} className={cn("text-[8px] font-black uppercase px-2", inv.role === 'admin' ? "bg-primary text-white" : "text-muted-foreground")}>
+                          {inv.role === 'admin' && <ShieldAlert className="h-3 w-3 mr-1 inline" />}
+                          {inv.role}
+                        </Badge>
                       </TableCell>
+                      <TableCell className="text-[10px] font-bold text-muted-foreground uppercase">{inv.invitedByName || 'Admin'}</TableCell>
                       <TableCell className="text-right px-6 md:px-8">
                         <Button 
                           variant="ghost" 
