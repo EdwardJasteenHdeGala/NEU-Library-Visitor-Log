@@ -75,6 +75,21 @@
         "expiresAt": { "type": "string", "format": "date-time" },
         "timestamp": { "type": "string", "format": "date-time" }
       }
+    },
+    "Feedback": {
+      "title": "Feedback",
+      "type": "object",
+      "description": "Institutional sentiments and experience telemetry.",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "userPhoto": { "type": "string" },
+        "rating": { "type": "number" },
+        "visitType": { "type": "string" },
+        "message": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      }
     }
   },
   "auth": {
@@ -120,6 +135,14 @@
           "entityName": "BlockedUser",
           "schema": { "$ref": "#/backend/entities/BlockedUser" },
           "description": "Official record of a user's suspension."
+        }
+      },
+      {
+        "path": "/feedback/{feedbackId}",
+        "definition": {
+          "entityName": "Feedback",
+          "schema": { "$ref": "#/backend/entities/Feedback" },
+          "description": "User feedback and sentiments."
         }
       }
     ]

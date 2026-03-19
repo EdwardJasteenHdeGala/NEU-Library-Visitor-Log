@@ -63,6 +63,13 @@ service cloud.firestore {
       allow update: if request.auth != null && isNotBlocked() && (resource != null && resource.data.userId == request.auth.uid);
     }
 
+    // FEEDBACK: Institutional sentiments
+    match /feedback/{feedbackId} {
+      allow read, write: if isAdmin();
+      allow create: if request.auth != null && isNotBlocked();
+      allow read: if request.auth != null && (isAdmin() || (resource != null && resource.data.userId == request.auth.uid));
+    }
+
     // LIBRARY_CONFIG: Operational status and manual overrides
     match /library_config/{configId} {
       allow read: if request.auth != null;
@@ -73,6 +80,12 @@ service cloud.firestore {
     match /blocked_users/{userId} {
       allow read: if request.auth != null; // Everyone can check if they are blocked
       allow write: if isAdmin();
+    }
+
+    // AUDIT_LOGS: Administrative action trail
+    match /audit_logs/{logId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin();
     }
 
     // Default deny for all other paths
