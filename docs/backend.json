@@ -1,91 +1,153 @@
-
 {
   "entities": {
-    "UserProfile": {
-      "title": "UserProfile",
-      "description": "Represents a user's institutional identity and portal access role at New Era University.",
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
       "type": "object",
+      "description": "Represents a user profile within the NEU Access Hub, including authentication details and assigned roles.",
       "properties": {
-        "id": { "type": "string", "description": "Firebase Auth UID" },
-        "email": { "type": "string", "format": "email" },
-        "studentId": { "type": "string", "description": "Institutional ID number or GUEST-ID" },
-        "role": { "type": "string", "enum": ["guest", "user", "admin"] },
-        "college": { "type": "string", "description": "Academic unit or college" },
-        "department": { "type": "string" },
-        "designation": { "type": "string", "enum": ["student", "professor", "staff", "guest"] },
-        "profileCompleted": { "type": "boolean" },
-        "isAuthorizedAdmin": { "type": "boolean" },
-        "isBlocked": { "type": "boolean" },
-        "blockedReason": { "type": "string" },
-        "theme": { "type": "string", "enum": ["light", "dark"] },
-        "createdAt": { "type": "string", "format": "date-time" },
-        "updatedAt": { "type": "string", "format": "date-time" }
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the User entity."
+        },
+        "email": {
+          "type": "string",
+          "description": "The institutional email address of the user, used for Google Sign-In and domain restriction.",
+          "format": "email"
+        },
+        "studentId": {
+          "type": "string",
+          "description": "The student ID associated with the user's account, used for an alternative login method."
+        },
+        "role": {
+          "type": "string",
+          "description": "The assigned role of the user (e.g., 'user', 'admin'), determining access privileges."
+        }
       },
-      "required": ["id", "email", "role", "designation", "createdAt", "updatedAt"]
+      "required": [
+        "id",
+        "email",
+        "studentId",
+        "role"
+      ]
     },
-    "VisitorLogEntry": {
-      "title": "VisitorLogEntry",
-      "description": "A single entry record for library access.",
+    "Visit": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Visit",
       "type": "object",
+      "description": "Records a single visit entry by a user to the NEU Library.",
       "properties": {
-        "userId": { "type": "string" },
-        "userName": { "type": "string" },
-        "college": { "type": "string" },
-        "role": { "type": "string" },
-        "purpose": { "type": "string" },
-        "timestamp": { "type": "string", "format": "date-time" },
-        "exitTimestamp": { "type": "string", "format": "date-time" },
-        "durationMinutes": { "type": "number" },
-        "academicYear": { "type": "string" }
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Visit entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to the User who made this visit. (Relationship: User 1:N Visit)"
+        },
+        "checkInTime": {
+          "type": "string",
+          "description": "Timestamp when the user checked into the library.",
+          "format": "date-time"
+        },
+        "checkOutTime": {
+          "type": "string",
+          "description": "Optional timestamp when the user checked out of the library.",
+          "format": "date-time"
+        },
+        "purpose": {
+          "type": "string",
+          "description": "The stated purpose or reason for the user's visit to the library."
+        }
       },
-      "required": ["userId", "userName", "college", "purpose", "timestamp"]
+      "required": [
+        "id",
+        "userId",
+        "checkInTime",
+        "purpose"
+      ]
     },
-    "Invite": {
-      "title": "Invite",
-      "description": "Represents a pending invitation for a user to join the portal.",
+    "Notification": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Notification",
       "type": "object",
+      "description": "Represents an announcement or message displayed to authenticated users within the NEU Access Hub.",
       "properties": {
-        "email": { "type": "string", "format": "email" },
-        "role": { "type": "string", "enum": ["user", "admin"] },
-        "invitedBy": { "type": "string" },
-        "invitedByName": { "type": "string" },
-        "timestamp": { "type": "string", "format": "date-time" },
-        "status": { "type": "string", "enum": ["pending", "accepted", "revoked"] }
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Notification entity."
+        },
+        "title": {
+          "type": "string",
+          "description": "The title or subject of the notification."
+        },
+        "message": {
+          "type": "string",
+          "description": "The main content or body of the notification message."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the notification was created.",
+          "format": "date-time"
+        }
       },
-      "required": ["email", "role", "invitedBy", "timestamp", "status"]
+      "required": [
+        "id",
+        "title",
+        "message",
+        "createdAt"
+      ]
     }
   },
   "auth": {
-    "providers": ["google.com"]
+    "providers": [
+      "password",
+      "anonymous"
+    ]
   },
   "firestore": {
-    "/users/{userId}": {
-      "schema": { "$ref": "#/backend/entities/UserProfile" },
-      "description": "Institutional user profiles."
-    },
-    "/visits/{visitId}": {
-      "schema": { "$ref": "#/backend/entities/VisitorLogEntry" },
-      "description": "Centralized library access log."
-    },
-    "/invites/{inviteId}": {
-      "schema": { "$ref": "#/backend/entities/Invite" },
-      "description": "Pending access authorizations."
-    },
-    "/library_config/{configId}": {
-      "schema": { "type": "object" },
-      "description": "Global operational status configuration."
-    },
-    "/notifications/{notificationId}": {
-      "schema": { "type": "object" },
-      "description": "User-specific alerts."
-    },
-    "/feedback/{feedbackId}": {
-      "schema": { "type": "object" },
-      "description": "Institutional sentiment telemetry."
-    },
-    "/audit_logs/{logId}": {
-      "schema": { "type": "object" },
-      "description": "Administrative action trail."
-    }
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores user profiles, including email, student ID, and assigned role. The document ID (`userId`) must match `request.auth.uid`. This collection is central for role-based access control (DBAC)."
+        }
+      },
+      {
+        "path": "/users/{userId}/visits/{visitId}",
+        "definition": {
+          "entityName": "Visit",
+          "schema": {
+            "$ref": "#/backend/entities/Visit"
+          },
+          "description": "A subcollection storing individual library visit records for a specific user. The `{userId}` in the path identifies the owner of the visit, making authorization checks path-based and independent.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user who owns this visit record."
+            },
+            {
+              "name": "visitId",
+              "description": "The unique identifier for a specific visit entry."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/notifications",
+        "definition": {
+          "entityName": "Notification",
+          "schema": {
+            "$ref": "#/backend/entities/Notification"
+          },
+          "description": "A top-level collection for global announcements or messages. All authenticated users are allowed to read and list documents from this collection to address the reported permissions error. Write access (create, update, delete) is restricted to 'admin' roles, requiring a role lookup."
+        }
+      }
+    ],
+    "reasoning": "The recommended Firestore structure is designed to be secure, scalable, and debuggable by strictly adhering to the core design principles and mandates. The central issue of the 'Missing or insufficient permissions' error for listing documents from `/notifications` is directly addressed by allowing read access to all authenticated users for this collection, ensuring QAP compliance.\n\n**Authorization Independence:**\n1.  **User Profiles (`/users/{userId}`):** User profiles are stored at a top-level collection, with the document ID (`userId`) directly corresponding to `request.auth.uid`. This makes ownership checks trivial (`request.auth.uid == userId`) without requiring any `get()` calls to parent documents or external collections for *read* access to one's own profile. Roles for DBAC (e.g., 'admin') are stored directly within these user documents.\n2.  **User Visits (`/users/{userId}/visits/{visitId}`):** Visit records are structured as a subcollection under the respective user. This hierarchical path intrinsically links a visit to its owner (`userId`), meaning authorization rules for visits can simply compare `request.auth.uid` with the `{userId}` wildcard in the path. This eliminates the need for `get()` calls to a parent `user` document, thus preserving authorization independence for this hierarchical data.\n3.  **Global Notifications (`/notifications`):** This collection is designed to hold global announcements. For *read* access, authorization depends solely on `request.auth.uid` being present (i.e., the user is authenticated). No `get()` calls or complex lookups are needed, achieving authorization independence for read operations. For *write* operations, if restricted to 'admin' roles, a `get()` call to the `/users/{request.auth.uid}` document would be necessary to check the user's role. This is generally acceptable for write operations on top-level collections, as they are less frequent and critical for atomic performance than `get()` calls within read rules of hierarchical data.\n\n**QAP (Rules are not Filters) Support:**\n1.  **`notifications` Collection:** The `/notifications` collection is designed with a homogeneous security posture: *all* documents within it are intended to be readable by *any* authenticated user. This directly supports QAPs because a `list` operation will return all documents, and every document returned will satisfy the simple security rule (`allow read: if request.auth != null;`). No server-side filtering by the rules is implied or required, thus preventing permission errors for `list` operations.\n2.  **`users/{userId}/visits` Collection:** For user-specific data like `visits`, the path itself (`/users/{userId}/visits`) acts as an implicit filter. When a user queries `/users/$(request.auth.uid)/visits`, they are querying a collection where *all* documents are, by design, owned by `request.auth.uid`. Therefore, the `list` operation naturally adheres to QAPs because every document fetched belongs to the authenticated user, satisfying the ownership rule (`allow read: if request.auth.uid == userId;`).\n3.  **`users/{userId}` Collection:** A `get` operation on `/users/{request.auth.uid}` is QAP compliant as it fetches a single, directly authorized document. A `list` on the root `/users` collection would typically be restricted or heavily controlled, as allowing general listing could violate QAPs if individual documents had different read permissions. In this design, individual user profiles are primarily accessed directly."
   }
 }
