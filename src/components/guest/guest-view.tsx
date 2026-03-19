@@ -1,4 +1,3 @@
-
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -12,14 +11,12 @@ import {
   Phone,
   Mail,
   LogIn,
-  AlertCircle,
   Megaphone,
   Clock,
   ExternalLink
 } from "lucide-react";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
-import { cn } from "@/lib/utils";
 
 interface GuestViewProps {
   onBack: () => void;
@@ -27,7 +24,7 @@ interface GuestViewProps {
 }
 
 export function GuestView({ onBack, onLogin }: GuestViewProps) {
-  const libraryImage = PlaceHolderImages.find(img => img.id === 'library-interior');
+  const campusImage = PlaceHolderImages.find(img => img.id === 'neu-campus');
   const logoImage = PlaceHolderImages.find(img => img.id === 'neu-logo');
 
   return (
@@ -92,12 +89,12 @@ export function GuestView({ onBack, onLogin }: GuestViewProps) {
             <Card className="shadow-[0_32px_64px_-12px_rgba(0,0,0,0.1)] border-none overflow-hidden rounded-[2.5rem] bg-white ring-1 ring-slate-200/50">
               <div className="aspect-[21/10] relative group overflow-hidden">
                 <Image 
-                  src={libraryImage?.imageUrl || ""} 
-                  alt="Modern Library Interior" 
+                  src={campusImage?.imageUrl || ""} 
+                  alt="NEU Campus" 
                   fill 
                   priority
                   className="object-cover transition-transform duration-1000 group-hover:scale-105"
-                  data-ai-hint="modern library"
+                  data-ai-hint="university campus"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent" />
                 <div className="absolute bottom-10 left-10 right-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
@@ -139,7 +136,6 @@ export function GuestView({ onBack, onLogin }: GuestViewProps) {
               </CardContent>
             </Card>
 
-            {/* Features Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               {[
                 { title: 'Academic Integrity', desc: 'Secure institutional logging for audit trails.', icon: ShieldCheck },
@@ -158,7 +154,6 @@ export function GuestView({ onBack, onLogin }: GuestViewProps) {
             </div>
           </div>
 
-          {/* Sidebar Area */}
           <aside className="lg:col-span-4 space-y-8 lg:sticky lg:top-24">
             <Card className="shadow-2xl p-10 space-y-8 rounded-[2.5rem] border-none text-white bg-primary relative overflow-hidden group">
               <div className="absolute inset-0 bg-dot-pattern opacity-10" />
@@ -177,10 +172,10 @@ export function GuestView({ onBack, onLogin }: GuestViewProps) {
                 <div className="pt-6">
                   <Button 
                     onClick={onLogin}
-                    className="w-full h-16 bg-white text-primary hover:bg-secondary hover:text-primary font-black text-xs uppercase tracking-[0.3em] rounded-2xl shadow-2xl active:scale-95 transition-all flex items-center justify-start px-8 group/btn"
+                    className="w-full h-16 bg-white text-primary hover:bg-slate-50 font-black text-xs uppercase tracking-[0.2em] rounded-xl shadow-2xl active:scale-95 transition-all flex items-center justify-between px-8"
                   >
                     Enter Portal Gateway
-                    <LogIn className="h-5 w-5 ml-auto transition-transform group-hover/btn:translate-x-2" />
+                    <LogIn className="h-5 w-5" />
                   </Button>
                 </div>
               </div>

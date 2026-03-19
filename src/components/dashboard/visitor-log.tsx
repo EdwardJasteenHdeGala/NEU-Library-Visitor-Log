@@ -1,15 +1,13 @@
-
 "use client";
 
 import { useState, useMemo } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { 
   Search, 
   Users, 
   Trash2, 
   Download, 
-  Filter, 
   Loader2, 
   ArrowLeft,
   Building2,
@@ -26,7 +24,7 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
-import { collection, query, orderBy, doc, where } from "firebase/firestore";
+import { collection, query, orderBy, doc } from "firebase/firestore";
 import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
@@ -91,7 +89,6 @@ export function VisitorLog({ onBack }: VisitorLogProps) {
   
   const isAdmin = profile?.role === 'admin';
 
-  // Real-time query: Authorized admins synchronize the entire system-wide registry
   const visitsQuery = useMemoFirebase(() => {
     if (!isAdmin || !firestore) return null;
     return query(

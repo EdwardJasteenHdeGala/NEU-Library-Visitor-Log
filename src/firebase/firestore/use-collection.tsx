@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -26,9 +25,6 @@ export interface UseCollectionResult<T> {
   error: FirestoreError | Error | null; // Error object, or null.
 }
 
-/* Internal implementation of Query:
-  https://github.com/firebase/firebase-js-sdk/blob/c5f08a9bc5da0d2b0207802c972d53724ccef055/packages/firestore/src/lite-api/reference.ts#L143
-*/
 export interface InternalQuery extends Query<DocumentData> {
   _query: {
     path: {
@@ -40,7 +36,7 @@ export interface InternalQuery extends Query<DocumentData> {
 
 /**
  * React hook to subscribe to a Firestore collection or query in real-time.
- * Handles nullable references/queries.
+ * Handles nullable references/queries and provides silent recovery for permission errors.
  */
 export function useCollection<T = any>(
     memoizedTargetRefOrQuery: ((CollectionReference<DocumentData> | Query<DocumentData>) & {__memo?: boolean})  | null | undefined,
@@ -74,8 +70,7 @@ export function useCollection<T = any>(
         setIsLoading(false);
       },
       async (serverError: FirestoreError) => {
-        // Silent handling for permission-denied during list operations to prevent crashes
-        // during initial auth synchronization or for non-admin attempts.
+        // ALWAYS SILENT on permission-denied to prevent global crash during auth sync
         if (serverError.code === 'permission-denied' || serverError.code === 'unauthenticated') {
           setData(null);
           setIsLoading(false);

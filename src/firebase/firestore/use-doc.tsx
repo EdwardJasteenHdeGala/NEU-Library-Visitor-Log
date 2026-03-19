@@ -1,4 +1,3 @@
-
 'use client';
     
 import { useState, useEffect } from 'react';
@@ -25,7 +24,7 @@ export interface UseDocResult<T> {
 
 /**
  * React hook to subscribe to a single Firestore document in real-time.
- * Handles nullable references.
+ * Handles nullable references and provides silent recovery for permission errors.
  */
 export function useDoc<T = any>(
   memoizedDocRef: (DocumentReference<DocumentData> & {__memo?: boolean}) | null | undefined,
@@ -59,7 +58,7 @@ export function useDoc<T = any>(
         setIsLoading(false);
       },
       (serverError: FirestoreError) => {
-        // Silent handling for permission-denied to prevent global crash during auth sync
+        // SILENT on permission-denied to prevent global crash during auth sync
         if (serverError.code === 'permission-denied' || serverError.code === 'unauthenticated') {
           setData(null);
           setIsLoading(false);
