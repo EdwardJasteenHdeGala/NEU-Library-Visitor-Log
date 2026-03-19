@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
@@ -99,7 +98,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const data = docSnap.data() as UserProfile;
         setProfile({ ...data, isAuthorizedAdmin: isAuthorized || data.isAuthorizedAdmin });
       } else {
-        // AUTOMATIC ROLE ASSIGNMENT
+        // AUTOMATIC ROLE ASSIGNMENT based on requirements
         const defaultRole = isAuthorized ? 'admin' : (isInstitutional ? 'user' : 'guest');
         const defaultDesignation = isInstitutional ? 'student' : 'guest';
         const defaultDepartment = isInstitutional ? 'Pending Assignment' : 'External';
@@ -116,7 +115,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           department: defaultDepartment,
           college: defaultDepartment,
           designation: defaultDesignation as any,
-          profileCompleted: !isInstitutional, // Institutional members must complete setup
+          // Students must fill the form; guests are auto-completed
+          profileCompleted: !isInstitutional, 
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
           theme: 'light',
