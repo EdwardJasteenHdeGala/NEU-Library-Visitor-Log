@@ -13,11 +13,8 @@ import {
   UserCog,
   HelpCircle,
   ShieldCheck,
-  Menu,
-  X,
   Bell,
-  Search,
-  History
+  Search
 } from "lucide-react";
 import { AdminOverview } from "./admin-overview";
 import { VisitorLog } from "./visitor-log";
@@ -202,7 +199,7 @@ export function DashboardLayout() {
           <footer className="p-[2rem] bg-card border-t border-border flex flex-col items-center gap-[1rem]">
             <div className="flex items-center gap-[0.75rem] opacity-30 grayscale">
               <Image src={logoImage?.imageUrl || ""} alt="NEU" width={24} height={24} />
-              <span className="text-[0.5rem] font-black uppercase tracking-[0.4em] text-primary">New Era University Institutional Hub • CICS</span>
+              <span className="text-[0.5rem] font-black uppercase tracking-[0.4em] text-primary">© 2026 New Era University Institutional Hub • CICS</span>
             </div>
           </footer>
         </div>

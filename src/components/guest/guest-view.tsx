@@ -10,16 +10,13 @@ import {
   BookOpen,
   Phone,
   Mail,
-  LogIn,
   Megaphone,
   Clock,
   ExternalLink,
-  ChevronRight,
-  Library
+  ChevronRight
 } from "lucide-react";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
-import { cn } from "@/lib/utils";
 
 interface GuestViewProps {
   onBack: () => void;

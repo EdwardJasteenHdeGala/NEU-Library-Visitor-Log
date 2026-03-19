@@ -21,6 +21,7 @@ export interface UseDocResult<T> {
 
 /**
  * useDoc provides a real-time listener for a specific Firestore document.
+ * Includes "Silent Handshake" to handle transient permission errors.
  */
 export function useDoc<T = any>(
   memoizedDocRef: DocumentReference<DocumentData> | null | undefined,

@@ -18,7 +18,6 @@ import {
   Library,
   Bell,
   Info,
-  ChevronRight,
   Sparkles,
   Megaphone
 } from "lucide-react";
