@@ -98,7 +98,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const data = docSnap.data() as UserProfile;
         setProfile({ ...data, isAuthorizedAdmin: isAuthorized || data.isAuthorizedAdmin });
       } else {
-        // AUTOMATIC ROLE ASSIGNMENT based on requirements
         const defaultRole = isAuthorized ? 'admin' : (isInstitutional ? 'user' : 'guest');
         const defaultDesignation = isInstitutional ? 'student' : 'guest';
         const defaultDepartment = isInstitutional ? 'Pending Assignment' : 'External';
@@ -115,7 +114,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           department: defaultDepartment,
           college: defaultDepartment,
           designation: defaultDesignation as any,
-          // Students must fill the form; guests are auto-completed
           profileCompleted: !isInstitutional, 
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
@@ -136,9 +134,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (roleHint?: 'user' | 'guest') => {
     try {
       const provider = new GoogleAuthProvider();
-      // IDENTITY PROTOCOL: Force account selection
       provider.setCustomParameters({ 
-        prompt: 'select_account'
+        prompt: 'select_account',
+        hd: roleHint === 'user' ? 'neu.edu.ph' : '*'
       });
       await signInWithPopup(auth, provider);
     } catch (error: any) {
