@@ -8,12 +8,7 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   experimental: {
-    allowedDevOrigins: [
-      '6000-firebase-studio-1773763501576.cluster-nle52mxuvfhlkrzyrq6g2cwb52.cloudworkstations.dev',
-      'https://6000-firebase-studio-1773763501576.cluster-nle52mxuvfhlkrzyrq6g2cwb52.cloudworkstations.dev',
-      'localhost:9002',
-      '0.0.0.0:9002'
-    ],
+    // Removed unrecognized allowedDevOrigins to resolve configuration validation error
   },
   images: {
     remotePatterns: [
