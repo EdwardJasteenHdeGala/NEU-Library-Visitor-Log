@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -38,11 +37,12 @@ function AppContent() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-background">
         <Loader2 className="h-10 w-10 animate-spin text-primary" />
-        <p className="text-muted-foreground font-medium animate-pulse">Connecting to NEU Library Hub...</p>
+        <p className="text-muted-foreground font-medium animate-pulse">Synchronizing Identity Hub...</p>
       </div>
     );
   }
 
+  // 1. Unauthenticated Gateway
   if (!user) {
     if (viewState === 'login') {
       return <LoginScreen onBack={() => setViewState('welcome')} />;
@@ -63,24 +63,28 @@ function AppContent() {
     );
   }
 
+  // 2. Profile Loading Guard
   if (!profile) {
     return (
         <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-background">
           <Loader2 className="h-10 w-10 animate-spin text-primary" />
-          <p className="text-muted-foreground font-medium">Setting up your profile...</p>
+          <p className="text-muted-foreground font-medium">Configuring institutional profile...</p>
         </div>
       );
   }
 
-  // GLOBAL SUSPENSION CHECK
+  // 3. Global Security Suspension Check
   if (profile.isBlocked) {
     return <BlockedScreen />;
   }
 
-  if (profile.studentId === 'PENDING-ID' || profile.studentId === 'GUEST-ID') {
+  // 4. FIRST-TIME ONBOARDING FLOW
+  // Users with 'PENDING-ID' must provide their student/staff details before continuing.
+  if (profile.studentId === 'PENDING-ID') {
     return <VerifyStudentId />;
   }
 
+  // 5. Authorized Portal Routing
   if (profile.role === 'admin') {
     return <DashboardLayout />;
   }

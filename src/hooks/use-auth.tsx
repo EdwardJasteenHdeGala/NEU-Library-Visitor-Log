@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
@@ -89,6 +88,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const isBootstrapAdmin = userEmail === BOOTSTRAP_SUPER_ADMIN_EMAIL;
       const isAuthorized = userEmail && AUTHORIZED_ADMIN_EMAILS.includes(userEmail);
       
+      // Default initial state for new users
       const defaultCollege = isInstitutional ? 'General Education' : 'External / Guest';
       const defaultRole = isInstitutional ? 'user' : 'guest';
 
@@ -117,10 +117,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setProfile(data);
         }
       } else {
+        // Domain validation for institutional entry
         if (intendedRole !== 'guest' && !isInstitutional) {
           toast({
-            title: "Access Denied",
-            description: "Institutional login requires an @neu.edu.ph account.",
+            title: "Institutional Restriction",
+            description: "Member access requires a valid @neu.edu.ph account.",
             variant: "destructive"
           });
           await signOut(auth);
@@ -132,6 +133,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const profileData = {
           id: user.uid,
           email: userEmail,
+          // PENDING-ID triggers the onboarding flow in Page.tsx
           studentId: isInstitutional ? 'PENDING-ID' : 'GUEST-ID',
           role: initialRole, 
           isAuthorizedAdmin: !!isAuthorized || isBootstrapAdmin,
@@ -163,6 +165,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setIntendedRole(requestedRole);
       }
       const provider = new GoogleAuthProvider();
+      // Ensure account switching is available
       provider.setCustomParameters({ 
         prompt: 'select_account',
         hd: 'neu.edu.ph'
@@ -234,7 +237,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         updatedAt: serverTimestamp()
       });
       
-      // Also send a notification
       await sendWarning(userId, "Account Suspended", `Your access has been revoked due to: ${reason}`);
       
       toast({ title: "Member Suspended", description: "Identity updated and alert transmitted." });
