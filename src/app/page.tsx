@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -79,8 +80,8 @@ function AppContent() {
   }
 
   // 4. FIRST-TIME ONBOARDING FLOW
-  // Users with 'PENDING-ID' must provide their student/staff details before continuing.
-  if (profile.studentId === 'PENDING-ID') {
+  // Users must complete their profile before accessing the portal.
+  if (profile.profileCompleted === false) {
     return <VerifyStudentId />;
   }
 

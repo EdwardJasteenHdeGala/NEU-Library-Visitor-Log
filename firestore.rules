@@ -3,47 +3,41 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper functions for institutional authorization
+    // Helper: Check if user is authenticated
     function isAuthenticated() {
       return request.auth != null;
     }
 
-    // Check if the user is an authorized administrator
-    // Prioritizes master email and uses a marker collection check for efficiency
+    // Helper: Check if the user has the 'admin' role in their profile
     function isAdmin() {
       return isAuthenticated() && (
         request.auth.token.email == 'edwardjasteen.degala@neu.edu.ph' ||
-        exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid))
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
       );
     }
 
-    // Check if the user is the owner of the document
+    // Helper: Check if the user is the owner of the document
     function isOwner(userId) {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
-    // 1. VISITS REGISTRY - FIXED FOR LIST PERMISSION
-    match /visits/{visitId} {
-      // DEBUG/TESTING: Allow all authenticated members to list/get logs
-      // This line fixes the "Missing or insufficient permissions" on 'list'
-      allow read: if isAuthenticated();
-      
-      // PRODUCTION (Optional/Secure): 
-      // allow read: if isAdmin() || (isAuthenticated() && resource.data.userId == request.auth.uid);
-      
-      // Authorized writes: Admins have full control, members can create their own logs
-      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
-      allow update: if isAdmin() || (isAuthenticated() && resource.data.userId == request.auth.uid);
-      allow delete: if isAdmin();
-    }
-
-    // 2. USER PROFILES
+    // 1. USER PROFILES
+    // Users can read/write their own profile; admins have full access.
     match /users/{userId} {
-      allow read: if isAuthenticated();
-      allow write: if isAdmin() || isOwner(userId);
+      allow read, write: if isOwner(userId) || isAdmin();
     }
 
-    // 3. ADMIN MARKERS
+    // 2. VISITS REGISTRY
+    // Authenticated users (members & guests) can create their own logs.
+    // Admins can read/write the entire collection.
+    // Regular users can read only their own logs.
+    match /visits/{visitId} {
+      allow create: if isAuthenticated();
+      allow read: if isAdmin() || (isAuthenticated() && resource.data.userId == request.auth.uid);
+      allow update, delete: if isAdmin();
+    }
+
+    // 3. ADMIN MARKERS (Optional but useful for DBAC)
     match /roles_admin/{adminId} {
       allow read: if isAuthenticated();
       allow write: if isAdmin();
@@ -51,7 +45,7 @@ service cloud.firestore {
 
     // 4. OPERATIONAL CONFIG
     match /library_config/{configId} {
-      allow read: if true; // Publicly readable for the Welcome Screen status
+      allow read: if true; 
       allow write: if isAdmin();
     }
 

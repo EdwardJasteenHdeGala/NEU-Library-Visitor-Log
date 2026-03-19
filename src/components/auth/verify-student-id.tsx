@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -50,7 +51,6 @@ export function VerifyStudentId() {
   const { toast } = useToast();
   
   const logoImage = PlaceHolderImages.find(img => img.id === 'neu-logo');
-  const libraryImage = PlaceHolderImages.find(img => img.id === 'library-interior');
 
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,10 +64,10 @@ export function VerifyStudentId() {
     }
 
     setIsVerifying(true);
-    // Standardize ID format if needed, here we just save it
     const success = await updateProfileData({ 
         studentId: studentId.trim(),
-        college: college
+        college: college,
+        profileCompleted: true
     });
     setIsVerifying(false);
 
@@ -79,17 +79,14 @@ export function VerifyStudentId() {
     }
   };
 
-  const userInitials = profile?.displayName?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'ST';
-
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-slate-50 relative overflow-hidden">
-      {/* Decorative Background Element */}
       <div className="absolute top-0 left-0 w-full h-1/2 bg-primary transform -skew-y-6 -translate-y-24 z-0" />
       
       <Card className="w-full max-w-xl relative z-10 shadow-3xl border-none overflow-hidden rounded-[2.5rem] bg-white animate-in zoom-in duration-500">
         <CardHeader className="bg-primary p-10 text-center space-y-6 text-white relative">
             <div className="absolute inset-0 bg-dot-pattern opacity-10" />
-            <div className="mx-auto w-24 h-24 relative rounded-3xl overflow-hidden border-2 border-secondary bg-white p-3 shadow-2xl transition-transform hover:scale-110">
+            <div className="mx-auto w-24 h-24 relative rounded-3xl overflow-hidden border-2 border-secondary bg-white p-3 shadow-2xl">
                 <Image 
                     src={logoImage?.imageUrl || ""} 
                     alt="NEU Logo" 
@@ -142,7 +139,6 @@ export function VerifyStudentId() {
                         className="h-16 text-2xl font-black rounded-2xl border-2 focus:ring-primary shadow-inner bg-slate-50/50 px-8 italic"
                         required
                     />
-                    <p className="text-[9px] font-medium text-muted-foreground ml-2 italic">Format: 00-00000-000 or Staff ID</p>
                 </div>
 
                 <div className="space-y-3">
@@ -171,7 +167,6 @@ export function VerifyStudentId() {
                     className="w-full h-20 text-2xl font-black gap-4 rounded-[1.5rem] shadow-3xl bg-primary hover:bg-primary/95 transition-all group relative overflow-hidden" 
                     disabled={isVerifying || !studentId.trim() || !college}
                 >
-                    <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                     {isVerifying ? (
                         <>
                             <Loader2 className="h-8 w-8 animate-spin" />
@@ -195,20 +190,7 @@ export function VerifyStudentId() {
                 </Button>
             </div>
           </form>
-
-          <div className="p-6 bg-slate-50 rounded-3xl flex items-start gap-4 border-2 border-dashed border-primary/20">
-              <div className="p-2 bg-white rounded-xl shadow-sm"><ShieldCheck className="h-5 w-5 text-primary" /></div>
-              <p className="text-[10px] font-medium text-primary/80 leading-relaxed italic">
-                  <strong>Security Note:</strong> This identity verification protocol is required for all first-time NEU Access Hub users. Your institutional details will be linked to your attendance history and facility logs.
-              </p>
-          </div>
         </CardContent>
-        
-        <div className="p-6 bg-slate-50 border-t text-center">
-            <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.3em]">
-              &copy; {new Date().getFullYear()} NEW ERA UNIVERSITY • INSTITUTIONAL SECURITY PROTOCOL
-            </p>
-        </div>
       </Card>
     </div>
   );

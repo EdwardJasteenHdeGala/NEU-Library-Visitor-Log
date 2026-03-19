@@ -8,10 +8,12 @@
       "properties": {
         "id": { "type": "string", "description": "Firebase Auth UID" },
         "email": { "type": "string", "format": "email" },
-        "studentId": { "type": "string", "description": "Institutional ID number or PENDING-ID" },
+        "studentId": { "type": "string", "description": "Institutional ID number or GUEST-ID" },
         "role": { "type": "string", "enum": ["guest", "user", "admin"] },
         "college": { "type": "string", "description": "Academic unit or college" },
+        "department": { "type": "string" },
         "designation": { "type": "string", "enum": ["student", "professor", "staff", "guest"] },
+        "profileCompleted": { "type": "boolean" },
         "isAuthorizedAdmin": { "type": "boolean" },
         "isBlocked": { "type": "boolean" },
         "blockedReason": { "type": "string" },
@@ -37,66 +39,6 @@
         "academicYear": { "type": "string" }
       },
       "required": ["userId", "userName", "college", "purpose", "timestamp"]
-    },
-    "BlockedUser": {
-      "title": "BlockedUser",
-      "description": "A record of a suspended user for security rule enforcement.",
-      "type": "object",
-      "properties": {
-        "reason": { "type": "string" },
-        "details": { "type": "string" },
-        "duration": { "type": "string" },
-        "timestamp": { "type": "string", "format": "date-time" }
-      }
-    },
-    "LibraryConfig": {
-      "title": "LibraryConfig",
-      "description": "Global operational status and manual override settings.",
-      "type": "object",
-      "properties": {
-        "mode": { "type": "string", "enum": ["auto", "manual"] },
-        "manualStatus": { "type": "string", "enum": ["open", "closed"] },
-        "manualReason": { "type": "string" },
-        "updatedAt": { "type": "string", "format": "date-time" }
-      }
-    },
-    "Notification": {
-      "title": "Notification",
-      "description": "An alert or system update sent to a specific user.",
-      "type": "object",
-      "properties": {
-        "userId": { "type": "string" },
-        "title": { "type": "string" },
-        "message": { "type": "string" },
-        "read": { "type": "boolean" },
-        "timestamp": { "type": "string", "format": "date-time" }
-      }
-    },
-    "Feedback": {
-      "title": "Feedback",
-      "description": "Institutional sentiment telemetry.",
-      "type": "object",
-      "properties": {
-        "userId": { "type": "string" },
-        "userName": { "type": "string" },
-        "userPhoto": { "type": "string" },
-        "rating": { "type": "number" },
-        "visitType": { "type": "string" },
-        "message": { "type": "string" },
-        "timestamp": { "type": "string", "format": "date-time" }
-      }
-    },
-    "AuditLog": {
-      "title": "AuditLog",
-      "description": "Record of administrative actions.",
-      "type": "object",
-      "properties": {
-        "adminId": { "type": "string" },
-        "adminName": { "type": "string" },
-        "action": { "type": "string" },
-        "details": { "type": "string" },
-        "timestamp": { "type": "string", "format": "date-time" }
-      }
     }
   },
   "auth": {
@@ -107,32 +49,24 @@
       "schema": { "$ref": "#/backend/entities/UserProfile" },
       "description": "Institutional user profiles."
     },
-    "/roles_admin/{adminId}": {
-      "schema": { "type": "object" },
-      "description": "Marker collection for DBAC."
-    },
-    "/blocked_users/{userId}": {
-      "schema": { "$ref": "#/backend/entities/BlockedUser" },
-      "description": "Blacklisted identities."
-    },
     "/visits/{visitId}": {
       "schema": { "$ref": "#/backend/entities/VisitorLogEntry" },
       "description": "Centralized library access log."
     },
     "/library_config/{configId}": {
-      "schema": { "$ref": "#/backend/entities/LibraryConfig" },
+      "schema": { "type": "object" },
       "description": "Global operational status configuration."
     },
     "/notifications/{notificationId}": {
-      "schema": { "$ref": "#/backend/entities/Notification" },
+      "schema": { "type": "object" },
       "description": "User-specific alerts."
     },
     "/feedback/{feedbackId}": {
-      "schema": { "$ref": "#/backend/entities/Feedback" },
+      "schema": { "type": "object" },
       "description": "Institutional sentiment telemetry."
     },
     "/audit_logs/{logId}": {
-      "schema": { "$ref": "#/backend/entities/AuditLog" },
+      "schema": { "type": "object" },
       "description": "Administrative action trail."
     }
   }

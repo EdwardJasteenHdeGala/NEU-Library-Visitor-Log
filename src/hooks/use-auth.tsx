@@ -33,6 +33,7 @@ export interface UserProfile {
   college?: string;
   department?: string;
   designation: 'student' | 'professor' | 'staff' | 'guest';
+  profileCompleted: boolean;
   createdAt: any;
   updatedAt: any;
   theme?: 'light' | 'dark';
@@ -97,28 +98,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (docSnap.exists()) {
         const data = docSnap.data() as UserProfile;
         setProfile({ ...data, isAuthorizedAdmin: isAuthorized || data.isAuthorizedAdmin });
-
-        if (isAuthorized || data.isAuthorizedAdmin) {
-          const adminMarkerRef = doc(firestore, 'roles_admin', uid);
-          setDocumentNonBlocking(adminMarkerRef, { active: true }, { merge: true });
-        }
       } else {
         const defaultRole = isAuthorized ? 'admin' : (isInstitutional ? 'user' : 'guest');
         const defaultDesignation = isInstitutional ? 'student' : 'guest';
         const defaultDepartment = isInstitutional ? 'General Education' : 'External';
 
-        const profileData = {
+        const profileData: Partial<UserProfile> = {
           id: user.uid,
           email: userEmail,
           studentId: isInstitutional ? 'PENDING-ID' : 'GUEST-ID',
-          role: defaultRole, 
+          role: defaultRole as any, 
           isAuthorizedAdmin: isAuthorized,
           isSuperAdmin: userEmail === BOOTSTRAP_SUPER_ADMIN_EMAIL,
           displayName: user.displayName || 'Visitor',
           photoURL: user.photoURL || '',
           department: defaultDepartment,
           college: defaultDepartment,
-          designation: defaultDesignation,
+          designation: defaultDesignation as any,
+          profileCompleted: !isInstitutional, // Guests are auto-completed
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
           theme: 'light',
@@ -126,12 +123,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         };
         
         setDocumentNonBlocking(docRef, profileData, { merge: true });
-        
-        if (isAuthorized) {
-          const adminMarkerRef = doc(firestore, 'roles_admin', uid);
-          setDocumentNonBlocking(adminMarkerRef, { active: true }, { merge: true });
-        }
-
         setProfile(profileData as any);
       }
     } catch (error) {
@@ -145,10 +136,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const provider = new GoogleAuthProvider();
       const params: any = { prompt: 'select_account' };
-      
-      if (roleHint === 'user') {
-        params.hd = 'neu.edu.ph';
-      }
       
       provider.setCustomParameters(params);
       await signInWithPopup(auth, provider);
@@ -204,13 +191,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         role: newRole,
         updatedAt: serverTimestamp()
       });
-      
-      const adminMarkerRef = doc(firestore, 'roles_admin', userId);
-      if (newRole === 'admin') {
-        setDocumentNonBlocking(adminMarkerRef, { active: true }, { merge: true });
-      } else {
-        deleteDocumentNonBlocking(adminMarkerRef);
-      }
     } catch (error: any) {}
   };
 
@@ -223,10 +203,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isAuthorizedAdmin: false,
         updatedAt: serverTimestamp()
       });
-      
-      const adminMarkerRef = doc(firestore, 'roles_admin', profile.id);
-      deleteDocumentNonBlocking(adminMarkerRef);
-      
       setProfile({ ...profile, role: 'user', isAuthorizedAdmin: false });
     } catch (error: any) {}
   };
