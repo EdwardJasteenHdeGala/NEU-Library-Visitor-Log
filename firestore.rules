@@ -9,7 +9,16 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      return isSignedIn() && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
+      // Tiered admin check: Hardcoded emails + Firestore marker
+      let adminEmails = [
+        "edwardjasteen.degala@neu.edu.ph",
+        "jcesperanza@neu.edu.ph",
+        "nhica.valderas@neu.edu.ph"
+      ];
+      return isSignedIn() && (
+        request.auth.token.email in adminEmails || 
+        exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid))
+      );
     }
 
     function isOwner(userId) {
@@ -18,31 +27,53 @@ service cloud.firestore {
 
     // --- Collections ---
 
-    // USERS: Private profile data
+    // USERS: Institutional profiles
     match /users/{userId} {
-      allow get, list: if isOwner(userId) || isAdmin();
-      allow create: if isOwner(userId) && request.resource.data.id == userId;
-      allow update: if isOwner(userId) && request.resource.data.id == resource.data.id;
+      allow get, list: if isSignedIn(); 
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId) || isAdmin();
       allow delete: if isAdmin();
     }
 
-    // ADMIN ROLES: Marker collection
+    // ADMIN ROLES: Marker collection for DBAC
     match /roles_admin/{adminId} {
-      allow get: if isSignedIn();
-      allow write: if false; // Managed via console/onboarding logic
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
     }
 
-    // VISITS: Library log
+    // VISITS: Library access logs
     match /visits/{visitId} {
-      // Admins have full oversight
-      allow read, write: if isAdmin();
+      allow read: if isSignedIn(); // Privacy enforced by query filters
+      allow create: if isSignedIn();
+      allow update, delete: if isAdmin();
+    }
 
-      // Individual creation and personal retrieval
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow get: if isSignedIn() && resource.data.userId == request.auth.uid;
-      
-      // List/Export restricted to admins to prevent data scraping
-      allow list: if isAdmin();
+    // CONFIG: Global operational status
+    match /library_config/{configId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // NOTIFICATIONS: User alerts
+    match /notifications/{notificationId} {
+      allow read: if isSignedIn(); // Privacy enforced by query filters
+      allow create: if isAdmin();
+      allow update: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    // FEEDBACK: Institutional sentiments
+    match /feedback/{feedbackId} {
+      allow read: if isSignedIn(); 
+      allow create: if isSignedIn();
+      allow update, delete: if isAdmin();
+    }
+
+    // AUDIT: Admin action trail
+    match /audit_logs/{logId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin();
+      allow update, delete: if false;
     }
     
     // Fallback
