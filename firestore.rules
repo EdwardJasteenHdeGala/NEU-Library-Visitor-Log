@@ -6,14 +6,15 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    // Prioritized Administrative Whitelist for immediate registry oversight
-    // This allows admins to bypass profile-fetch recursion
+    // Prioritized Administrative Whitelist for immediate registry oversight.
+    // This allows admins to bypass profile-fetch recursion which often causes
+    // "Missing or insufficient permissions" during initial auth sync.
     function isWhitelisted() {
-      return isAuthenticated() && request.auth.token.email in [
-        "edwardjasteen.degala@neu.edu.ph",
-        "jcesperanza@neu.edu.ph",
-        "nhica.valderas@neu.edu.ph"
-      ];
+      return isAuthenticated() && (
+        request.auth.token.email == "edwardjasteen.degala@neu.edu.ph" ||
+        request.auth.token.email == "jcesperanza@neu.edu.ph" ||
+        request.auth.token.email == "nhica.valderas@neu.edu.ph"
+      );
     }
 
     function isAdmin() {
@@ -26,21 +27,24 @@ service cloud.firestore {
 
     // USER PROFILES
     match /users/{userId} {
-      allow read, write: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+      allow write: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
     }
 
     // VISITS REGISTRY
     match /visits/{visitId} {
       // Admins authorized for full registry oversight
-      allow read, write: if isAdmin();
+      allow read, write, list: if isAdmin();
 
       // Standard members can log presence and read own records
       allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
       allow get: if isAuthenticated() && resource.data.userId == request.auth.uid;
       
-      // Allow standard users to list their own visits if properly filtered
+      // Allow standard users to list their own visits if properly filtered.
+      // Rules as filters: The query must include where('userId', '==', request.auth.uid)
       allow list: if isAuthenticated() && (
          isAdmin() || (
+           request.query.limit <= 100 &&
            request.query.filters.size() > 0 && 
            request.query.filters[0].field == 'userId' && 
            request.query.filters[0].op == '==' && 

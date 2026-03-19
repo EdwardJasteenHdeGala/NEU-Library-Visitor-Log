@@ -102,13 +102,13 @@ export function useCollection<T = any>(
 
         // For list operations, we avoid emitting the global permission-error to prevent
         // the app from crashing on a failed query if the component can handle it locally.
-        // This is especially important during initial authentication sync.
-        if (serverError.code !== 'permission-denied') {
+        // This is especially important during initial authentication sync or transient states.
+        if (serverError.code !== 'permission-denied' && serverError.code !== 'unauthenticated') {
             errorEmitter.emit('permission-error', contextualError);
         } else {
           // Log permission denied locally for debugging but don't emit globally to avoid crashing
           if (process.env.NODE_ENV === 'development') {
-            console.warn(`Firestore: Permission denied for query on ${path}. This may be expected during auth sync.`);
+            console.warn(`Firestore: Permission denied for query on ${path}. This may be expected during auth sync or if the user is not an admin.`);
           }
         }
       }
