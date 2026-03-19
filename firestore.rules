@@ -22,15 +22,13 @@ service cloud.firestore {
 
     // USER PROFILES
     match /users/{userId} {
-      // Users manage their own identity; Admins maintain institutional oversight
       allow read, write: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
     }
 
     // VISITS REGISTRY
     match /visits/{visitId} {
-      // Admins are authorized for full registry oversight
-      allow get, write: if isAdmin();
-      allow list: if isAdmin();
+      // Admins are authorized for full registry oversight (unfiltered listing)
+      allow read, write: if isAdmin();
 
       // Standard members can log their presence and read their own records
       allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
@@ -38,7 +36,6 @@ service cloud.firestore {
       
       // Allow standard users to list their own visits if properly filtered
       allow list: if isAuthenticated() && (
-         request.query.limit <= 100 && 
          request.query.filters.size() > 0 && 
          request.query.filters[0].field == 'userId' && 
          request.query.filters[0].op == '==' && 

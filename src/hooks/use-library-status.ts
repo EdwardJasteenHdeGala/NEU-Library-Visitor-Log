@@ -5,9 +5,9 @@ import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 
 export type LibraryNoticeStatus = 
-  | 'Standard Hours' 
-  | 'After Hours' 
-  | 'Special Notice' 
+  | 'Registry Active' 
+  | 'After Hours Notice' 
+  | 'Special Institutional Notice' 
   | 'Emergency Announcement';
 
 export type AnnouncementCategory = 'general' | 'emergency' | 'institutional';
@@ -32,7 +32,7 @@ export function useLibraryStatus() {
 
   useEffect(() => {
     setNow(new Date());
-    const timer = setInterval(() => setNow(new Date()), 30000); // Check every 30s
+    const timer = setInterval(() => setNow(new Date()), 30000);
     return () => clearInterval(timer);
   }, []);
 
@@ -40,8 +40,8 @@ export function useLibraryStatus() {
     if (!now || isConfigLoading) {
       return { 
         isOpen: true, 
-        label: 'Registry Active' as any, 
-        nextEvent: 'Syncing...',
+        label: 'Registry Hub Active' as any, 
+        nextEvent: 'Synchronizing institutional data...',
         isManual: false,
         reason: '',
         category: 'general' as AnnouncementCategory,
@@ -53,8 +53,8 @@ export function useLibraryStatus() {
     if (config && config.mode === 'manual') {
       return {
         isOpen: config.manualStatus === 'open',
-        label: (config.manualLabel || 'Special Notice') as LibraryNoticeStatus,
-        nextEvent: config.manualReason || 'Operational update in effect',
+        label: (config.manualLabel || 'Institutional Notice') as LibraryNoticeStatus,
+        nextEvent: config.manualReason || 'Operational advisory in effect',
         isManual: true,
         reason: config.manualReason || '',
         category: (config.manualCategory || 'general') as AnnouncementCategory,
@@ -69,8 +69,8 @@ export function useLibraryStatus() {
     if (isWeekend) {
       return { 
         isOpen: false, 
-        label: 'After Hours' as LibraryNoticeStatus, 
-        nextEvent: 'Standard registry resumes Monday at 08:00 AM',
+        label: 'After Hours Notice' as LibraryNoticeStatus, 
+        nextEvent: 'Standard registry synchronization resumes Monday at 08:00 AM',
         isManual: false,
         reason: '',
         category: 'general' as AnnouncementCategory,
@@ -90,7 +90,7 @@ export function useLibraryStatus() {
     if (now < openTime) {
       return { 
         isOpen: false, 
-        label: 'After Hours' as LibraryNoticeStatus, 
+        label: 'After Hours Notice' as LibraryNoticeStatus, 
         nextEvent: `Standard registry resumes at ${openTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
         isManual: false,
         reason: '',
@@ -102,8 +102,8 @@ export function useLibraryStatus() {
     if (now >= closeTime) {
       return { 
         isOpen: false, 
-        label: 'After Hours' as LibraryNoticeStatus, 
-        nextEvent: 'Standard registry resumes tomorrow at 08:00 AM',
+        label: 'After Hours Notice' as LibraryNoticeStatus, 
+        nextEvent: 'Standard registry synchronization resumes tomorrow at 08:00 AM',
         isManual: false,
         reason: '',
         category: 'general' as AnnouncementCategory,
@@ -113,8 +113,8 @@ export function useLibraryStatus() {
 
     return { 
       isOpen: true, 
-      label: 'Standard Hours' as LibraryNoticeStatus, 
-      nextEvent: `Registry active until ${closeTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
+      label: 'Registry Active' as LibraryNoticeStatus, 
+      nextEvent: `Institutional logging active until ${closeTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
       isManual: false,
       reason: '',
       category: 'general' as AnnouncementCategory,
