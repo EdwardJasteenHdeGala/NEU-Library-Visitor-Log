@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useMemo } from "react";
@@ -15,11 +16,15 @@ import {
   AlertTriangle,
   UserX,
   Clock,
-  Filter
+  Filter,
+  Mail,
+  UserCheck,
+  XCircle,
+  History
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { collection, query, orderBy } from "firebase/firestore";
-import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
+import { collection, query, orderBy, serverTimestamp, doc } from "firebase/firestore";
+import { useFirestore, useCollection, useMemoFirebase, addDocumentNonBlocking, deleteDocumentNonBlocking } from "@/firebase";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/use-auth";
@@ -45,6 +50,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { cn } from "@/lib/utils";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { format } from "date-fns";
+import { useToast } from "@/hooks/use-toast";
 
 const BLOCK_REASONS = [
   "Spam",
@@ -83,6 +91,7 @@ export function UserManagement({ onBack }: UserManagementProps) {
   const [warningMessage, setWarningMessage] = useState("");
 
   const firestore = useFirestore();
+  const { toast } = useToast();
   const { 
     setUserRole, 
     blockUser, 
@@ -93,12 +102,20 @@ export function UserManagement({ onBack }: UserManagementProps) {
 
   const isAdmin = currentUserProfile?.role === 'admin';
 
+  // Active Users Query
   const usersQuery = useMemoFirebase(() => {
     if (!isAdmin || !firestore) return null;
     return query(collection(firestore, 'users'), orderBy('updatedAt', 'desc'));
   }, [firestore, isAdmin]);
 
-  const { data: users, isLoading } = useCollection(usersQuery);
+  // Pending Invites Query
+  const invitesQuery = useMemoFirebase(() => {
+    if (!isAdmin || !firestore) return null;
+    return query(collection(firestore, 'invites'), orderBy('timestamp', 'desc'));
+  }, [firestore, isAdmin]);
+
+  const { data: users, isLoading: isLoadingUsers } = useCollection(usersQuery);
+  const { data: invites, isLoading: isLoadingInvites } = useCollection(invitesQuery);
 
   const filteredUsers = useMemo(() => {
     if (!users) return [];
@@ -116,12 +133,30 @@ export function UserManagement({ onBack }: UserManagementProps) {
   }, [users, searchTerm]);
 
   const handleInviteUser = async () => {
+    if (!newEmail || !firestore || !currentUserProfile) return;
     setIsAdding(true);
+    
+    addDocumentNonBlocking(collection(firestore, 'invites'), {
+      email: newEmail.toLowerCase().trim(),
+      role: 'user',
+      invitedBy: currentUserProfile.id,
+      invitedByName: currentUserProfile.displayName,
+      timestamp: serverTimestamp(),
+      status: 'pending'
+    });
+
     setTimeout(() => {
         setIsAdding(false);
         setIsAddUserOpen(false);
         setNewEmail("");
-    }, 1000);
+        toast({ title: "Invitation Sent", description: `Pending authorization created for ${newEmail}.` });
+    }, 800);
+  };
+
+  const handleRevokeInvite = (inviteId: string) => {
+    if (!firestore) return;
+    deleteDocumentNonBlocking(doc(firestore, 'invites', inviteId));
+    toast({ title: "Invitation Revoked", description: "Authorization removed from registry." });
   };
 
   const handleBlockAction = async () => {
@@ -197,141 +232,159 @@ export function UserManagement({ onBack }: UserManagementProps) {
           </Dialog>
         </div>
 
-        {/* Universal Search Bar - Sticky on Desktop */}
+        {/* Universal Search Bar */}
         <div className="sticky top-0 z-40 py-2 bg-background/80 backdrop-blur-md -mx-6 px-6 md:mx-0 md:px-0">
           <div className="relative group">
-            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
-            </div>
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
             <Input 
               placeholder="Search Name, Email, ID, or Dept..." 
               className="pl-12 h-14 md:h-16 rounded-2xl shadow-xl border-2 text-base md:text-lg font-bold italic focus:ring-primary transition-all bg-white"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
-            <div className="absolute inset-y-0 right-4 hidden sm:flex items-center">
-              <div className="bg-primary/5 px-3 py-1 rounded-full border border-primary/10 flex items-center gap-2">
-                 <Filter className="h-3 w-3 text-primary" />
-                 <span className="text-[9px] font-black text-primary uppercase tracking-widest">Global Filter</span>
-              </div>
-            </div>
           </div>
         </div>
       </div>
 
-      <Card className="neu-card-shadow border-none overflow-hidden rounded-[1.5rem] md:rounded-[2rem] bg-white shadow-2xl">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-muted/50 border-none">
-                <TableHead className="font-black text-primary py-5 uppercase text-[10px] tracking-widest px-6 md:px-8">Member</TableHead>
-                <TableHead className="font-black text-primary py-5 uppercase text-[10px] tracking-widest hidden md:table-cell">ID Reference</TableHead>
-                <TableHead className="font-black text-primary py-5 uppercase text-[10px] tracking-widest hidden sm:table-cell">Unit</TableHead>
-                <TableHead className="font-black text-primary py-5 uppercase text-[10px] tracking-widest">Status</TableHead>
-                <TableHead className="font-black text-primary py-5 uppercase text-[10px] tracking-widest text-right px-6 md:px-8">Action</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
-                <TableRow><TableCell colSpan={5} className="text-center py-20 font-bold text-muted-foreground uppercase tracking-widest animate-pulse">Syncing Directory...</TableCell></TableRow>
-              ) : filteredUsers.length === 0 ? (
-                <TableRow><TableCell colSpan={5} className="text-center py-20 italic text-muted-foreground">No records found matching your search.</TableCell></TableRow>
-              ) : filteredUsers.map((u) => {
-                const userInitials = u.displayName?.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2) || 'U';
-                const isCurrentUser = u.id === currentUserProfile?.id;
+      <Tabs defaultValue="active" className="w-full">
+        <TabsList className="grid w-full grid-cols-2 h-14 bg-muted/40 p-1.5 rounded-2xl mb-8">
+          <TabsTrigger value="active" className="rounded-xl font-black text-[10px] uppercase tracking-widest gap-2">
+            <UserCheck className="h-4 w-4" /> Active ({users?.length || 0})
+          </TabsTrigger>
+          <TabsTrigger value="pending" className="rounded-xl font-black text-[10px] uppercase tracking-widest gap-2">
+            <Clock className="h-4 w-4" /> Pending ({invites?.length || 0})
+          </TabsTrigger>
+        </TabsList>
 
-                return (
-                  <TableRow key={u.id} className="hover:bg-muted/30 border-b transition-colors duration-300">
-                    <TableCell className="py-5 px-6 md:px-8">
-                      <div className="flex items-center gap-3 md:gap-4">
-                        <Avatar className="h-10 w-10 md:h-12 md:w-12 border-2 border-primary/10 shadow-sm shrink-0">
-                          <AvatarImage src={u.photoURL} alt={u.displayName} />
-                          <AvatarFallback className="bg-muted text-primary font-bold text-xs">{userInitials}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex flex-col min-w-0">
-                          <span className="font-black text-primary text-sm italic truncate">{u.displayName}</span>
-                          <span className="text-[10px] text-muted-foreground font-bold opacity-60 truncate">{u.email}</span>
-                          <span className="text-[9px] font-bold text-primary/50 block sm:hidden uppercase mt-0.5">{u.college || 'Guest'}</span>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="font-black text-[10px] text-muted-foreground tracking-widest hidden md:table-cell">
-                      <div className="flex flex-col">
-                        <span>ID: {u.studentId || 'NO-ID'}</span>
-                        <span className="opacity-50 text-[8px] uppercase">UID: {u.id}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-[10px] font-black uppercase tracking-tight italic text-primary/70 hidden sm:table-cell">{u.college || 'Guest'}</TableCell>
-                    <TableCell>
-                      <div className="flex flex-wrap gap-1 md:gap-2">
-                         {u.isBlocked ? (
-                           <Badge variant="destructive" className="text-[8px] md:text-[9px] uppercase font-black px-2 md:px-3 py-1">Suspended</Badge>
-                         ) : u.role === 'admin' ? (
-                          <Badge className="bg-primary text-white text-[8px] md:text-[9px] uppercase font-black px-2 md:px-3 py-1">Admin</Badge>
-                        ) : (
-                          <Badge variant="outline" className="text-primary text-[8px] md:text-[9px] uppercase font-black px-2 md:px-3 py-1 border-primary/20">Active</Badge>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right px-6 md:px-8">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-11 w-11 rounded-full">
-                            <MoreVertical className="h-5 w-5 text-muted-foreground" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-56 rounded-xl shadow-xl border-none p-2">
-                          <DropdownMenuLabel className="text-[9px] font-black uppercase tracking-widest text-muted-foreground px-2">Oversight</DropdownMenuLabel>
-                          <DropdownMenuSeparator className="my-1" />
-                          {!isCurrentUser && (
-                            <>
-                              <DropdownMenuItem onClick={() => { setSelectedUser(u); setIsWarningDialogOpen(true); }} className="gap-2 cursor-pointer text-primary h-11">
-                                <AlertTriangle className="h-4 w-4" />
-                                <span className="text-[10px] uppercase font-black">Issue Warning</span>
-                              </DropdownMenuItem>
-                              
-                              {u.role !== 'admin' ? (
-                                <DropdownMenuItem onClick={() => setUserRole(u.id, 'admin')} className="gap-2 cursor-pointer text-primary h-11">
-                                  <ShieldCheck className="h-4 w-4" />
-                                  <span className="text-[10px] uppercase font-black">Promote Admin</span>
-                                </DropdownMenuItem>
-                              ) : (
-                                <DropdownMenuItem onClick={() => setUserRole(u.id, 'user')} className="gap-2 cursor-pointer text-destructive h-11">
-                                  <ShieldOff className="h-4 w-4" />
-                                  <span className="text-[10px] uppercase font-black">Revoke Access</span>
-                                </DropdownMenuItem>
-                              )}
-
-                              <DropdownMenuSeparator className="my-1" />
-
-                              {u.isBlocked ? (
-                                <DropdownMenuItem onClick={() => unblockUser(u.id)} className="gap-2 cursor-pointer text-green-600 h-11">
-                                  <ShieldCheck className="h-4 w-4" />
-                                  <span className="text-[10px] uppercase font-black">Restore Access</span>
-                                </DropdownMenuItem>
-                              ) : (
-                                <DropdownMenuItem onClick={() => { setSelectedUser(u); setIsBlockDialogOpen(true); }} className="gap-2 cursor-pointer text-destructive h-11">
-                                  <Ban className="h-4 w-4" />
-                                  <span className="text-[10px] uppercase font-black">Suspend Member</span>
-                                </DropdownMenuItem>
-                              )}
-                            </>
-                          )}
-                          {isCurrentUser && (
-                            <div className="p-2 text-[10px] font-bold italic text-muted-foreground text-center">Identity Self-Guard Active</div>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
+        <TabsContent value="active" className="animate-in slide-in-from-left-4 duration-500">
+          <Card className="neu-card-shadow border-none overflow-hidden rounded-[1.5rem] md:rounded-[2rem] bg-white shadow-2xl">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/50 border-none">
+                    <TableHead className="font-black text-primary py-5 uppercase text-[10px] tracking-widest px-6 md:px-8">Member</TableHead>
+                    <TableHead className="font-black text-primary py-5 uppercase text-[10px] tracking-widest hidden md:table-cell">ID Reference</TableHead>
+                    <TableHead className="font-black text-primary py-5 uppercase text-[10px] tracking-widest">Status</TableHead>
+                    <TableHead className="font-black text-primary py-5 uppercase text-[10px] tracking-widest text-right px-6 md:px-8">Action</TableHead>
                   </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </div>
-      </Card>
+                </TableHeader>
+                <TableBody>
+                  {isLoadingUsers ? (
+                    <TableRow><TableCell colSpan={4} className="text-center py-20 font-bold text-muted-foreground uppercase animate-pulse">Syncing Directory...</TableCell></TableRow>
+                  ) : filteredUsers.length === 0 ? (
+                    <TableRow><TableCell colSpan={4} className="text-center py-20 italic text-muted-foreground">No records found.</TableCell></TableRow>
+                  ) : filteredUsers.map((u) => {
+                    const userInitials = u.displayName?.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2) || 'U';
+                    const isCurrentUser = u.id === currentUserProfile?.id;
 
-      {/* Block Dialog - Responsive & Selection-Centric */}
+                    return (
+                      <TableRow key={u.id} className="hover:bg-muted/30 border-b transition-colors duration-300">
+                        <TableCell className="py-5 px-6 md:px-8">
+                          <div className="flex items-center gap-3 md:gap-4">
+                            <Avatar className="h-10 w-10 border-2 border-primary/10 shadow-sm shrink-0">
+                              <AvatarImage src={u.photoURL} alt={u.displayName} />
+                              <AvatarFallback className="bg-muted text-primary font-bold text-xs">{userInitials}</AvatarFallback>
+                            </Avatar>
+                            <div className="flex flex-col min-w-0">
+                              <span className="font-black text-primary text-sm italic truncate">{u.displayName}</span>
+                              <span className="text-[10px] text-muted-foreground font-bold opacity-60 truncate">{u.email}</span>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="font-black text-[10px] text-muted-foreground hidden md:table-cell">
+                          {u.studentId || 'NO-ID'}
+                        </TableCell>
+                        <TableCell>
+                          {u.isBlocked ? (
+                            <Badge variant="destructive" className="text-[8px] uppercase font-black px-2 py-1">Suspended</Badge>
+                          ) : u.role === 'admin' ? (
+                            <Badge className="bg-primary text-white text-[8px] uppercase font-black px-2 py-1">Admin</Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-primary text-[8px] uppercase font-black px-2 py-1 border-primary/20">Active</Badge>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right px-6 md:px-8">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-11 w-11 rounded-full"><MoreVertical className="h-5 w-5 text-muted-foreground" /></Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-56 rounded-xl shadow-xl border-none p-2">
+                              <DropdownMenuLabel className="text-[9px] font-black uppercase tracking-widest text-muted-foreground px-2">Oversight</DropdownMenuLabel>
+                              <DropdownMenuSeparator className="my-1" />
+                              {!isCurrentUser && (
+                                <>
+                                  <DropdownMenuItem onClick={() => { setSelectedUser(u); setIsWarningDialogOpen(true); }} className="gap-2 cursor-pointer text-primary h-11"><AlertTriangle className="h-4 w-4" /><span className="text-[10px] uppercase font-black">Issue Warning</span></DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => setUserRole(u.id, u.role === 'admin' ? 'user' : 'admin')} className="gap-2 cursor-pointer h-11"><ShieldCheck className="h-4 w-4" /><span className="text-[10px] uppercase font-black">{u.role === 'admin' ? 'Revoke Admin' : 'Promote Admin'}</span></DropdownMenuItem>
+                                  <DropdownMenuSeparator className="my-1" />
+                                  {u.isBlocked ? (
+                                    <DropdownMenuItem onClick={() => unblockUser(u.id)} className="gap-2 cursor-pointer text-green-600 h-11"><ShieldCheck className="h-4 w-4" /><span className="text-[10px] uppercase font-black">Restore Access</span></DropdownMenuItem>
+                                  ) : (
+                                    <DropdownMenuItem onClick={() => { setSelectedUser(u); setIsBlockDialogOpen(true); }} className="gap-2 cursor-pointer text-destructive h-11"><Ban className="h-4 w-4" /><span className="text-[10px] uppercase font-black">Suspend Member</span></DropdownMenuItem>
+                                  )}
+                                </>
+                              )}
+                              {isCurrentUser && <div className="p-2 text-[10px] font-bold italic text-muted-foreground text-center">Self-Guard Active</div>}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="pending" className="animate-in slide-in-from-right-4 duration-500">
+          <Card className="neu-card-shadow border-none overflow-hidden rounded-[1.5rem] md:rounded-[2rem] bg-white shadow-2xl">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/50 border-none">
+                    <TableHead className="font-black text-primary py-5 uppercase text-[10px] tracking-widest px-6 md:px-8">Target Email</TableHead>
+                    <TableHead className="font-black text-primary py-5 uppercase text-[10px] tracking-widest">Invited By</TableHead>
+                    <TableHead className="font-black text-primary py-5 uppercase text-[10px] tracking-widest">Date Sent</TableHead>
+                    <TableHead className="font-black text-primary py-5 uppercase text-[10px] tracking-widest text-right px-6 md:px-8">Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {isLoadingInvites ? (
+                    <TableRow><TableCell colSpan={4} className="text-center py-20 font-bold text-muted-foreground uppercase animate-pulse">Syncing Invitations...</TableCell></TableRow>
+                  ) : invites?.length === 0 ? (
+                    <TableRow><TableCell colSpan={4} className="text-center py-20 italic text-muted-foreground">No pending invitations recorded.</TableCell></TableRow>
+                  ) : invites?.map((inv) => (
+                    <TableRow key={inv.id} className="hover:bg-muted/30 border-b transition-colors duration-300">
+                      <TableCell className="py-5 px-6 md:px-8">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 bg-primary/5 rounded-lg"><Mail className="h-4 w-4 text-primary" /></div>
+                          <span className="font-black text-primary text-sm italic">{inv.email}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-[10px] font-bold text-muted-foreground uppercase">{inv.invitedByName || 'Admin'}</TableCell>
+                      <TableCell className="text-[10px] font-black text-muted-foreground italic">
+                        {inv.timestamp?.seconds ? format(inv.timestamp.seconds * 1000, 'MMM dd, yyyy') : 'Recently'}
+                      </TableCell>
+                      <TableCell className="text-right px-6 md:px-8">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-10 w-10 rounded-full text-destructive hover:bg-destructive/5"
+                          onClick={() => handleRevokeInvite(inv.id)}
+                        >
+                          <XCircle className="h-5 w-5" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </Card>
+        </TabsContent>
+      </Tabs>
+
+      {/* Block Dialog */}
       <Dialog open={isBlockDialogOpen} onOpenChange={setIsBlockDialogOpen}>
         <DialogContent className="w-[95vw] max-w-xl rounded-3xl p-6 md:p-10 shadow-3xl">
           <DialogHeader>
@@ -343,8 +396,7 @@ export function UserManagement({ onBack }: UserManagementProps) {
             </DialogDescription>
           </DialogHeader>
           
-          <div className="py-6 md:py-8 space-y-8 md:space-y-10">
-            {/* Reason Selection - Radio Cards */}
+          <div className="py-6 md:py-8 space-y-8">
             <div className="space-y-4">
               <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/70 ml-2">Suspension Protocol Reason</Label>
               <RadioGroup value={blockReason} onValueChange={setBlockReason} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -355,9 +407,6 @@ export function UserManagement({ onBack }: UserManagementProps) {
                       htmlFor={`reason-${reason}`} 
                       className="flex items-center p-4 rounded-xl border-2 cursor-pointer peer-data-[state=checked]:border-destructive peer-data-[state=checked]:bg-destructive/5 hover:bg-slate-50 transition-all font-bold text-xs uppercase"
                     >
-                      <div className={cn("h-4 w-4 rounded-full border-2 mr-3 flex items-center justify-center peer-data-[state=checked]:border-destructive")}>
-                        {blockReason === reason && <div className="h-2 w-2 rounded-full bg-destructive" />}
-                      </div>
                       {reason}
                     </Label>
                   </div>
@@ -365,20 +414,6 @@ export function UserManagement({ onBack }: UserManagementProps) {
               </RadioGroup>
             </div>
 
-            {/* Conditional Details Textarea */}
-            {blockReason === "Other" && (
-              <div className="space-y-3 animate-in slide-in-from-top-2 duration-300">
-                <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/70 ml-2">Additional Violation Details</Label>
-                <Textarea 
-                  placeholder="Specify institutional policy violations..."
-                  className="min-h-[100px] rounded-2xl border-2 font-medium italic p-4 focus:ring-primary shadow-inner bg-slate-50 text-base"
-                  value={blockDetails}
-                  onChange={(e) => setBlockDetails(e.target.value)}
-                />
-              </div>
-            )}
-
-            {/* Duration Toggles - Radio Cards */}
             <div className="space-y-4">
               <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/70 ml-2">Suspension Duration Term</Label>
               <RadioGroup value={blockDuration} onValueChange={setBlockDuration} className="grid grid-cols-2 gap-3">
@@ -399,13 +434,11 @@ export function UserManagement({ onBack }: UserManagementProps) {
           </div>
 
           <DialogFooter className="flex-col sm:flex-row gap-3 pt-4">
-            <Button variant="outline" onClick={() => setIsBlockDialogOpen(false)} className="rounded-2xl h-14 font-black uppercase tracking-widest px-8 border-2 w-full sm:w-auto order-2 sm:order-1">
-              Cancel
-            </Button>
+            <Button variant="outline" onClick={() => setIsBlockDialogOpen(false)} className="rounded-2xl h-14 font-black uppercase tracking-widest px-8 border-2 w-full sm:w-auto order-2 sm:order-1">Cancel</Button>
             <Button 
               variant="destructive" 
               onClick={handleBlockAction} 
-              disabled={!blockReason || (blockReason === "Other" && !blockDetails.trim())}
+              disabled={!blockReason}
               className="rounded-2xl h-14 font-black uppercase tracking-widest px-10 gap-3 shadow-xl active:scale-95 transition-all w-full sm:w-auto order-1 sm:order-2"
             >
               <Ban className="h-5 w-5" /> CONFIRM TERMINATION
@@ -428,20 +461,11 @@ export function UserManagement({ onBack }: UserManagementProps) {
           <div className="py-6 space-y-6">
             <div className="space-y-2">
               <Label className="text-[10px] font-black uppercase tracking-widest ml-2">Alert Title</Label>
-              <Input 
-                value={warningTitle}
-                onChange={(e) => setWarningTitle(e.target.value)}
-                className="h-12 rounded-xl border-2 font-bold"
-              />
+              <Input value={warningTitle} onChange={(e) => setWarningTitle(e.target.value)} className="h-12 rounded-xl border-2 font-bold" />
             </div>
             <div className="space-y-2">
               <Label className="text-[10px] font-black uppercase tracking-widest ml-2">Message Content</Label>
-              <Textarea 
-                placeholder="Details of the warning..."
-                className="min-h-[120px] rounded-2xl border-2 font-medium italic p-4 text-base"
-                value={warningMessage}
-                onChange={(e) => setWarningMessage(e.target.value)}
-              />
+              <Textarea placeholder="Details of the warning..." className="min-h-[120px] rounded-2xl border-2 font-medium italic p-4 text-base" value={warningMessage} onChange={(e) => setWarningMessage(e.target.value)} />
             </div>
           </div>
           <DialogFooter className="flex-col sm:flex-row gap-3">

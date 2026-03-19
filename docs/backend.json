@@ -39,6 +39,20 @@
         "academicYear": { "type": "string" }
       },
       "required": ["userId", "userName", "college", "purpose", "timestamp"]
+    },
+    "Invite": {
+      "title": "Invite",
+      "description": "Represents a pending invitation for a user to join the portal.",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string", "format": "email" },
+        "role": { "type": "string", "enum": ["user", "admin"] },
+        "invitedBy": { "type": "string" },
+        "invitedByName": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["pending", "accepted", "revoked"] }
+      },
+      "required": ["email", "role", "invitedBy", "timestamp", "status"]
     }
   },
   "auth": {
@@ -52,6 +66,10 @@
     "/visits/{visitId}": {
       "schema": { "$ref": "#/backend/entities/VisitorLogEntry" },
       "description": "Centralized library access log."
+    },
+    "/invites/{inviteId}": {
+      "schema": { "$ref": "#/backend/entities/Invite" },
+      "description": "Pending access authorizations."
     },
     "/library_config/{configId}": {
       "schema": { "type": "object" },

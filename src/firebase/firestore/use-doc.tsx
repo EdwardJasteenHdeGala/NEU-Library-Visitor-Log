@@ -1,3 +1,4 @@
+
 'use client';
     
 import { useState, useEffect } from 'react';
@@ -60,6 +61,12 @@ export function useDoc<T = any>(
       (serverError: FirestoreError) => {
         // SILENT on permission-denied to prevent global crash during auth sync
         if (serverError.code === 'permission-denied' || serverError.code === 'unauthenticated') {
+          setData(null);
+          setIsLoading(false);
+          return;
+        }
+
+        if (serverError.message.toLowerCase().includes('permissions') || serverError.message.toLowerCase().includes('denied')) {
           setData(null);
           setIsLoading(false);
           return;

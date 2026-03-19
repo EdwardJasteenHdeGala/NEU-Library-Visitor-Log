@@ -1,3 +1,4 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -32,6 +33,11 @@ service cloud.firestore {
          request.query.filters[0].op == '==' && 
          request.query.filters[0].value == request.auth.uid
       );
+    }
+
+    // INVITES
+    match /invites/{inviteId} {
+      allow read, write: if isAdmin();
     }
 
     // INSTITUTIONAL CONFIG

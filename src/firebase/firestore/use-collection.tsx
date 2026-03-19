@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -72,6 +73,13 @@ export function useCollection<T = any>(
       async (serverError: FirestoreError) => {
         // ALWAYS SILENT on permission-denied to prevent global crash during auth sync
         if (serverError.code === 'permission-denied' || serverError.code === 'unauthenticated') {
+          setData(null);
+          setIsLoading(false);
+          return;
+        }
+
+        // We explicitly check if it's a permission error by message content as well
+        if (serverError.message.toLowerCase().includes('permissions') || serverError.message.toLowerCase().includes('denied')) {
           setData(null);
           setIsLoading(false);
           return;
