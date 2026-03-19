@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -91,8 +90,8 @@ export function DashboardLayout() {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen bg-slate-50 flex w-full">
-        <Sidebar className="hidden lg:flex border-r border-border bg-white shadow-lg">
+      <div className="min-h-screen bg-background flex w-full">
+        <Sidebar className="hidden lg:flex border-r border-border bg-card shadow-lg">
           <SidebarHeader className="p-6 border-b">
             <div className="flex items-center gap-3">
               <div className="bg-primary/5 p-1 rounded-lg w-10 h-10 relative overflow-hidden flex items-center justify-center">
@@ -115,7 +114,7 @@ export function DashboardLayout() {
                       "w-full h-11 justify-start gap-4 px-4 rounded-xl font-bold text-xs uppercase tracking-tight transition-all",
                       currentView === item.id 
                         ? "bg-primary text-white shadow-xl scale-105" 
-                        : "text-slate-500 hover:bg-slate-100 hover:text-primary"
+                        : "text-muted-foreground hover:bg-muted hover:text-primary"
                     )}
                   >
                     <item.icon className={cn("h-4 w-4", currentView === item.id ? "text-secondary" : "text-current")} />
@@ -124,7 +123,7 @@ export function DashboardLayout() {
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>
-            <div className="pt-6 mt-6 border-t border-slate-100">
+            <div className="pt-6 mt-6 border-t border-border">
               <Button 
                 variant="ghost" 
                 onClick={logout} 
@@ -173,7 +172,7 @@ export function DashboardLayout() {
                       </div>
                     </button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56 mt-2 rounded-xl shadow-2xl">
+                  <DropdownMenuContent align="end" className="w-56 mt-2 rounded-xl shadow-2xl bg-card">
                     <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Admin Menu</DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={() => handleNavClick('profile')} className="gap-2 cursor-pointer font-bold text-xs">
@@ -208,7 +207,7 @@ export function DashboardLayout() {
             {renderView()}
           </main>
 
-          <footer className="p-8 bg-white border-t border-slate-100 flex flex-col items-center gap-4">
+          <footer className="p-8 bg-card border-t border-border flex flex-col items-center gap-4">
             <div className="flex items-center gap-3 opacity-30 grayscale">
               <Image src={logoImage?.imageUrl || ""} alt="NEU" width={24} height={24} />
               <span className="text-[8px] font-black uppercase tracking-[0.4em] text-primary">New Era University Institutional Hub</span>

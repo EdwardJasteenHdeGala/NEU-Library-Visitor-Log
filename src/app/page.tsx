@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth, AuthProvider } from "@/hooks/use-auth";
 import { WelcomeScreen } from "@/components/auth/welcome-screen";
 import { LoginScreen } from "@/components/auth/login-screen";
@@ -11,6 +11,22 @@ import { VerifyStudentId } from "@/components/auth/verify-student-id";
 import { Loader2 } from "lucide-react";
 
 type AuthViewState = 'welcome' | 'login' | 'guest';
+
+function ThemeWatcher() {
+  const { profile } = useAuth();
+
+  useEffect(() => {
+    if (!profile?.theme) return;
+    
+    if (profile.theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [profile?.theme]);
+
+  return null;
+}
 
 function AppContent() {
   const { user, profile, loading } = useAuth();
@@ -45,7 +61,6 @@ function AppContent() {
     );
   }
 
-  // If a user is logged in but profile creation failed (extremely rare case), show a small loader
   if (!profile) {
     return (
         <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-background">
@@ -55,12 +70,10 @@ function AppContent() {
       );
   }
 
-  // MANDATORY SETUP: If ID is pending, force profile update
   if (profile.studentId === 'PENDING-ID' || profile.studentId === 'GUEST-ID') {
     return <VerifyStudentId />;
   }
 
-  // Role-based conditional rendering
   if (profile.role === 'admin') {
     return <DashboardLayout />;
   }
@@ -71,6 +84,7 @@ function AppContent() {
 export default function Home() {
   return (
     <AuthProvider>
+      <ThemeWatcher />
       <AppContent />
     </AuthProvider>
   );

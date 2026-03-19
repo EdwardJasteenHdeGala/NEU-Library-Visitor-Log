@@ -30,11 +30,32 @@
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
   }
+
+  .dark {
+    --background: 153 100% 3%; /* Deep Night Green */
+    --foreground: 45 100% 95%; /* Pale Gold */
+    --card: 153 100% 5%;
+    --card-foreground: 45 100% 95%;
+    --popover: 153 100% 5%;
+    --popover-foreground: 45 100% 95%;
+    --primary: 153 100% 25%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 45 100% 48%;
+    --secondary-foreground: 153 100% 10%;
+    --muted: 153 100% 10%;
+    --muted-foreground: 153 20% 70%;
+    --accent: 153 100% 15%;
+    --accent-foreground: 45 100% 48%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 153 50% 15%;
+    --input: 153 50% 15%;
+    --ring: 153 100% 25%;
+  }
 }
 
 @layer base {
   html {
-    /* Prevents the 'jump' or 'twitch' when switching pages or when scrollbars appear */
     scrollbar-gutter: stable;
     @apply h-full overflow-x-hidden scroll-smooth;
   }
@@ -42,14 +63,14 @@
     @apply border-border;
   }
   body {
-    @apply h-full overflow-x-hidden bg-slate-50 text-foreground font-body antialiased;
+    @apply h-full overflow-x-hidden bg-background text-foreground font-body antialiased transition-colors duration-300;
   }
 }
 
 @layer components {
   .neu-background {
-    @apply relative min-h-screen bg-slate-50/50;
-    background-image: radial-gradient(circle at 2px 2px, rgba(0, 77, 38, 0.05) 1px, transparent 0);
+    @apply relative min-h-screen bg-background;
+    background-image: radial-gradient(circle at 2px 2px, hsl(var(--primary) / 0.05) 1px, transparent 0);
     background-size: 32px 32px;
   }
 
@@ -58,7 +79,7 @@
   }
 
   .neu-card {
-    @apply bg-white border border-border shadow-sm rounded-lg overflow-hidden;
+    @apply bg-card border border-border shadow-sm rounded-lg overflow-hidden;
   }
 
   .neu-button-primary {
@@ -70,7 +91,6 @@
   }
 }
 
-/* Formal Slim Scrollbar - Prevents layout shifts and is unobtrusive */
 ::-webkit-scrollbar {
   width: 5px;
   height: 5px;
@@ -82,7 +102,6 @@
   @apply bg-muted-foreground/10 rounded-full hover:bg-muted-foreground/30 transition-all;
 }
 
-/* Ensure Radix ScrollArea doesn't shift content */
 [data-radix-scroll-area-viewport] {
   scrollbar-width: none;
   -ms-overflow-style: none;
