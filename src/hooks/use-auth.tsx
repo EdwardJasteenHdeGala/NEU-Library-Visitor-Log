@@ -98,9 +98,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       if (docSnap.exists()) {
         const data = docSnap.data() as UserProfile;
-        setProfile(data);
+        // Keep the role from the database, but ensure isAuthorizedAdmin is checked against current list
+        setProfile({ ...data, isAuthorizedAdmin: isAuthorized || data.isAuthorizedAdmin });
 
-        if (isAuthorized) {
+        if (isAuthorized || data.isAuthorizedAdmin) {
           const adminMarkerRef = doc(firestore, 'roles_admin', uid);
           setDocumentNonBlocking(adminMarkerRef, { active: true }, { merge: true });
         }

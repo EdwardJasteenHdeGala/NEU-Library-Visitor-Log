@@ -9,7 +9,7 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      // Tiered admin check: Hardcoded emails + Firestore marker
+      // Direct email check for core admins to avoid recursion/latency
       let adminEmails = [
         "edwardjasteen.degala@neu.edu.ph",
         "jcesperanza@neu.edu.ph",
@@ -23,10 +23,6 @@ service cloud.firestore {
 
     function isNotBlocked() {
       return isSignedIn() && !exists(/databases/$(database)/documents/blocked_users/$(request.auth.uid));
-    }
-
-    function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
     }
 
     // --- Collections ---
@@ -54,10 +50,11 @@ service cloud.firestore {
 
     // VISITS: Library access logs
     match /visits/{visitId} {
-      // Allow read for admins (all) or unblocked owners (own)
+      // Allow read if admin OR if user owns the record
+      // For list operations, the query must be filtered by userId in the frontend
       allow read: if isSignedIn() && (
         isAdmin() || 
-        (isNotBlocked() && (resource == null || resource.data.userId == request.auth.uid))
+        (resource == null || resource.data.userId == request.auth.uid)
       );
       allow create: if isSignedIn() && isNotBlocked();
       allow update, delete: if isAdmin();
@@ -71,7 +68,7 @@ service cloud.firestore {
 
     // NOTIFICATIONS: User alerts
     match /notifications/{notificationId} {
-      // Allow read for admins (all) or owners (own)
+      // Allow read if admin OR if user is the recipient
       allow read: if isSignedIn() && (
         isAdmin() || 
         (resource == null || resource.data.userId == request.auth.uid)
@@ -86,7 +83,10 @@ service cloud.firestore {
 
     // FEEDBACK: Institutional sentiments
     match /feedback/{feedbackId} {
-      allow read: if isSignedIn() || isAdmin(); 
+      allow read: if isSignedIn() && (
+        isAdmin() || 
+        (resource == null || resource.data.userId == request.auth.uid)
+      );
       allow create: if isSignedIn() && isNotBlocked();
       allow update, delete: if isAdmin();
     }
@@ -98,7 +98,7 @@ service cloud.firestore {
       allow update, delete: if false;
     }
     
-    // Fallback
+    // Default fallback
     match /{document=**} {
       allow read, write: if false;
     }

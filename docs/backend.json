@@ -71,6 +71,32 @@
         "read": { "type": "boolean" },
         "timestamp": { "type": "string", "format": "date-time" }
       }
+    },
+    "Feedback": {
+      "title": "Feedback",
+      "description": "Institutional sentiment telemetry.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "userPhoto": { "type": "string" },
+        "rating": { "type": "number" },
+        "visitType": { "type": "string" },
+        "message": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      }
+    },
+    "AuditLog": {
+      "title": "AuditLog",
+      "description": "Record of administrative actions.",
+      "type": "object",
+      "properties": {
+        "adminId": { "type": "string" },
+        "adminName": { "type": "string" },
+        "action": { "type": "string" },
+        "details": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      }
     }
   },
   "auth": {
@@ -102,8 +128,12 @@
       "description": "User-specific alerts."
     },
     "/feedback/{feedbackId}": {
-      "schema": { "type": "object" },
+      "schema": { "$ref": "#/backend/entities/Feedback" },
       "description": "Institutional sentiment telemetry."
+    },
+    "/audit_logs/{logId}": {
+      "schema": { "$ref": "#/backend/entities/AuditLog" },
+      "description": "Administrative action trail."
     }
   }
 }
