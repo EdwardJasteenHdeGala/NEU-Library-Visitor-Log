@@ -4,7 +4,7 @@ Institutional access control and real-time library visitor logging system for Ne
 
 ## 🚀 Project Overview
 
-The NEU Access Hub is a modern, high-fidelity web application designed to manage and audit facility access. It leverages real-time cloud synchronization to provide administrators with immediate occupancy telemetry while offering students a seamless check-in experience.
+The NEU Access Hub is a modern, high-fidelity web application designed to manage and audit facility access for the **College of Informatics & Computing Sciences (CICS)**. It leverages real-time cloud synchronization to provide administrators with immediate occupancy telemetry while offering students a seamless check-in experience.
 
 - **App Name:** NEU Library Visitor Log / Dashboard
 - **Purpose:** Track institutional visits, manage academic announcements, and synchronize user profiles.
@@ -36,6 +36,7 @@ The codebase is organized into modular directories to ensure scalability and mai
   - **Guest:** Limited access view for visitors requesting institutional information.
 - **Real-Time Telemetry:** Powered by Firestore `onSnapshot` listeners for instant updates across all dashboards.
 - **Silent Identity Handshake:** UI hooks are configured to handle permission-denied states silently during transient identity syncs to prevent "Red Screen" crashes.
+- **Session-Only Persistence:** Enhanced security protocol that disables auto-login, requiring identity verification for every browser session.
 - **Secure Registry Protocols:** AES-256 cloud encryption and prioritized administrative security rules.
 
 ## 📖 Definitions
