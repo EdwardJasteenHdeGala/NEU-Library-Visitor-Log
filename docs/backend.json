@@ -118,23 +118,13 @@
         }
       },
       {
-        "path": "/users/{userId}/visits/{visitId}",
+        "path": "/visits/{visitId}",
         "definition": {
           "entityName": "Visit",
           "schema": {
             "$ref": "#/backend/entities/Visit"
           },
-          "description": "A subcollection storing individual library visit records for a specific user. The `{userId}` in the path identifies the owner of the visit, making authorization checks path-based and independent.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier of the user who owns this visit record."
-            },
-            {
-              "name": "visitId",
-              "description": "The unique identifier for a specific visit entry."
-            }
-          ]
+          "description": "A top-level collection storing institutional visit records. Authorized administrators can audit all entries, while users can access their own logs via the `userId` field."
         }
       },
       {
@@ -144,10 +134,10 @@
           "schema": {
             "$ref": "#/backend/entities/Notification"
           },
-          "description": "A top-level collection for global announcements or messages. All authenticated users are allowed to read and list documents from this collection to address the reported permissions error. Write access (create, update, delete) is restricted to 'admin' roles, requiring a role lookup."
+          "description": "A top-level collection for global announcements or messages. All authenticated users are allowed to read and list documents from this collection."
         }
       }
     ],
-    "reasoning": "The recommended Firestore structure is designed to be secure, scalable, and debuggable by strictly adhering to the core design principles and mandates. The central issue of the 'Missing or insufficient permissions' error for listing documents from `/notifications` is directly addressed by allowing read access to all authenticated users for this collection, ensuring QAP compliance.\n\n**Authorization Independence:**\n1.  **User Profiles (`/users/{userId}`):** User profiles are stored at a top-level collection, with the document ID (`userId`) directly corresponding to `request.auth.uid`. This makes ownership checks trivial (`request.auth.uid == userId`) without requiring any `get()` calls to parent documents or external collections for *read* access to one's own profile. Roles for DBAC (e.g., 'admin') are stored directly within these user documents.\n2.  **User Visits (`/users/{userId}/visits/{visitId}`):** Visit records are structured as a subcollection under the respective user. This hierarchical path intrinsically links a visit to its owner (`userId`), meaning authorization rules for visits can simply compare `request.auth.uid` with the `{userId}` wildcard in the path. This eliminates the need for `get()` calls to a parent `user` document, thus preserving authorization independence for this hierarchical data.\n3.  **Global Notifications (`/notifications`):** This collection is designed to hold global announcements. For *read* access, authorization depends solely on `request.auth.uid` being present (i.e., the user is authenticated). No `get()` calls or complex lookups are needed, achieving authorization independence for read operations. For *write* operations, if restricted to 'admin' roles, a `get()` call to the `/users/{request.auth.uid}` document would be necessary to check the user's role. This is generally acceptable for write operations on top-level collections, as they are less frequent and critical for atomic performance than `get()` calls within read rules of hierarchical data.\n\n**QAP (Rules are not Filters) Support:**\n1.  **`notifications` Collection:** The `/notifications` collection is designed with a homogeneous security posture: *all* documents within it are intended to be readable by *any* authenticated user. This directly supports QAPs because a `list` operation will return all documents, and every document returned will satisfy the simple security rule (`allow read: if request.auth != null;`). No server-side filtering by the rules is implied or required, thus preventing permission errors for `list` operations.\n2.  **`users/{userId}/visits` Collection:** For user-specific data like `visits`, the path itself (`/users/{userId}/visits`) acts as an implicit filter. When a user queries `/users/$(request.auth.uid)/visits`, they are querying a collection where *all* documents are, by design, owned by `request.auth.uid`. Therefore, the `list` operation naturally adheres to QAPs because every document fetched belongs to the authenticated user, satisfying the ownership rule (`allow read: if request.auth.uid == userId;`).\n3.  **`users/{userId}` Collection:** A `get` operation on `/users/{request.auth.uid}` is QAP compliant as it fetches a single, directly authorized document. A `list` on the root `/users` collection would typically be restricted or heavily controlled, as allowing general listing could violate QAPs if individual documents had different read permissions. In this design, individual user profiles are primarily accessed directly."
+    "reasoning": "The Firestore structure has been synchronized with the application's flat data model for visits. This ensures that root-level queries used in the administrative overview and visitor logs are properly authorized without requiring hierarchical complexity. Security rules have been updated to permit administrative oversight while protecting user privacy."
   }
 }

@@ -77,7 +77,7 @@ export function useCollection<T = any>(
         setIsLoading(false);
 
         // SILENT ERROR HANDLING: We do not emit to the global listener to avoid the "Red Screen"
-        // during transient identity synchronization states.
+        // during transient identity synchronization states or when rules are being applied.
         if (error.code !== 'permission-denied' && error.code !== 'unauthenticated') {
           errorEmitter.emit('permission-error', contextualError);
         }

@@ -18,12 +18,12 @@ service cloud.firestore {
      */
     function isAdmin() {
       return isSignedIn() && (
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
         request.auth.token.email in [
           'edwardjasteen.degala@neu.edu.ph', 
           'jcesperanza@neu.edu.ph', 
           'nhica.valderas@neu.edu.ph'
-        ]
+        ] ||
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
       );
     }
 
@@ -34,17 +34,18 @@ service cloud.firestore {
       allow create: if isOwner(userId) && request.resource.data.id == userId;
       allow update: if (isOwner(userId) || isAdmin()) && request.resource.data.id == userId;
       allow delete: if isAdmin();
+    }
 
-      match /visits/{visitId} {
-        allow get, list: if isOwner(userId) || isAdmin();
-        allow create: if isOwner(userId);
-        allow update, delete: if isAdmin();
-      }
+    // Root level visits collection rule - synchronized with app usage
+    match /visits/{visitId} {
+      allow read, list: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow create: if isSignedIn();
+      allow update, delete: if isAdmin();
     }
 
     /**
      * @description Collection Group rule for visits telemetry.
-     * Allows admins to perform system-wide audits.
+     * Keeps hierarchical support if needed by future group queries.
      */
     match /{path=**}/visits/{visitId} {
       allow list: if isAdmin();
