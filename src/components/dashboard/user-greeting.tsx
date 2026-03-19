@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -149,12 +150,17 @@ export function UserGreeting() {
     { id: 'profile', label: 'Profile', icon: Settings },
   ];
 
+  const handleNavClick = (view: UserSubView) => {
+    setSubView(view);
+    setIsMobileMenuOpen(false);
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
       <header className="neu-header">
         <div className="max-w-7xl mx-auto flex justify-between items-center px-6 w-full">
           <div className="flex items-center gap-4">
-            <div className="bg-white p-1 rounded shadow-sm w-9 h-9 relative overflow-hidden flex items-center justify-center cursor-pointer" onClick={() => setSubView('log-entry')}>
+            <div className="bg-white p-1 rounded shadow-sm w-9 h-9 relative overflow-hidden flex items-center justify-center cursor-pointer" onClick={() => handleNavClick('log-entry')}>
               <Image src={logoImage?.imageUrl || ""} alt="NEU" fill priority className="object-contain p-1.5" />
             </div>
             <div className="flex flex-col leading-none">
@@ -165,7 +171,7 @@ export function UserGreeting() {
 
           <nav className="hidden lg:flex items-center gap-1">
             {navItems.map((item) => (
-              <button key={item.id} onClick={() => setSubView(item.id as UserSubView)} className={cn("px-4 py-2 text-[9px] font-bold uppercase tracking-widest transition-all flex items-center gap-2 rounded-lg", subView === item.id ? "bg-white/10 text-white shadow-sm" : "text-white/60 hover:text-white")}>
+              <button key={item.id} onClick={() => handleNavClick(item.id as UserSubView)} className={cn("px-4 py-2 text-[9px] font-bold uppercase tracking-widest transition-all flex items-center gap-2 rounded-lg", subView === item.id ? "bg-white/10 text-white shadow-sm" : "text-white/60 hover:text-white")}>
                 <item.icon className="h-3.5 w-3.5" /> {item.label}
               </button>
             ))}
@@ -173,7 +179,7 @@ export function UserGreeting() {
 
           <div className="flex items-center gap-4">
             {profile?.isAuthorizedAdmin && (
-              <Button variant="secondary" size="sm" onClick={() => switchRole('admin')} className="h-8 px-4 gap-2 font-bold text-[9px] uppercase rounded-lg">
+              <Button variant="secondary" size="sm" onClick={() => switchRole('admin')} className="h-8 px-4 gap-2 font-bold text-[9px] uppercase rounded-lg hidden sm:flex">
                 <ShieldCheck className="h-3.5 w-3.5" /> Admin
               </Button>
             )}
@@ -187,7 +193,7 @@ export function UserGreeting() {
               <DropdownMenuContent align="end" className="w-56 mt-2 rounded-xl shadow-2xl border-none">
                 <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => setSubView('profile')} className="gap-2 cursor-pointer font-medium text-xs"><Settings className="h-4 w-4" /> Profile</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleNavClick('profile')} className="gap-2 cursor-pointer font-medium text-xs"><Settings className="h-4 w-4" /> Profile</DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={logout} className="gap-2 text-destructive cursor-pointer font-medium text-xs"><LogOut className="h-4 w-4" /> Sign Out</DropdownMenuItem>
               </DropdownMenuContent>
@@ -198,6 +204,42 @@ export function UserGreeting() {
           </div>
         </div>
       </header>
+
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <div className="lg:hidden fixed inset-0 z-[100] bg-primary animate-in fade-in slide-in-from-top duration-300">
+          <div className="p-6 flex justify-between items-center border-b border-white/10">
+            <div className="flex items-center gap-3">
+              <Image src={logoImage?.imageUrl || ""} alt="NEU" width={32} height={32} />
+              <span className="font-black text-white uppercase italic tracking-tighter">NEU Access Hub</span>
+            </div>
+            <Button variant="ghost" size="icon" className="text-white h-10 w-10" onClick={() => setIsMobileMenuOpen(false)}>
+              <X className="h-8 w-8" />
+            </Button>
+          </div>
+          <nav className="p-10 flex flex-col gap-6">
+            {navItems.map((item) => (
+              <button 
+                key={item.id} 
+                onClick={() => handleNavClick(item.id as UserSubView)} 
+                className={cn(
+                  "flex items-center gap-6 text-2xl font-black uppercase italic tracking-tighter transition-all",
+                  subView === item.id ? "text-secondary" : "text-white/60 hover:text-white"
+                )}
+              >
+                <item.icon className="h-8 w-8" />
+                {item.label}
+              </button>
+            ))}
+            <div className="pt-10 mt-10 border-t border-white/10">
+              <button onClick={logout} className="flex items-center gap-6 text-2xl font-black uppercase italic tracking-tighter text-destructive">
+                <LogOut className="h-8 w-8" />
+                Sign Out
+              </button>
+            </div>
+          </nav>
+        </div>
+      )}
 
       <main className="flex-1 w-full max-w-7xl mx-auto p-6 md:p-10">
         {subView === 'log-entry' && (
@@ -276,9 +318,9 @@ export function UserGreeting() {
             </aside>
           </div>
         )}
-        {subView === 'feedback' && <FeedbackView onBack={() => setSubView('log-entry')} />}
-        {subView === 'help' && <HelpView onBack={() => setSubView('log-entry')} />}
-        {subView === 'profile' && <ProfileView onBack={() => setSubView('log-entry')} />}
+        {subView === 'feedback' && <FeedbackView onBack={() => handleNavClick('log-entry')} />}
+        {subView === 'help' && <HelpView onBack={() => handleNavClick('log-entry')} />}
+        {subView === 'profile' && <ProfileView onBack={() => handleNavClick('log-entry')} />}
       </main>
     </div>
   );

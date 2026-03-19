@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -40,7 +41,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LiveClock } from "@/components/ui/live-clock";
-import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar";
+import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarTrigger } from "@/components/ui/sidebar";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 
@@ -49,7 +50,6 @@ type View = 'dashboard' | 'visitor-log' | 'users' | 'reports' | 'feedback' | 'pr
 export function DashboardLayout() {
   const { logout, profile, switchRole } = useAuth();
   const [currentView, setCurrentView] = useState<View>('dashboard');
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const logoImage = PlaceHolderImages.find(img => img.id === 'neu-logo');
 
   const navItems = [
@@ -66,7 +66,6 @@ export function DashboardLayout() {
 
   const handleNavClick = (view: View) => {
     setCurrentView(view);
-    setIsMobileMenuOpen(false);
   };
 
   const renderView = () => {
@@ -91,7 +90,7 @@ export function DashboardLayout() {
   return (
     <SidebarProvider>
       <div className="min-h-screen bg-background flex w-full">
-        <Sidebar className="hidden lg:flex border-r border-border bg-card shadow-lg">
+        <Sidebar className="border-r border-border bg-card shadow-lg">
           <SidebarHeader className="p-6 border-b">
             <div className="flex items-center gap-3">
               <div className="bg-primary/5 p-1 rounded-lg w-10 h-10 relative overflow-hidden flex items-center justify-center">
@@ -139,9 +138,12 @@ export function DashboardLayout() {
         <div className="flex-1 flex flex-col min-w-0">
           <header className="neu-header">
             <div className="max-w-7xl mx-auto flex justify-between items-center px-6 w-full">
-              <div className="flex items-center gap-4 lg:hidden">
-                <Image src={logoImage?.imageUrl || ""} alt="NEU" width={32} height={32} />
-                <h1 className="text-xs font-bold uppercase text-white">NEU Access Hub</h1>
+              <div className="flex items-center gap-4">
+                <SidebarTrigger className="text-white hover:bg-white/10" />
+                <div className="flex items-center gap-4 lg:hidden">
+                  <Image src={logoImage?.imageUrl || ""} alt="NEU" width={32} height={32} />
+                  <h1 className="text-xs font-bold uppercase text-white hidden xs:block">NEU Access Hub</h1>
+                </div>
               </div>
 
               <div className="hidden lg:flex items-center gap-6">
@@ -161,13 +163,13 @@ export function DashboardLayout() {
 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <button className="flex items-center gap-3 hover:bg-white/10 p-1.5 rounded-full transition-all">
+                    <button className="flex items-center gap-3 hover:bg-white/10 p-1.5 rounded-full transition-all text-left">
                       <Avatar className="h-8 w-8 border border-white/20">
                         <AvatarImage src={profile?.photoURL} />
                         <AvatarFallback className="bg-secondary text-primary font-bold text-[10px]">{userInitials}</AvatarFallback>
                       </Avatar>
-                      <div className="flex flex-col items-start hidden xs:flex text-left text-white leading-none">
-                        <span className="text-[10px] font-bold uppercase tracking-tight">{profile?.displayName?.split(' ')[0]}</span>
+                      <div className="flex flex-col items-start hidden xs:flex leading-none">
+                        <span className="text-[10px] font-bold uppercase tracking-tight text-white">{profile?.displayName?.split(' ')[0]}</span>
                         <span className="text-[7px] font-bold text-secondary uppercase tracking-widest opacity-80">Administrator</span>
                       </div>
                     </button>
@@ -190,15 +192,6 @@ export function DashboardLayout() {
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="lg:hidden text-white h-10 w-10"
-                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                >
-                  {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-                </Button>
               </div>
             </div>
           </header>
