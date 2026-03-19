@@ -162,16 +162,16 @@ export function VisitorLog({ onBack }: VisitorLogProps) {
                   Purge Logs
                 </Button>
               </AlertDialogTrigger>
-              <AlertDialogContent className="w-[95vw] max-w-md rounded-2xl">
+              <AlertDialogContent className="w-[95vw] max-w-md rounded-2xl border-none shadow-3xl bg-white p-8">
                 <AlertDialogHeader>
-                  <AlertDialogTitle className="font-bold">Institutional Data Purge</AlertDialogTitle>
-                  <AlertDialogDescription className="text-xs">
-                    This action will permanently terminate all {visits?.length} recorded logs from the archive. This process is irreversible.
+                  <AlertDialogTitle className="text-xl font-black italic uppercase tracking-tighter text-primary">Institutional Data Purge</AlertDialogTitle>
+                  <AlertDialogDescription className="text-sm font-medium italic opacity-70">
+                    This action will permanently terminate all {visits?.length} recorded logs from the archive. This process is irreversible and will be logged in the audit trail.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
-                <AlertDialogFooter className="flex-col sm:flex-row gap-2">
-                  <AlertDialogCancel className="rounded-xl h-12 text-[10px] font-bold uppercase w-full sm:w-auto">Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={handlePurgeLogs} className="rounded-xl h-12 bg-destructive text-[10px] font-bold uppercase w-full sm:w-auto">Confirm Purge</AlertDialogAction>
+                <AlertDialogFooter className="flex-col sm:flex-row gap-3 pt-6">
+                  <AlertDialogCancel className="rounded-xl h-12 text-[10px] font-black uppercase tracking-widest w-full sm:w-auto border-2">Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handlePurgeLogs} className="rounded-xl h-12 bg-destructive text-white text-[10px] font-black uppercase tracking-widest w-full sm:w-auto shadow-lg">Confirm Purge</AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
@@ -199,7 +199,7 @@ export function VisitorLog({ onBack }: VisitorLogProps) {
                 <SelectTrigger className="h-12 text-[10px] font-black uppercase tracking-widest rounded-xl border-2 bg-white">
                   <div className="flex items-center gap-2"><Building2 className="h-4 w-4 opacity-50" /><SelectValue placeholder="All Units" /></div>
                 </SelectTrigger>
-                <SelectContent className="rounded-xl">
+                <SelectContent className="rounded-xl border-none shadow-2xl">
                   <SelectItem value="all" className="text-[10px] font-bold uppercase">ALL DEPARTMENTS</SelectItem>
                   {NEU_COLLEGES.map(c => <SelectItem key={c.id} value={c.id} className="text-[10px] font-medium">{c.id}</SelectItem>)}
                 </SelectContent>
@@ -209,7 +209,7 @@ export function VisitorLog({ onBack }: VisitorLogProps) {
                 <SelectTrigger className="h-12 text-[10px] font-black uppercase tracking-widest rounded-xl border-2 bg-white">
                   <div className="flex items-center gap-2"><BookOpen className="h-4 w-4 opacity-50" /><SelectValue placeholder="All Purposes" /></div>
                 </SelectTrigger>
-                <SelectContent className="rounded-xl">
+                <SelectContent className="rounded-xl border-none shadow-2xl">
                   <SelectItem value="all" className="text-[10px] font-bold uppercase">ALL PURPOSES</SelectItem>
                   {PURPOSES.map(p => <SelectItem key={p} value={p} className="text-[10px] font-medium capitalize">{p}</SelectItem>)}
                 </SelectContent>
@@ -219,7 +219,7 @@ export function VisitorLog({ onBack }: VisitorLogProps) {
                 <SelectTrigger className="h-12 text-[10px] font-black uppercase tracking-widest rounded-xl border-2 bg-white">
                   <div className="flex items-center gap-2"><UserCheck className="h-4 w-4 opacity-50" /><SelectValue placeholder="All Roles" /></div>
                 </SelectTrigger>
-                <SelectContent className="rounded-xl">
+                <SelectContent className="rounded-xl border-none shadow-2xl">
                   <SelectItem value="all" className="text-[10px] font-bold uppercase">ALL ROLES</SelectItem>
                   <SelectItem value="user" className="text-[10px] font-medium">STUDENT</SelectItem>
                   <SelectItem value="guest" className="text-[10px] font-medium">GUEST</SelectItem>

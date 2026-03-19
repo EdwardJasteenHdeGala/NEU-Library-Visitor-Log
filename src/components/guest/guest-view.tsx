@@ -13,10 +13,12 @@ import {
   LogIn,
   Megaphone,
   Clock,
-  ExternalLink
+  ExternalLink,
+  ChevronRight
 } from "lucide-react";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
+import { cn } from "@/lib/utils";
 
 interface GuestViewProps {
   onBack: () => void;
@@ -28,19 +30,19 @@ export function GuestView({ onBack, onLogin }: GuestViewProps) {
   const logoImage = PlaceHolderImages.find(img => img.id === 'neu-logo');
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans selection:bg-primary/10">
+    <div className="min-h-screen bg-slate-50 flex flex-col selection:bg-primary/10">
       {/* Modern Slim Header */}
       <header className="sticky top-0 z-[100] w-full bg-white/80 backdrop-blur-md border-b border-slate-200">
-        <div className="max-w-[1400px] mx-auto px-4 md:px-8 h-16 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Button 
               variant="ghost" 
               size="sm" 
               onClick={onBack}
-              className="hover:bg-slate-100 font-bold text-[10px] uppercase tracking-widest text-slate-500 transition-all active:scale-95"
+              className="hover:bg-slate-100 font-black text-[10px] uppercase tracking-widest text-slate-500 transition-all active:scale-95"
             >
               <ArrowLeft className="h-3.5 w-3.5 mr-2" />
-              Institutional Home
+              Return Home
             </Button>
             
             <div className="h-4 w-[1px] bg-slate-200 hidden sm:block" />
@@ -67,11 +69,11 @@ export function GuestView({ onBack, onLogin }: GuestViewProps) {
         </div>
       </header>
 
-      <main className="flex-1 w-full max-w-[1400px] mx-auto p-4 md:p-8 lg:p-12 space-y-12 animate-in fade-in duration-700">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-start">
+      <main className="flex-1 w-full max-w-7xl mx-auto p-6 md:p-10 space-y-12 animate-in fade-in duration-700">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
           
           {/* Content Section */}
-          <div className="lg:col-span-8 space-y-12">
+          <div className="lg:col-span-8 space-y-10">
             <div className="space-y-6">
               <div className="inline-flex items-center gap-2 bg-primary/5 text-primary border border-primary/10 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em]">
                  <Megaphone className="h-3 w-3 text-secondary" /> 
@@ -86,7 +88,7 @@ export function GuestView({ onBack, onLogin }: GuestViewProps) {
               </p>
             </div>
 
-            <Card className="shadow-[0_32px_64px_-12px_rgba(0,0,0,0.1)] border-none overflow-hidden rounded-[2.5rem] bg-white ring-1 ring-slate-200/50">
+            <Card className="shadow-2xl border-none overflow-hidden rounded-[2.5rem] bg-white ring-1 ring-slate-200/50">
               <div className="aspect-[21/10] relative group overflow-hidden">
                 <Image 
                   src={campusImage?.imageUrl || ""} 
@@ -97,7 +99,7 @@ export function GuestView({ onBack, onLogin }: GuestViewProps) {
                   data-ai-hint="university campus"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent" />
-                <div className="absolute bottom-10 left-10 right-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+                <div className="absolute bottom-8 left-8 right-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
                   <div className="text-white space-y-2">
                     <div className="flex items-center gap-2 mb-1">
                       <MapPin className="h-4 w-4 text-secondary" />
@@ -121,7 +123,7 @@ export function GuestView({ onBack, onLogin }: GuestViewProps) {
                          <ShieldCheck className="h-5 w-5 text-secondary" /> Access Protocol
                       </h4>
                       <p className="text-sm text-slate-500 leading-relaxed italic font-medium">
-                        Standard facility access requires mandatory registration in the institutional registry. All visitors are logged to ensure security compliance and resource optimization.
+                        Standard facility access requires mandatory registration in the institutional registry. All visitors are logged to ensure security compliance.
                       </p>
                    </div>
                    <div className="space-y-4">
@@ -129,7 +131,7 @@ export function GuestView({ onBack, onLogin }: GuestViewProps) {
                          <BookOpen className="h-5 w-5 text-secondary" /> Resource Use
                       </h4>
                       <p className="text-sm text-slate-500 leading-relaxed italic font-medium">
-                        Members gain full access to the digital archives, thesis collection, and collaborative workspaces upon successful identity synchronization.
+                        Members gain full access to digital archives and collaborative workspaces upon successful identity synchronization.
                       </p>
                    </div>
                 </div>
@@ -154,6 +156,7 @@ export function GuestView({ onBack, onLogin }: GuestViewProps) {
             </div>
           </div>
 
+          {/* Sidebar Section */}
           <aside className="lg:col-span-4 space-y-8 lg:sticky lg:top-24">
             <Card className="shadow-2xl p-10 space-y-8 rounded-[2.5rem] border-none text-white bg-slate-900 relative overflow-hidden group">
               <div className="absolute inset-0 bg-dot-pattern opacity-10" />
@@ -169,13 +172,13 @@ export function GuestView({ onBack, onLogin }: GuestViewProps) {
                   Institutional members must officially log their presence to access academic facilities.
                 </p>
                 
-                <div className="pt-6 flex justify-start">
+                <div className="pt-4 flex justify-start">
                   <Button 
                     onClick={onLogin}
-                    className="w-fit min-w-[12rem] h-[3.5rem] bg-primary text-white hover:bg-primary/90 font-black text-[0.75rem] uppercase tracking-[0.2em] rounded-xl shadow-2xl active:scale-95 transition-all flex items-center gap-[1rem] px-[1.5rem]"
+                    className="group h-16 px-8 bg-primary text-white hover:bg-primary/90 font-black text-xs uppercase tracking-[0.2em] rounded-2xl shadow-3xl active:scale-95 transition-all flex items-center gap-4"
                   >
                     Enter Portal Gateway
-                    <LogIn className="h-5 w-5" />
+                    <ChevronRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
                   </Button>
                 </div>
               </div>
@@ -216,9 +219,9 @@ export function GuestView({ onBack, onLogin }: GuestViewProps) {
       </main>
 
       <footer className="p-10 text-center border-t bg-white mt-auto">
-        <div className="max-w-[1400px] mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] italic">
-             © {new Date().getFullYear()} NEW ERA UNIVERSITY • THE HUB • COLLEGE OF ENGINEERING & ARCHITECTURE
+             © {new Date().getFullYear()} NEW ERA UNIVERSITY • COLLEGE OF ENGINEERING & ARCHITECTURE
            </p>
            <div className="flex items-center gap-8">
               <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest hover:text-primary transition-colors cursor-default">Privacy</span>

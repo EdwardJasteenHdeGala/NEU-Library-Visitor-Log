@@ -67,9 +67,9 @@ export function useCollection<T = any>(
             ? (memoizedTargetRefOrQuery as CollectionReference).path
             : (memoizedTargetRefOrQuery as unknown as InternalQuery)._query.path.canonicalString();
 
-        // SILENT ERROR HANDLING: Suppress permission-denied to avoid the red screen during identity sync
+        // SILENT ERROR HANDLING: Log permission errors instead of emitting to avoid the Red Screen during identity sync
         if (err.code === 'permission-denied' || err.code === 'unauthenticated') {
-          console.warn(`Institutional Registry Access Deferred: ${path}`);
+          console.warn(`[Firestore Registry] Access Deferred for path: ${path}. Identity synchronization in progress.`);
           setError(err);
           setData(null);
           setIsLoading(false);
