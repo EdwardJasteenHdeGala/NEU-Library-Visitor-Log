@@ -8,9 +8,17 @@ import {
   getDoc, 
   serverTimestamp, 
   collection,
-  setDoc
+  setDoc,
+  deleteDoc
 } from 'firebase/firestore';
-import { useFirebase, useUser, setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
+import { 
+  useFirebase, 
+  useUser, 
+  setDocumentNonBlocking, 
+  updateDocumentNonBlocking,
+  addDocumentNonBlocking,
+  deleteDocumentNonBlocking 
+} from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 
 export interface UserProfile {
@@ -42,11 +50,13 @@ interface AuthContextType {
   switchRole: (newRole: 'user' | 'admin') => Promise<void>;
   setUserRole: (userId: string, newRole: 'user' | 'admin' | 'guest') => Promise<void>;
   resignAdmin: () => Promise<void>;
+  blockUser: (userId: string, reason: string, details: string, duration: string) => Promise<void>;
+  unblockUser: (userId: string) => Promise<void>;
+  sendWarning: (userId: string, title: string, message: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// TEST ACCOUNTS & AUTHORIZED ADMINS
 export const BOOTSTRAP_SUPER_ADMIN_EMAIL = 'edwardjasteen.degala@neu.edu.ph';
 const AUTHORIZED_ADMIN_EMAILS = [
   BOOTSTRAP_SUPER_ADMIN_EMAIL,
@@ -90,13 +100,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const data = docSnap.data() as UserProfile;
         setProfile(data);
 
-        // Ensure Admin Marker exists if authorized
         if (isAuthorized) {
           const adminMarkerRef = doc(firestore, 'roles_admin', uid);
           setDocumentNonBlocking(adminMarkerRef, { active: true }, { merge: true });
         }
       } else {
-        // Create new profile based on domain logic
         const defaultRole = isAuthorized ? 'admin' : (isInstitutional ? 'user' : 'guest');
         const defaultDesignation = isInstitutional ? 'student' : 'guest';
         const defaultDepartment = isInstitutional ? 'General Education' : 'External';
@@ -111,16 +119,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           displayName: user.displayName || 'Visitor',
           photoURL: user.photoURL || '',
           department: defaultDepartment,
-          college: defaultDepartment, // Keep both for backward compatibility
+          college: defaultDepartment,
           designation: defaultDesignation,
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
-          theme: 'light'
+          theme: 'light',
+          isBlocked: false
         };
         
         setDocumentNonBlocking(docRef, profileData, { merge: true });
         
-        // If admin, create marker
         if (isAuthorized) {
           const adminMarkerRef = doc(firestore, 'roles_admin', uid);
           setDocumentNonBlocking(adminMarkerRef, { active: true }, { merge: true });
@@ -195,10 +203,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         updatedAt: serverTimestamp()
       });
       
-      // Update admin marker accordingly
       const adminMarkerRef = doc(firestore, 'roles_admin', userId);
       if (newRole === 'admin') {
         setDocumentNonBlocking(adminMarkerRef, { active: true }, { merge: true });
+      } else {
+        deleteDocumentNonBlocking(adminMarkerRef);
       }
     } catch (error: any) {}
   };
@@ -212,7 +221,65 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isAuthorizedAdmin: false,
         updatedAt: serverTimestamp()
       });
+      
+      const adminMarkerRef = doc(firestore, 'roles_admin', profile.id);
+      deleteDocumentNonBlocking(adminMarkerRef);
+      
       setProfile({ ...profile, role: 'user', isAuthorizedAdmin: false });
+    } catch (error: any) {}
+  };
+
+  const blockUser = async (userId: string, reason: string, details: string, duration: string) => {
+    if (!profile?.isAuthorizedAdmin || !firestore) return;
+    try {
+      const userRef = doc(firestore, 'users', userId);
+      updateDocumentNonBlocking(userRef, {
+        isBlocked: true,
+        blockedReason: reason,
+        updatedAt: serverTimestamp()
+      });
+
+      const blockRef = doc(firestore, 'blocked_users', userId);
+      setDocumentNonBlocking(blockRef, {
+        reason,
+        details,
+        duration,
+        timestamp: serverTimestamp()
+      }, { merge: true });
+
+      toast({ title: "Member Suspended", description: "Identity registry updated." });
+    } catch (error: any) {}
+  };
+
+  const unblockUser = async (userId: string) => {
+    if (!profile?.isAuthorizedAdmin || !firestore) return;
+    try {
+      const userRef = doc(firestore, 'users', userId);
+      updateDocumentNonBlocking(userRef, {
+        isBlocked: false,
+        blockedReason: null,
+        updatedAt: serverTimestamp()
+      });
+
+      const blockRef = doc(firestore, 'blocked_users', userId);
+      deleteDocumentNonBlocking(blockRef);
+
+      toast({ title: "Access Restored", description: "Member re-authorized." });
+    } catch (error: any) {}
+  };
+
+  const sendWarning = async (userId: string, title: string, message: string) => {
+    if (!profile?.isAuthorizedAdmin || !firestore) return;
+    try {
+      const notificationRef = collection(firestore, 'notifications');
+      addDocumentNonBlocking(notificationRef, {
+        userId,
+        title,
+        message,
+        read: false,
+        timestamp: serverTimestamp()
+      });
+      toast({ title: "Alert Transmitted", description: "Warning logged in member registry." });
     } catch (error: any) {}
   };
 
@@ -226,7 +293,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       updateProfileData, 
       switchRole, 
       setUserRole,
-      resignAdmin
+      resignAdmin,
+      blockUser,
+      unblockUser,
+      sendWarning
     }}>
       {children}
     </AuthContext.Provider>

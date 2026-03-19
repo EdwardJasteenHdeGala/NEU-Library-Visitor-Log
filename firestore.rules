@@ -21,6 +21,10 @@ service cloud.firestore {
       );
     }
 
+    function isNotBlocked() {
+      return isSignedIn() && !exists(/databases/$(database)/documents/blocked_users/$(request.auth.uid));
+    }
+
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
@@ -29,7 +33,8 @@ service cloud.firestore {
 
     // USERS: Institutional profiles
     match /users/{userId} {
-      allow get, list: if isSignedIn(); 
+      allow get: if isSignedIn();
+      allow list: if isAdmin();
       allow create: if isOwner(userId);
       allow update: if isOwner(userId) || isAdmin();
       allow delete: if isAdmin();
@@ -41,10 +46,18 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // BLOCKED USERS: Security blacklist
+    match /blocked_users/{userId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
     // VISITS: Library access logs
     match /visits/{visitId} {
-      allow read: if isSignedIn(); // Privacy enforced by query filters
-      allow create: if isSignedIn();
+      // Allow read for authenticated, unblocked users. 
+      // Privacy is enforced by frontend filters for non-admins.
+      allow read: if isSignedIn() && isNotBlocked();
+      allow create: if isSignedIn() && isNotBlocked();
       allow update, delete: if isAdmin();
     }
 
@@ -56,7 +69,8 @@ service cloud.firestore {
 
     // NOTIFICATIONS: User alerts
     match /notifications/{notificationId} {
-      allow read: if isSignedIn(); // Privacy enforced by query filters
+      // Allow read for recipients or admins
+      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
       allow create: if isAdmin();
       allow update: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
       allow delete: if isAdmin();
@@ -65,7 +79,7 @@ service cloud.firestore {
     // FEEDBACK: Institutional sentiments
     match /feedback/{feedbackId} {
       allow read: if isSignedIn(); 
-      allow create: if isSignedIn();
+      allow create: if isSignedIn() && isNotBlocked();
       allow update, delete: if isAdmin();
     }
 

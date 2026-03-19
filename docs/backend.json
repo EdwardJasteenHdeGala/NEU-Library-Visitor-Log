@@ -13,6 +13,8 @@
         "college": { "type": "string", "description": "Academic unit or college" },
         "designation": { "type": "string", "enum": ["student", "professor", "staff", "guest"] },
         "isAuthorizedAdmin": { "type": "boolean" },
+        "isBlocked": { "type": "boolean" },
+        "blockedReason": { "type": "string" },
         "theme": { "type": "string", "enum": ["light", "dark"] },
         "createdAt": { "type": "string", "format": "date-time" },
         "updatedAt": { "type": "string", "format": "date-time" }
@@ -36,44 +38,16 @@
       },
       "required": ["userId", "userName", "college", "purpose", "timestamp"]
     },
-    "LibraryConfig": {
-      "title": "LibraryConfig",
-      "description": "Global operational settings for the library hub.",
+    "BlockedUser": {
+      "title": "BlockedUser",
+      "description": "A record of a suspended user for security rule enforcement.",
       "type": "object",
       "properties": {
-        "mode": { "type": "string", "enum": ["automatic", "manual"] },
-        "manualStatus": { "type": "string", "enum": ["open", "closed"] },
-        "manualReason": { "type": "string" },
-        "updatedAt": { "type": "string", "format": "date-time" }
+        "reason": { "type": "string" },
+        "details": { "type": "string" },
+        "duration": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
       }
-    },
-    "Notification": {
-      "title": "Notification",
-      "description": "A system alert or message for a specific user.",
-      "type": "object",
-      "properties": {
-        "userId": { "type": "string" },
-        "title": { "type": "string" },
-        "message": { "type": "string" },
-        "read": { "type": "boolean" },
-        "timestamp": { "type": "string", "format": "date-time" }
-      },
-      "required": ["userId", "title", "message", "read", "timestamp"]
-    },
-    "Feedback": {
-      "title": "Feedback",
-      "description": "User sentiment and rating telemetry.",
-      "type": "object",
-      "properties": {
-        "userId": { "type": "string" },
-        "userName": { "type": "string" },
-        "userPhoto": { "type": "string" },
-        "rating": { "type": "number" },
-        "visitType": { "type": "string" },
-        "message": { "type": "string" },
-        "timestamp": { "type": "string", "format": "date-time" }
-      },
-      "required": ["userId", "userName", "rating", "message", "timestamp"]
     }
   },
   "auth": {
@@ -88,20 +62,24 @@
       "schema": { "type": "object" },
       "description": "Marker collection for DBAC."
     },
+    "/blocked_users/{userId}": {
+      "schema": { "$ref": "#/backend/entities/BlockedUser" },
+      "description": "Blacklisted identities."
+    },
     "/visits/{visitId}": {
       "schema": { "$ref": "#/backend/entities/VisitorLogEntry" },
       "description": "Centralized library access log."
     },
     "/library_config/{configId}": {
-      "schema": { "$ref": "#/backend/entities/LibraryConfig" },
+      "schema": { "type": "object" },
       "description": "Global operational status configuration."
     },
     "/notifications/{notificationId}": {
-      "schema": { "$ref": "#/backend/entities/Notification" },
+      "schema": { "type": "object" },
       "description": "User-specific alerts."
     },
     "/feedback/{feedbackId}": {
-      "schema": { "$ref": "#/backend/entities/Feedback" },
+      "schema": { "type": "object" },
       "description": "Institutional sentiment telemetry."
     }
   }
