@@ -8,13 +8,13 @@ service cloud.firestore {
 
     function isAdmin() {
       return isAuthenticated() && (
-        // Hardcoded Super Admin Whitelist for initial synchronization reliability
+        // prioritized Email Whitelist for immediate administrative authorization
         request.auth.token.email in [
           "edwardjasteen.degala@neu.edu.ph",
           "jcesperanza@neu.edu.ph",
           "nhica.valderas@neu.edu.ph"
         ] || (
-          // Role-based lookup in Firestore for manually promoted administrators
+          // Document-based check for manually synchronized administrators
           exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
           get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin"
         )
@@ -23,23 +23,19 @@ service cloud.firestore {
 
     // USER PROFILES
     match /users/{userId} {
-      // Each user can read/write their own profile
-      allow read, write: if isAuthenticated() && request.auth.uid == userId;
-      // Admins can manage all profiles
-      allow read, write: if isAdmin();
+      // Users manage their own identity; Admins maintain institutional oversight
+      allow read, write: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
     }
 
     // VISITS REGISTRY
     match /visits/{visitId} {
-      // Admins can list, read, and write all visits
+      // Admins are authorized for full registry oversight (list, read, write)
       allow read, write: if isAdmin();
 
-      // Standard members can read their own logs (supports Active Session check)
-      // For collection queries (list), the query MUST be filtered by userId
-      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
-      
-      // All authenticated members can create registry entries
+      // Standard members can log their presence and read their own records
+      // Note: List operation for standard users MUST be filtered by userId in the query
       allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
     }
 
     // INSTITUTIONAL CONFIG

@@ -144,6 +144,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       await signInWithPopup(auth, provider);
     } catch (error: any) {
+      // Gracefully handle benign popup closure
+      if (error.code === 'auth/popup-closed-by-user') {
+        toast({
+          title: "Identity Sync Cancelled",
+          description: "Please complete the Google authentication to access your institutional profile.",
+        });
+        return;
+      }
+
       toast({
         title: "Login Failed",
         description: error.message,
