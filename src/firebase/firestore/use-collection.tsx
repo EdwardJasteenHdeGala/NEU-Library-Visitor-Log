@@ -9,8 +9,6 @@ import {
   QuerySnapshot,
   CollectionReference,
 } from 'firebase/firestore';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
 
 /** Utility type to add an 'id' field to a given type T. */
 export type WithId<T> = T & { id: string };
@@ -73,33 +71,17 @@ export function useCollection<T = any>(
         setIsLoading(false);
       },
       (serverError: FirestoreError) => {
-        const path: string =
-          memoizedTargetRefOrQuery.type === 'collection'
-            ? (memoizedTargetRefOrQuery as CollectionReference).path
-            : (memoizedTargetRefOrQuery as unknown as InternalQuery)._query.path.canonicalString()
-
         // Silent handling for permission-denied during list operations to prevent crashes
         // during initial auth synchronization or for non-admin attempts.
         if (serverError.code === 'permission-denied' || serverError.code === 'unauthenticated') {
-          if (process.env.NODE_ENV === 'development') {
-            console.warn(`Firestore: Access deferred for ${path}. Identity synchronization in progress.`);
-          }
           setData(null);
           setIsLoading(false);
           return;
         }
 
-        const contextualError = new FirestorePermissionError({
-          operation: 'list',
-          path,
-        })
-
-        setError(contextualError)
-        setData(null)
-        setIsLoading(false)
-
-        // Emit the error for other types of failures
-        errorEmitter.emit('permission-error', contextualError);
+        setError(serverError);
+        setData(null);
+        setIsLoading(false);
       }
     );
 
