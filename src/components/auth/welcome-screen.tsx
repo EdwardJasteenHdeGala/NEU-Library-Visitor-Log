@@ -112,7 +112,7 @@ export function WelcomeScreen({ onLogin, onGuest }: WelcomeScreenProps) {
               <Button 
                 size="xl" 
                 onClick={onLogin}
-                className="w-full sm:w-auto h-20 px-14 text-xl font-black gap-4 rounded-[1.5rem] shadow-3xl bg-white text-primary hover:bg-secondary transition-all group active:scale-95"
+                className="w-full sm:w-auto h-20 px-14 text-xl font-black gap-4 rounded-[1.5rem] shadow-3xl bg-primary text-white hover:bg-primary/90 transition-all group active:scale-95"
               >
                 ACCESS PORTAL
                 <ArrowRight className="h-6 w-6 group-hover:translate-x-2 transition-transform" />
@@ -121,7 +121,7 @@ export function WelcomeScreen({ onLogin, onGuest }: WelcomeScreenProps) {
                 variant="outline" 
                 size="xl"
                 onClick={onGuest}
-                className="w-full sm:w-auto h-20 px-14 text-xl font-black border-2 border-primary text-primary bg-white hover:bg-slate-50 rounded-[1.5rem] shadow-xl transition-all active:scale-95"
+                className="w-full sm:w-auto h-20 px-14 text-xl font-black border-2 border-secondary text-secondary bg-white/40 backdrop-blur-md hover:bg-secondary hover:text-primary rounded-[1.5rem] shadow-xl transition-all active:scale-95"
               >
                 GUEST INQUIRY
               </Button>

@@ -184,7 +184,6 @@ export function VisitorLog({ onBack }: VisitorLogProps) {
           </div>
         </div>
 
-        {/* Universal Search & Filters Bar */}
         <div className="sticky top-0 z-40 py-2 bg-background/80 backdrop-blur-md -mx-6 px-6 md:mx-0 md:px-0">
           <div className="flex flex-col gap-3">
             <div className="relative group">
