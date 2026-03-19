@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "User": {
@@ -60,6 +61,20 @@
         "manualCategory": { "type": "string", "enum": ["general", "emergency", "institutional"] },
         "updatedAt": { "type": "string", "format": "date-time" }
       }
+    },
+    "BlockedUser": {
+      "title": "BlockedUser",
+      "type": "object",
+      "description": "Official registry of suspended institutional accounts.",
+      "properties": {
+        "userId": { "type": "string" },
+        "adminId": { "type": "string" },
+        "reason": { "type": "string" },
+        "details": { "type": "string" },
+        "duration": { "type": "string" },
+        "expiresAt": { "type": "string", "format": "date-time" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      }
     }
   },
   "auth": {
@@ -97,6 +112,14 @@
           "entityName": "LibraryConfig",
           "schema": { "$ref": "#/backend/entities/LibraryConfig" },
           "description": "Operational mode and status overrides."
+        }
+      },
+      {
+        "path": "/blocked_users/{userId}",
+        "definition": {
+          "entityName": "BlockedUser",
+          "schema": { "$ref": "#/backend/entities/BlockedUser" },
+          "description": "Official record of a user's suspension."
         }
       }
     ]

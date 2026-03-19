@@ -1,3 +1,4 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -16,14 +17,13 @@ service cloud.firestore {
     }
 
     // Helper: Checks if the user is a database-verified admin
-    // We avoid checking this for the user's own document to prevent recursion
     function isDbAdmin() {
       return request.auth != null && 
              exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
              get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
-    // Helper: Master admin check (Hardcoded check first to avoid DB hits)
+    // Helper: Master admin check
     function isAdmin() {
       return isHardcodedAdmin() || isDbAdmin();
     }
@@ -33,40 +33,45 @@ service cloud.firestore {
       return request.auth != null && request.auth.uid == userId;
     }
 
+    // Helper: Checks if the user is NOT blocked
+    function isNotBlocked() {
+      return request.auth == null || (
+        !exists(/databases/$(database)/documents/blocked_users/$(request.auth.uid)) ||
+        (exists(/databases/$(database)/documents/blocked_users/$(request.auth.uid)) && 
+         get(/databases/$(database)/documents/blocked_users/$(request.auth.uid)).data.expiresAt != null &&
+         get(/databases/$(database)/documents/blocked_users/$(request.auth.uid)).data.expiresAt < request.time)
+      );
+    }
+
     // USERS collection: Identity management
     match /users/{userId} {
-      // Priority: Self-access (prevents recursion)
       allow read, write: if isOwner(userId);
-      // Fallback: Admin oversight
       allow read, write: if isAdmin();
     }
 
     // VISITS collection: Registry of library entries
     match /visits/{visitId} {
-      // Admins have absolute registry oversight
       allow read, write: if isAdmin();
-      
-      // Standard members: Can log entry
-      allow create: if request.auth != null;
-      // Can read own history or when admin is verified
+      allow create: if request.auth != null && isNotBlocked();
       allow read: if request.auth != null && (isAdmin() || (resource != null && resource.data.userId == request.auth.uid));
     }
     
     // NOTIFICATIONS: Alert center
     match /notifications/{notifId} {
-      // Admins have absolute control
       allow read, write: if isAdmin();
-      // Users can read their own notifications
       allow read: if request.auth != null && (isAdmin() || (resource != null && resource.data.userId == request.auth.uid));
-      // Users can mark their own as read (update)
-      allow update: if request.auth != null && (resource != null && resource.data.userId == request.auth.uid);
+      allow update: if request.auth != null && isNotBlocked() && (resource != null && resource.data.userId == request.auth.uid);
     }
 
     // LIBRARY_CONFIG: Operational status and manual overrides
     match /library_config/{configId} {
-      // All institutional members need to see if the library is open
       allow read: if request.auth != null;
-      // Only admins can override the operational status
+      allow write: if isAdmin();
+    }
+
+    // BLOCKED_USERS: Access revocation registry
+    match /blocked_users/{userId} {
+      allow read: if request.auth != null; // Everyone can check if they are blocked
       allow write: if isAdmin();
     }
 
