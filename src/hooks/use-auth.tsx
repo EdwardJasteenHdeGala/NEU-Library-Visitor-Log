@@ -144,18 +144,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       await signInWithPopup(auth, provider);
     } catch (error: any) {
-      // Gracefully handle benign popup closure
+      // Gracefully handle "benign" popup closure
       if (error.code === 'auth/popup-closed-by-user') {
+        console.log("Identity synchronization suspended: Popup closed by user.");
         toast({
-          title: "Identity Sync Cancelled",
-          description: "Please complete the Google authentication to access your institutional profile.",
+          title: "Identity Sync Suspended",
+          description: "Portal access requires institutional synchronization. Please try again when ready.",
         });
         return;
       }
 
+      console.error("Authentication Gateway Error:", error);
       toast({
-        title: "Login Failed",
-        description: error.message,
+        title: "Synchronization Error",
+        description: error.message || "The institutional identity hub is currently unreachable.",
         variant: "destructive"
       });
     }
