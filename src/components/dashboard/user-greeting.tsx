@@ -16,7 +16,9 @@ import {
   X, 
   Settings, 
   Loader2,
-  Activity
+  Activity,
+  User as UserIcon,
+  Globe
 } from "lucide-react";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
@@ -45,6 +47,7 @@ import { useLibraryStatus } from "@/hooks/use-library-status";
 import { FeedbackView } from "./feedback-view";
 import { HelpView } from "./help-view";
 import { ProfileView } from "./profile-view";
+import { Badge } from "@/components/ui/badge";
 
 const NEU_COLLEGES = [
   { id: "CICS", name: "Computer & Info Sciences" },
@@ -61,6 +64,20 @@ const NEU_COLLEGES = [
   { id: "EXTERNAL", name: "External / Guest" },
 ];
 
+const MEMBER_PURPOSES = [
+  { value: "reading books", label: "Reading & Study" },
+  { value: "research in thesis", label: "Thesis Research" },
+  { value: "use of computer", label: "Computer Laboratory" },
+  { value: "doing assignments", label: "Assignments" },
+];
+
+const GUEST_PURPOSES = [
+  { value: "visit", label: "General Visitation" },
+  { value: "inquiry", label: "Information Inquiry" },
+  { value: "tour", label: "Facility Tour" },
+  { value: "media use", label: "Media Consultation" },
+];
+
 type UserSubView = 'log-entry' | 'feedback' | 'help' | 'profile';
 
 export function UserGreeting() {
@@ -71,12 +88,13 @@ export function UserGreeting() {
   
   const [subView, setSubView] = useState<UserSubView>('log-entry');
   const [purpose, setPurpose] = useState<string>("");
-  const [currentCollege, setCurrentCollege] = useState<string>(profile?.college || "");
+  const [currentCollege, setCurrentCollege] = useState<string>(profile?.college || "EXTERNAL");
   const [isLogging, setIsLogging] = useState(false);
   const [academicYear, setAcademicYear] = useState("");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const logoImage = PlaceHolderImages.find(img => img.id === 'neu-logo');
+  const isGuest = profile?.role === 'guest';
 
   useEffect(() => {
     setAcademicYear(getAcademicYear());
@@ -116,7 +134,7 @@ export function UserGreeting() {
     });
 
     setTimeout(() => {
-      toast({ title: "Check-In Confirmed", description: "Entry recorded in registry." });
+      toast({ title: "Check-In Confirmed", description: isGuest ? "Visitor log entry synchronized." : "Entry recorded in registry." });
       setIsLogging(false);
     }, 600);
   };
@@ -155,6 +173,8 @@ export function UserGreeting() {
     setIsMobileMenuOpen(false);
   };
 
+  const purposes = isGuest ? GUEST_PURPOSES : MEMBER_PURPOSES;
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
       <header className="neu-header">
@@ -165,7 +185,9 @@ export function UserGreeting() {
             </div>
             <div className="flex flex-col leading-none">
               <h1 className="text-xs font-bold tracking-tight text-white uppercase">NEU Access Hub</h1>
-              <span className="text-[7px] font-bold text-secondary uppercase tracking-widest">Institutional Portal</span>
+              <span className="text-[7px] font-bold text-secondary uppercase tracking-widest">
+                {isGuest ? "External Visitor" : "Institutional Portal"}
+              </span>
             </div>
           </div>
 
@@ -255,25 +277,35 @@ export function UserGreeting() {
                     <div className={cn("h-2 w-2 rounded-full", status.isOpen ? "bg-green-500 animate-pulse" : "bg-red-500")} />
                     <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{status.label}</span>
                   </div>
-                  <h1 className="text-3xl md:text-5xl font-bold text-primary tracking-tight leading-none italic">Welcome, <span className="text-slate-900 not-italic">{profile?.displayName?.split(' ')[0]}</span></h1>
+                  <div className="flex flex-col sm:flex-row items-center gap-3">
+                    <h1 className="text-3xl md:text-5xl font-bold text-primary tracking-tight leading-none italic">Welcome, <span className="text-slate-900 not-italic">{profile?.displayName?.split(' ')[0]}</span></h1>
+                    {isGuest && (
+                      <Badge variant="outline" className="border-secondary text-primary font-bold uppercase italic text-[10px] px-4 py-1.5 rounded-full bg-secondary/5">
+                        <Globe className="h-3 w-3 mr-2" /> Guest Account
+                      </Badge>
+                    )}
+                  </div>
                   <p className="text-muted-foreground font-medium">New Era University Institutional Registry</p>
                 </div>
               </div>
 
               <Card className="shadow-xl border-border rounded-xl overflow-hidden">
                 <CardHeader className="bg-slate-50 border-b p-6 flex flex-row items-center justify-between">
-                  <CardTitle className="text-xs font-bold flex items-center gap-2 uppercase tracking-widest"><History className="h-4 w-4 text-primary" /> Log Attendance</CardTitle>
+                  <CardTitle className="text-xs font-bold flex items-center gap-2 uppercase tracking-widest">
+                    <History className="h-4 w-4 text-primary" /> {isGuest ? "Visitor Registration" : "Log Attendance"}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="p-10 space-y-10">
                   {activeVisit ? (
                     <div className="shadow-2xl border-none bg-primary text-white p-16 rounded-xl overflow-hidden relative">
+                      <div className="absolute inset-0 bg-dot-pattern opacity-10" />
                       <div className="relative z-10 flex flex-col items-center text-center space-y-10">
                         <div className="h-20 w-20 bg-white/10 rounded-full flex items-center justify-center border-2 border-white/20 animate-pulse shadow-xl">
                           <Activity className="h-10 w-10 text-secondary" />
                         </div>
                         <div className="space-y-4">
                           <h2 className="text-3xl font-bold uppercase tracking-tighter italic">Active Session Confirmed</h2>
-                          <p className="text-white/80 text-lg">Arrival: <span className="text-secondary font-bold">{activeVisit.timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span></p>
+                          <p className="text-white/80 text-lg">Entry: <span className="text-secondary font-bold">{activeVisit.timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span></p>
                         </div>
                         <Button onClick={handleCheckOut} disabled={isLogging} variant="secondary" className="w-full max-w-xs h-14 font-black uppercase text-xs tracking-widest shadow-xl rounded-xl">
                           {isLogging ? <Loader2 className="h-4 w-4 animate-spin" /> : "Terminate Session"}
@@ -284,28 +316,37 @@ export function UserGreeting() {
                     <div className="animate-in slide-in-from-bottom-4 duration-500">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
                         <div className="space-y-2">
-                          <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Assigned Unit</label>
+                          <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
+                            {isGuest ? "Identification Scope" : "Assigned Unit"}
+                          </label>
                           <Select value={currentCollege} onValueChange={setCurrentCollege}>
                             <SelectTrigger className="h-14 font-bold rounded-xl border-2"><SelectValue placeholder="Select Dept" /></SelectTrigger>
-                            <SelectContent className="rounded-xl">{NEU_COLLEGES.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
+                            <SelectContent className="rounded-xl">
+                              {isGuest ? (
+                                <SelectItem value="EXTERNAL">External / Guest Visitor</SelectItem>
+                              ) : (
+                                NEU_COLLEGES.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)
+                              )}
+                            </SelectContent>
                           </Select>
                         </div>
                         <div className="space-y-2">
-                          <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Purpose of Access</label>
+                          <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
+                            {isGuest ? "Purpose of Visit" : "Purpose of Access"}
+                          </label>
                           <Select value={purpose} onValueChange={setPurpose}>
                             <SelectTrigger className="h-14 font-bold rounded-xl border-2"><SelectValue placeholder="Select Purpose" /></SelectTrigger>
                             <SelectContent className="rounded-xl">
-                              <SelectItem value="reading books">Reading & Study</SelectItem>
-                              <SelectItem value="research in thesis">Thesis Research</SelectItem>
-                              <SelectItem value="use of computer">Computer Laboratory</SelectItem>
-                              <SelectItem value="doing assignments">Assignments</SelectItem>
+                              {purposes.map(p => (
+                                <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
+                              ))}
                             </SelectContent>
                           </Select>
                         </div>
                       </div>
                       <Button onClick={handleCheckIn} disabled={!purpose || !currentCollege || isLogging} className="w-full h-16 text-lg font-bold gap-4 rounded-xl shadow-lg transition-all active:scale-95">
                         {isLogging ? <Loader2 className="h-5 w-5 animate-spin" /> : <CheckCircle2 className="h-5 w-5 text-secondary" />}
-                        Confirm Attendance Entry
+                        {isGuest ? "Confirm Visitor Entry" : "Confirm Attendance Entry"}
                       </Button>
                     </div>
                   )}
@@ -315,6 +356,18 @@ export function UserGreeting() {
 
             <aside className="lg:col-span-4 space-y-8 lg:sticky lg:top-24">
               <LiveClock className="shadow-sm border-border bg-white p-8 !flex-col !items-start rounded-xl" showSelector={false} />
+              
+              {isGuest && (
+                <Card className="p-8 space-y-4 border-none shadow-xl bg-primary text-white rounded-xl">
+                  <div className="flex items-center gap-3">
+                    <ShieldCheck className="h-5 w-5 text-secondary" />
+                    <span className="font-bold text-[10px] uppercase tracking-widest">Visitor Protocol</span>
+                  </div>
+                  <p className="text-xs opacity-80 leading-relaxed font-medium">
+                    Guests are required to log their entry manually. Access is limited to authorized research and visitation zones.
+                  </p>
+                </Card>
+              )}
             </aside>
           </div>
         )}

@@ -8,8 +8,7 @@ import {
   getDoc, 
   serverTimestamp, 
   collection,
-  addDoc,
-  deleteDoc
+  addDoc
 } from 'firebase/firestore';
 import { useFirebase, useUser, setDocumentNonBlocking, updateDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
@@ -102,6 +101,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           needsUpdate = true;
         }
 
+        // Grant admin status to authorized emails if not already set
         if ((isAuthorized || isBootstrapAdmin) && (!data.isAuthorizedAdmin || (isBootstrapAdmin && !data.isSuperAdmin))) {
           updates.isAuthorizedAdmin = true;
           updates.isSuperAdmin = isBootstrapAdmin;
@@ -116,17 +116,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setProfile(data);
         }
       } else {
-        if (intendedRole !== 'guest' && !isInstitutional) {
-          toast({
-            title: "Institutional Restriction",
-            description: "Member access requires a valid @neu.edu.ph account.",
-            variant: "destructive"
-          });
-          await signOut(auth);
-          return;
-        }
-
-        const initialRole = (isAuthorized || isBootstrapAdmin) ? 'admin' : (intendedRole === 'guest' ? 'guest' : defaultRole);
+        // Create new profile
+        const initialRole = (isAuthorized || isBootstrapAdmin) ? 'admin' : (isInstitutional ? 'user' : 'guest');
         
         const profileData = {
           id: user.uid,
@@ -163,8 +154,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({ 
-        prompt: 'select_account',
-        hd: 'neu.edu.ph'
+        prompt: 'select_account'
       });
       await signInWithPopup(auth, provider);
     } catch (error: any) {
