@@ -14,16 +14,17 @@ service cloud.firestore {
 
     /** 
      * @description Determines if the user is an admin via role doc OR bootstrap whitelist.
-     * This fallback prevents recursion issues during initial identity sync.
+     * Prioritizes the whitelist to ensure immediate access for authorized university personnel.
      */
     function isAdmin() {
       return isSignedIn() && (
-        request.auth.token.email in [
+        request.auth.token.email.lower() in [
           'edwardjasteen.degala@neu.edu.ph', 
           'jcesperanza@neu.edu.ph', 
           'nhica.valderas@neu.edu.ph'
         ] ||
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin')
       );
     }
 
@@ -36,19 +37,11 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    // Root level visits collection rule - synchronized with app usage
+    // Root level visits collection rule - synchronized with flat data model
     match /visits/{visitId} {
-      allow read, list: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow read, list: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
       allow create: if isSignedIn();
       allow update, delete: if isAdmin();
-    }
-
-    /**
-     * @description Collection Group rule for visits telemetry.
-     * Keeps hierarchical support if needed by future group queries.
-     */
-    match /{path=**}/visits/{visitId} {
-      allow list: if isAdmin();
     }
 
     match /notifications/{notificationId} {
@@ -64,6 +57,11 @@ service cloud.firestore {
     match /invites/{inviteId} {
       allow read: if isSignedIn();
       allow create, update, delete: if isAdmin();
+    }
+    
+    match /audit_logs/{logId} {
+      allow read, list: if isAdmin();
+      allow create: if isAdmin();
     }
   }
 }

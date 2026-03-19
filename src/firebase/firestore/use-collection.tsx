@@ -61,11 +61,20 @@ export function useCollection<T = any>(
         setError(null);
         setIsLoading(false);
       },
-      (error: FirestoreError) => {
+      (err: FirestoreError) => {
         const path: string =
           memoizedTargetRefOrQuery.type === 'collection'
             ? (memoizedTargetRefOrQuery as CollectionReference).path
             : (memoizedTargetRefOrQuery as unknown as InternalQuery)._query.path.canonicalString();
+
+        // SILENT ERROR HANDLING: Suppress permission-denied to avoid the red screen during identity sync
+        if (err.code === 'permission-denied' || err.code === 'unauthenticated') {
+          console.warn(`Institutional Registry Access Deferred: ${path}`);
+          setError(err);
+          setData(null);
+          setIsLoading(false);
+          return;
+        }
 
         const contextualError = new FirestorePermissionError({
           operation: 'list',
@@ -75,12 +84,7 @@ export function useCollection<T = any>(
         setError(contextualError);
         setData(null);
         setIsLoading(false);
-
-        // SILENT ERROR HANDLING: We do not emit to the global listener to avoid the "Red Screen"
-        // during transient identity synchronization states or when rules are being applied.
-        if (error.code !== 'permission-denied' && error.code !== 'unauthenticated') {
-          errorEmitter.emit('permission-error', contextualError);
-        }
+        errorEmitter.emit('permission-error', contextualError);
       }
     );
 
