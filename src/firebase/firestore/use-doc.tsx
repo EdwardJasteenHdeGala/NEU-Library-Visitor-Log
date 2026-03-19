@@ -68,6 +68,7 @@ export function useDoc<T = any>(
         setIsLoading(false);
       },
       (serverError: FirestoreError) => {
+        // Silent handling for permission-denied to prevent global crash during auth sync
         if (serverError.code === 'permission-denied' || serverError.code === 'unauthenticated') {
           setData(null);
           setIsLoading(false);
