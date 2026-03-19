@@ -34,26 +34,23 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
   // Robust admin check - strictly prevent unauthorized telemetry access
   const isAdmin = !authLoading && profile && (profile.role === 'admin' || profile.isAuthorizedAdmin);
 
-  // Real-time queries for telemetry - strictly guarded to avoid permission errors
-  // Security rules require userId filter for standard access paths to avoid recursion
+  // Real-time queries for telemetry - authorized admins see all registry logs
   const recentVisitsQuery = useMemoFirebase(() => {
-    if (!isAdmin || !firestore || !profile?.id) return null;
+    if (!isAdmin || !firestore) return null;
     return query(
       collection(firestore, 'visits'), 
-      where('userId', '==', profile.id),
       orderBy('timestamp', 'desc'), 
       limit(15)
     );
-  }, [firestore, isAdmin, profile?.id]);
+  }, [firestore, isAdmin]);
 
   const occupancyQuery = useMemoFirebase(() => {
-    if (!isAdmin || !firestore || !profile?.id) return null;
+    if (!isAdmin || !firestore) return null;
     return query(
       collection(firestore, 'visits'), 
-      where('userId', '==', profile.id),
       where('exitTimestamp', '==', null)
     );
-  }, [firestore, isAdmin, profile?.id]);
+  }, [firestore, isAdmin]);
 
   const { data: recentVisits, isLoading: isLoadingRecent } = useCollection(recentVisitsQuery);
   const { data: activeVisits } = useCollection(occupancyQuery);
@@ -157,7 +154,7 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
             <History className="h-10 w-10 text-secondary p-2 bg-white rounded-xl shadow-sm" /> Registry Telemetry Archive
           </CardTitle>
           <Badge variant="outline" className="text-[11px] font-black uppercase tracking-[0.2em] border-2 py-2 px-6 rounded-full bg-white">
-            {recentVisits?.length || 0} Recent Logs Synchronized
+            {recentVisits?.length || 0} System-wide Logs
           </Badge>
         </CardHeader>
         <CardContent className="p-0">

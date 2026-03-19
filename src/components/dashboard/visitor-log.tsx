@@ -89,15 +89,14 @@ export function VisitorLog({ onBack }: VisitorLogProps) {
   
   const isAdmin = profile?.role === 'admin';
 
+  // Real-time query: Authorized admins synchronize the entire system-wide registry
   const visitsQuery = useMemoFirebase(() => {
-    if (!isAdmin || !firestore || !profile?.id) return null;
-    // Applied mandatory userId filter to comply with security rules
+    if (!isAdmin || !firestore) return null;
     return query(
       collection(firestore, 'visits'), 
-      where('userId', '==', profile.id),
       orderBy('timestamp', 'desc')
     );
-  }, [firestore, isAdmin, profile?.id]);
+  }, [firestore, isAdmin]);
 
   const { data: visits, isLoading } = useCollection(visitsQuery);
 

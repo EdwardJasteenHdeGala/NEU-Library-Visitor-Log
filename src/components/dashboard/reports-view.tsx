@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -68,14 +67,12 @@ export function ReportsView({ onBack }: ReportsViewProps) {
 
   const firestore = useFirestore();
   const visitsQuery = useMemoFirebase(() => {
-    if (!isAdmin || !firestore || !profile?.id) return null;
-    // Security rules require userId filter for standard access paths to avoid recursion
+    if (!isAdmin || !firestore) return null;
     return query(
       collection(firestore, 'visits'), 
-      where('userId', '==', profile.id),
       orderBy('timestamp', 'desc')
     );
-  }, [firestore, isAdmin, profile?.id]);
+  }, [firestore, isAdmin]);
   
   const { data: visits } = useCollection(visitsQuery);
 

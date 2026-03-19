@@ -14,17 +14,22 @@ service cloud.firestore {
 
     // USER PROFILES
     match /users/{userId} {
-      allow read, write: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+      // Each user can read/write their own profile
+      allow read, write: if isAuthenticated() && request.auth.uid == userId;
+      // Admins can manage all profiles
+      allow read, write: if isAdmin();
     }
 
     // VISITS REGISTRY
     match /visits/{visitId} {
       // Admins can list, read, and write all visits
-      // Standard members can read their own logs but cannot list the entire collection
-      allow read, write: if isAuthenticated() && (isAdmin() || (resource != null && resource.data.userId == request.auth.uid));
+      allow read, write: if isAdmin();
+
+      // Standard members can read their own logs (supports Active Session check)
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
       
-      // All authenticated members can create new registry entries
-      allow create: if isAuthenticated();
+      // All authenticated members can create registry entries
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
     }
 
     // INSTITUTIONAL CONFIG
