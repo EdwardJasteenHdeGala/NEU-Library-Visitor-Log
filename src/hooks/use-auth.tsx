@@ -6,15 +6,12 @@ import {
   doc, 
   getDoc, 
   serverTimestamp, 
-  collection,
 } from 'firebase/firestore';
 import { 
   useFirebase, 
   useUser, 
   setDocumentNonBlocking, 
   updateDocumentNonBlocking,
-  addDocumentNonBlocking,
-  deleteDocumentNonBlocking 
 } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 
@@ -137,7 +134,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       provider.setCustomParameters({ 
         prompt: 'select_account'
       });
-      // Domain hint if strictly member login
+      // Domain hint if strictly member login requested
       if (roleHint === 'user') {
         provider.setCustomParameters({ hd: 'neu.edu.ph' });
       }
@@ -219,15 +216,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         blockedReason: reason,
         updatedAt: serverTimestamp()
       });
-
-      const blockRef = doc(firestore, 'blocked_users', userId);
-      setDocumentNonBlocking(blockRef, {
-        reason,
-        details,
-        duration,
-        timestamp: serverTimestamp()
-      }, { merge: true });
-
       toast({ title: "User Blocked", description: "Identity registry updated." });
     } catch (error: any) {}
   };
@@ -241,10 +229,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         blockedReason: null,
         updatedAt: serverTimestamp()
       });
-
-      const blockRef = doc(firestore, 'blocked_users', userId);
-      deleteDocumentNonBlocking(blockRef);
-
       toast({ title: "Access Restored", description: "Member re-authorized." });
     } catch (error: any) {}
   };
@@ -252,14 +236,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const sendWarning = async (userId: string, title: string, message: string) => {
     if (!profile?.isAuthorizedAdmin || !firestore) return;
     try {
-      const notificationRef = collection(firestore, 'notifications');
-      addDocumentNonBlocking(notificationRef, {
+      const notificationRef = doc(firestore, 'notifications', `warning-${userId}-${Date.now()}`);
+      setDocumentNonBlocking(notificationRef, {
         userId,
         title,
         message,
         read: false,
         timestamp: serverTimestamp()
-      });
+      }, { merge: true });
       toast({ title: "Warning Sent", description: "Alert logged in member registry." });
     } catch (error: any) {}
   };

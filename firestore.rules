@@ -14,7 +14,7 @@ service cloud.firestore {
       );
     }
 
-    // VISITS REGISTRY - Permissive for synchronization
+    // VISITS REGISTRY - Permissive as requested for synchronization
     match /visits/{visitId} {
       allow read, write: if true;
     }
@@ -50,6 +50,12 @@ service cloud.firestore {
     match /audit_logs/{logId} {
       allow read: if isAdmin();
       allow create: if isAuthenticated();
+    }
+    
+    // BLOCKED USERS
+    match /blocked_users/{userId} {
+      allow read: if true;
+      allow write: if isAdmin();
     }
   }
 }
