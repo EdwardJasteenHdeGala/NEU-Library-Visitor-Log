@@ -160,8 +160,7 @@ export function GuestView({ onBack, onLogin }: GuestViewProps) {
               </div>
               <Button 
                 onClick={onLogin}
-                variant="secondary"
-                className="w-full h-14 font-black text-xs uppercase tracking-[0.2em] rounded-xl shadow-2xl active:scale-95 transition-all"
+                className="w-full h-14 bg-white text-primary hover:bg-slate-50 font-black text-xs uppercase tracking-[0.2em] rounded-xl shadow-2xl active:scale-95 transition-all"
               >
                 Enter Portal Gateway
                 <LogIn className="h-4 w-4 ml-2" />
