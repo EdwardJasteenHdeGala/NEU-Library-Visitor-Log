@@ -22,7 +22,7 @@ import {
   ArrowLeft
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { collection, query, orderBy } from "firebase/firestore";
+import { collection, query, orderBy, where } from "firebase/firestore";
 import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
 import { 
   Line, 
@@ -68,9 +68,15 @@ export function ReportsView({ onBack }: ReportsViewProps) {
 
   const firestore = useFirestore();
   const visitsQuery = useMemoFirebase(() => {
-    if (!isAdmin || !firestore) return null;
-    return query(collection(firestore, 'visits'), orderBy('timestamp', 'desc'));
-  }, [firestore, isAdmin]);
+    if (!isAdmin || !firestore || !profile?.id) return null;
+    // Security rules require userId filter for standard access paths to avoid recursion
+    return query(
+      collection(firestore, 'visits'), 
+      where('userId', '==', profile.id),
+      orderBy('timestamp', 'desc')
+    );
+  }, [firestore, isAdmin, profile?.id]);
+  
   const { data: visits } = useCollection(visitsQuery);
 
   const [archives] = useState([

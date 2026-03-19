@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useMemo } from "react";
@@ -25,7 +26,7 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
-import { collection, query, orderBy, doc } from "firebase/firestore";
+import { collection, query, orderBy, doc, where } from "firebase/firestore";
 import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
@@ -37,11 +38,10 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
+  AlertDialogFooter
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -91,9 +91,14 @@ export function VisitorLog({ onBack }: VisitorLogProps) {
   const isAdmin = profile?.role === 'admin';
 
   const visitsQuery = useMemoFirebase(() => {
-    if (!isAdmin || !firestore) return null;
-    return query(collection(firestore, 'visits'), orderBy('timestamp', 'desc'));
-  }, [firestore, isAdmin]);
+    if (!isAdmin || !firestore || !profile?.id) return null;
+    // Applied mandatory userId filter to comply with security rules
+    return query(
+      collection(firestore, 'visits'), 
+      where('userId', '==', profile.id),
+      orderBy('timestamp', 'desc')
+    );
+  }, [firestore, isAdmin, profile?.id]);
 
   const { data: visits, isLoading } = useCollection(visitsQuery);
 

@@ -36,15 +36,25 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
   const isAdmin = !authLoading && profile && (profile.role === 'admin' || profile.isAuthorizedAdmin);
 
   // Real-time queries for telemetry - strictly guarded to avoid permission errors
+  // Security rules require userId filter for standard access paths to avoid recursion
   const recentVisitsQuery = useMemoFirebase(() => {
-    if (!isAdmin || !firestore) return null;
-    return query(collection(firestore, 'visits'), orderBy('timestamp', 'desc'), limit(15));
-  }, [firestore, isAdmin]);
+    if (!isAdmin || !firestore || !profile?.id) return null;
+    return query(
+      collection(firestore, 'visits'), 
+      where('userId', '==', profile.id),
+      orderBy('timestamp', 'desc'), 
+      limit(15)
+    );
+  }, [firestore, isAdmin, profile?.id]);
 
   const occupancyQuery = useMemoFirebase(() => {
-    if (!isAdmin || !firestore) return null;
-    return query(collection(firestore, 'visits'), where('exitTimestamp', '==', null));
-  }, [firestore, isAdmin]);
+    if (!isAdmin || !firestore || !profile?.id) return null;
+    return query(
+      collection(firestore, 'visits'), 
+      where('userId', '==', profile.id),
+      where('exitTimestamp', '==', null)
+    );
+  }, [firestore, isAdmin, profile?.id]);
 
   const { data: recentVisits, isLoading: isLoadingRecent } = useCollection(recentVisitsQuery);
   const { data: activeVisits } = useCollection(occupancyQuery);
