@@ -93,7 +93,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       if (docSnap.exists()) {
         const data = docSnap.data() as UserProfile;
-        setProfile({ ...data, isAuthorizedAdmin: isAuthorized || data.isAuthorizedAdmin });
+        // Ensure super admin flag is always synced for authorized emails
+        const updatedProfile = { 
+          ...data, 
+          isAuthorizedAdmin: isAuthorized || data.isAuthorizedAdmin,
+          isSuperAdmin: userEmail === BOOTSTRAP_SUPER_ADMIN_EMAIL
+        };
+        setProfile(updatedProfile);
       } else {
         const defaultRole = isAuthorized ? 'admin' : (isInstitutional ? 'user' : 'guest');
         const defaultDesignation = isInstitutional ? 'student' : 'guest';

@@ -29,11 +29,11 @@ service cloud.firestore {
 
     // VISITS REGISTRY
     match /visits/{visitId} {
-      // Explicitly allow listing for administrators
-      allow list: if isAdmin();
+      // Allow listing if user is an admin or if it's a constrained query (like for personal status)
+      allow list: if isAuthenticated() && (isAdmin() || request.query.limit <= 5);
       
-      // Allow individual record retrieval for administrators or the record owner
-      allow get: if isAdmin() || (isAuthenticated() && resource.data.userId == request.auth.uid);
+      // Allow retrieval if admin or record owner
+      allow get: if isAuthenticated() && (isAdmin() || resource.data.userId == request.auth.uid);
 
       // Authenticated users can create their own logs
       allow create: if isAuthenticated();
