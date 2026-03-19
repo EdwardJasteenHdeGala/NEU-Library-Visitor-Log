@@ -8,12 +8,11 @@ service cloud.firestore {
 
     function isAdmin() {
       return isAuthenticated() && (
-        // prioritized Email Whitelist for immediate administrative authorization
-        request.auth.token.email in [
-          "edwardjasteen.degala@neu.edu.ph",
-          "jcesperanza@neu.edu.ph",
-          "nhica.valderas@neu.edu.ph"
-        ] || (
+        // Prioritized Email Whitelist for immediate administrative authorization
+        request.auth.token.email == "edwardjasteen.degala@neu.edu.ph" ||
+        request.auth.token.email == "jcesperanza@neu.edu.ph" ||
+        request.auth.token.email == "nhica.valderas@neu.edu.ph" ||
+        (
           // Document-based check for manually synchronized administrators
           exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
           get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin"
@@ -29,20 +28,21 @@ service cloud.firestore {
 
     // VISITS REGISTRY
     match /visits/{visitId} {
-      // Admins are authorized for full registry oversight (list, read, write)
-      allow list, get, write: if isAdmin();
+      // Admins are authorized for full registry oversight
+      allow get, write: if isAdmin();
+      allow list: if isAdmin();
 
       // Standard members can log their presence and read their own records
       allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
       allow get: if isAuthenticated() && resource.data.userId == request.auth.uid;
       
       // Allow standard users to list their own visits if properly filtered
-      allow list: if isAuthenticated() && request.query.limit <= 100 && (
-        isAdmin() || 
-        (request.query.filters.size() > 0 && 
+      allow list: if isAuthenticated() && (
+         request.query.limit <= 100 && 
+         request.query.filters.size() > 0 && 
          request.query.filters[0].field == 'userId' && 
          request.query.filters[0].op == '==' && 
-         request.query.filters[0].value == request.auth.uid)
+         request.query.filters[0].value == request.auth.uid
       );
     }
 
