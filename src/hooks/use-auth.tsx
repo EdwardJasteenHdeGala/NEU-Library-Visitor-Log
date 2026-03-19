@@ -93,7 +93,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       if (docSnap.exists()) {
         const data = docSnap.data() as UserProfile;
-        // Ensure super admin flag is always synced for authorized emails
         const updatedProfile = { 
           ...data, 
           isAuthorizedAdmin: isAuthorized || data.isAuthorizedAdmin,
@@ -140,7 +139,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       provider.setCustomParameters({ 
         prompt: 'select_account'
       });
-      // Domain hint if strictly member login requested
       if (roleHint === 'user') {
         provider.setCustomParameters({ hd: 'neu.edu.ph' });
       }

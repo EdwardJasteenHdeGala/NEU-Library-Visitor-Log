@@ -29,8 +29,8 @@ service cloud.firestore {
 
     // VISITS REGISTRY
     match /visits/{visitId} {
-      // Allow listing if user is an admin or if it's a constrained query (like for personal status)
-      allow list: if isAuthenticated() && (isAdmin() || request.query.limit <= 5);
+      // Allow listing for admins OR if the query is restricted to the user's own data
+      allow list: if isAuthenticated() && (isAdmin() || resource.data.userId == request.auth.uid || request.query.limit <= 5);
       
       // Allow retrieval if admin or record owner
       allow get: if isAuthenticated() && (isAdmin() || resource.data.userId == request.auth.uid);
