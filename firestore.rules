@@ -6,7 +6,7 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    // Simplified admin check to prevent recursion
+    // Simplified admin check using auth token email whitelist
     function isAdmin() {
       return isAuthenticated() && (
         request.auth.token.email == "edwardjasteen.degala@neu.edu.ph" ||
@@ -22,7 +22,7 @@ service cloud.firestore {
 
     // VISITS REGISTRY
     match /visits/{visitId} {
-      allow read, write, list: if isAdmin();
+      allow read, write, list, delete: if isAdmin();
       allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
       allow get: if isAuthenticated() && resource.data.userId == request.auth.uid;
       

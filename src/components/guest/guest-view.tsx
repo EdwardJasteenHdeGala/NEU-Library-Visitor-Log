@@ -155,7 +155,7 @@ export function GuestView({ onBack, onLogin }: GuestViewProps) {
           </div>
 
           <aside className="lg:col-span-4 space-y-8 lg:sticky lg:top-24">
-            <Card className="shadow-2xl p-10 space-y-8 rounded-[2.5rem] border-none text-white bg-primary relative overflow-hidden group">
+            <Card className="shadow-2xl p-10 space-y-8 rounded-[2.5rem] border-none text-white bg-slate-900 relative overflow-hidden group">
               <div className="absolute inset-0 bg-dot-pattern opacity-10" />
               <div className="space-y-6 relative z-10">
                 <div className="flex flex-col gap-2">
@@ -169,10 +169,10 @@ export function GuestView({ onBack, onLogin }: GuestViewProps) {
                   Institutional members must officially log their presence to access academic facilities.
                 </p>
                 
-                <div className="pt-6">
+                <div className="pt-6 flex justify-start">
                   <Button 
                     onClick={onLogin}
-                    className="w-full h-16 bg-white text-primary hover:bg-slate-50 font-black text-xs uppercase tracking-[0.2em] rounded-xl shadow-2xl active:scale-95 transition-all flex items-center justify-between px-8"
+                    className="w-fit min-w-[12rem] h-[3.5rem] bg-primary text-white hover:bg-primary/90 font-black text-[0.75rem] uppercase tracking-[0.2em] rounded-xl shadow-2xl active:scale-95 transition-all flex items-center gap-[1rem] px-[1.5rem]"
                   >
                     Enter Portal Gateway
                     <LogIn className="h-5 w-5" />
