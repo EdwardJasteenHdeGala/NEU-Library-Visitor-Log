@@ -7,14 +7,12 @@ service cloud.firestore {
     }
 
     // Prioritized Administrative Whitelist for immediate registry oversight.
-    // Checking the token email directly avoids recursive get() calls during auth sync.
+    // Checking the token email directly avoids recursive get() or exists() calls during auth sync.
     function isAdmin() {
       return isAuthenticated() && (
         request.auth.token.email == "edwardjasteen.degala@neu.edu.ph" ||
         request.auth.token.email == "jcesperanza@neu.edu.ph" ||
-        request.auth.token.email == "nhica.valderas@neu.edu.ph" ||
-        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
-         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin")
+        request.auth.token.email == "nhica.valderas@neu.edu.ph"
       );
     }
 

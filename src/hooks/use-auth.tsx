@@ -147,7 +147,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error.code === 'auth/popup-closed-by-user') {
         toast({
           title: "Identity Sync Deferred",
-          description: "Login was cancelled. Please complete the institutional synchronization to access the portal.",
+          description: "Institutional synchronization was cancelled. Please try again to access the portal.",
         });
         return;
       }

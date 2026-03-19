@@ -89,6 +89,7 @@ export function useCollection<T = any>(
 
         // Silent handling for permission-denied during list operations to prevent crashes
         // during initial auth synchronization or for non-admin attempts.
+        // We do NOT emit the error globally for 'permission-denied' during list to avoid the "Red Screen".
         if (serverError.code !== 'permission-denied' && serverError.code !== 'unauthenticated') {
             errorEmitter.emit('permission-error', contextualError);
         } else {
