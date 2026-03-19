@@ -4,108 +4,83 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 210 40% 10%;
+    --background: 210 20% 98%;
+    --foreground: 222 47% 11%;
     --card: 0 0% 100%;
-    --card-foreground: 210 40% 10%;
+    --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
-    --popover-foreground: 210 40% 10%;
-    --primary: 153 100% 15%; /* NEU Deep Green */
-    --primary-foreground: 0 0% 100%;
-    --secondary: 45 100% 48%; /* NEU Vibrant Gold */
-    --secondary-foreground: 153 100% 10%;
-    --muted: 210 10% 96%;
-    --muted-foreground: 210 20% 45%;
-    --accent: 45 100% 48%;
-    --accent-foreground: 153 100% 10%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 201 96% 15%; /* Deep Navy */
+    --primary-foreground: 210 40% 98%;
+    --secondary: 174 100% 29%; /* Teal Accent */
+    --secondary-foreground: 210 40% 98%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 45 100% 48%; /* Gold */
+    --accent-foreground: 222.2 47.4% 11.2%;
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 210 20% 90%;
-    --input: 210 20% 90%;
-    --ring: 153 100% 15%;
-    --radius: 0.5rem;
-    --chart-1: 153 100% 15%;
-    --chart-2: 45 100% 48%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 201 96% 15%;
+    --radius: 1rem;
   }
 
   .dark {
-    --background: 153 100% 3%; /* Deep Night Green */
-    --foreground: 45 100% 95%; /* Pale Gold */
-    --card: 153 100% 5%;
-    --card-foreground: 45 100% 95%;
-    --popover: 153 100% 5%;
-    --popover-foreground: 45 100% 95%;
-    --primary: 153 100% 25%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 45 100% 48%;
-    --secondary-foreground: 153 100% 10%;
-    --muted: 153 100% 10%;
-    --muted-foreground: 153 20% 70%;
-    --accent: 153 100% 15%;
-    --accent-foreground: 45 100% 48%;
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 153 50% 15%;
-    --input: 153 50% 15%;
-    --ring: 153 100% 25%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
   }
 }
 
 @layer base {
-  html {
-    scrollbar-gutter: stable;
-    @apply h-full overflow-x-hidden scroll-smooth;
-  }
   * {
-    @apply border-border;
+    @apply border-border outline-ring/50;
   }
   body {
-    @apply h-full overflow-x-hidden bg-background text-foreground font-body antialiased transition-colors duration-300;
+    @apply bg-background text-foreground font-body antialiased;
+    font-size: 1rem; /* 16px base */
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-headline tracking-tight;
   }
 }
 
 @layer components {
-  .neu-background {
-    @apply relative min-h-screen bg-background;
-    background-image: radial-gradient(circle at 2px 2px, hsl(var(--primary) / 0.05) 1px, transparent 0);
-    background-size: 32px 32px;
+  .portal-grid {
+    @apply grid grid-cols-1 md:grid-cols-12 gap-[2rem];
+  }
+  
+  .portal-card {
+    @apply bg-card border border-border shadow-sm rounded-[1.5rem] overflow-hidden transition-all duration-300;
   }
 
-  .neu-header {
-    @apply h-[60px] flex items-center bg-primary text-white sticky top-0 z-[70] shadow-sm border-b border-primary-foreground/10;
+  .portal-button-primary {
+    @apply bg-primary text-white hover:bg-primary/90 rounded-[0.75rem] px-[1.5rem] py-[0.75rem] font-bold transition-all active:scale-95;
   }
 
-  .neu-card {
-    @apply bg-card border border-border shadow-sm rounded-lg overflow-hidden;
-  }
-
-  .neu-button-primary {
-    @apply bg-primary text-white hover:bg-primary/90 transition-all font-semibold shadow-sm;
-  }
-
-  .neu-button-secondary {
-    @apply bg-secondary text-primary hover:bg-secondary/90 transition-all font-semibold shadow-sm;
+  .portal-status-badge {
+    @apply inline-flex items-center gap-[0.5rem] px-[1rem] py-[0.25rem] rounded-full text-[0.75rem] font-black uppercase tracking-widest;
   }
 }
 
-::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
-}
-::-webkit-scrollbar-track {
-  @apply bg-transparent;
-}
-::-webkit-scrollbar-thumb {
-  @apply bg-muted-foreground/10 rounded-full hover:bg-muted-foreground/30 transition-all;
-}
-
-[data-radix-scroll-area-viewport] {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-[data-radix-scroll-area-viewport]::-webkit-scrollbar {
-  display: none;
+.bg-dot-pattern {
+  background-image: radial-gradient(hsl(var(--primary) / 0.1) 1px, transparent 0);
+  background-size: 24px 24px;
 }

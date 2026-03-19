@@ -14,7 +14,8 @@ import {
   Megaphone,
   Clock,
   ExternalLink,
-  ChevronRight
+  ChevronRight,
+  Library
 } from "lucide-react";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
@@ -31,29 +32,28 @@ export function GuestView({ onBack, onLogin }: GuestViewProps) {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col selection:bg-primary/10">
-      {/* Modern Slim Header */}
-      <header className="sticky top-0 z-[100] w-full bg-white/80 backdrop-blur-md border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-4">
+      <header className="sticky top-0 z-[100] w-full bg-white/90 backdrop-blur-md border-b border-slate-200">
+        <div className="max-w-[80rem] mx-auto px-[1.5rem] h-[4rem] flex items-center justify-between">
+          <div className="flex items-center gap-[1rem]">
             <Button 
               variant="ghost" 
               size="sm" 
               onClick={onBack}
-              className="hover:bg-slate-100 font-black text-[10px] uppercase tracking-widest text-slate-500 transition-all active:scale-95"
+              className="hover:bg-slate-100 font-black text-[0.625rem] uppercase tracking-widest text-slate-500 transition-all active:scale-95"
             >
-              <ArrowLeft className="h-3.5 w-3.5 mr-2" />
-              Return Home
+              <ArrowLeft className="h-[0.875rem] w-[0.875rem] mr-[0.5rem]" />
+              Home
             </Button>
             
-            <div className="h-4 w-[1px] bg-slate-200 hidden sm:block" />
+            <div className="h-[1rem] w-[1px] bg-slate-200 hidden sm:block" />
             
-            <div className="flex items-center gap-3">
-              <div className="relative w-8 h-8 bg-white rounded-lg shadow-sm border p-1 flex items-center justify-center">
-                <Image src={logoImage?.imageUrl || ""} alt="NEU" fill className="object-contain p-1" />
+            <div className="flex items-center gap-[0.75rem]">
+              <div className="relative w-[2.25rem] h-[2.25rem] bg-white rounded-[0.5rem] shadow-sm border p-[0.25rem] flex items-center justify-center">
+                <Image src={logoImage?.imageUrl || ""} alt="NEU" fill className="object-contain p-[0.25rem]" />
               </div>
               <div className="flex flex-col leading-none">
-                <span className="text-xs font-black text-primary uppercase tracking-tight italic">Access Hub</span>
-                <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Library Portal</span>
+                <span className="text-[0.875rem] font-black text-primary uppercase tracking-tight italic">Access Hub</span>
+                <span className="text-[0.5rem] font-bold text-slate-400 uppercase tracking-widest">Library Center</span>
               </div>
             </div>
           </div>
@@ -62,33 +62,32 @@ export function GuestView({ onBack, onLogin }: GuestViewProps) {
             variant="default" 
             size="sm" 
             onClick={onLogin}
-            className="h-9 px-6 font-black text-[10px] uppercase tracking-[0.2em] shadow-lg shadow-primary/20 rounded-xl transition-all hover:scale-105 active:scale-95"
+            className="h-[2.25rem] px-[1.5rem] font-black text-[0.625rem] uppercase tracking-[0.2em] shadow-lg shadow-primary/20 rounded-[0.75rem] transition-all hover:scale-105 active:scale-95"
           >
-            Institutional Login
+            Portal Login
           </Button>
         </div>
       </header>
 
-      <main className="flex-1 w-full max-w-7xl mx-auto p-6 md:p-10 space-y-12 animate-in fade-in duration-700">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+      <main className="flex-1 w-full max-w-[80rem] mx-auto p-[1.5rem] md:p-[2.5rem] space-y-[3rem] animate-in fade-in duration-700">
+        <div className="portal-grid items-start">
           
-          {/* Content Section */}
-          <div className="lg:col-span-8 space-y-10">
-            <div className="space-y-6">
-              <div className="inline-flex items-center gap-2 bg-primary/5 text-primary border border-primary/10 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em]">
-                 <Megaphone className="h-3 w-3 text-secondary" /> 
+          <div className="lg:col-span-8 space-y-[2.5rem]">
+            <div className="space-y-[1.5rem]">
+              <div className="inline-flex items-center gap-[0.5rem] bg-primary/5 text-primary border border-primary/10 px-[1rem] py-[0.375rem] rounded-full text-[0.625rem] font-black uppercase tracking-[0.2em]">
+                 <Megaphone className="h-[0.75rem] w-[0.75rem] text-secondary" /> 
                  Institutional Advisory
               </div>
-              <h1 className="text-4xl md:text-7xl font-black text-slate-900 tracking-tighter leading-[0.9] italic">
+              <h1 className="text-[2.5rem] md:text-[4.5rem] font-black text-slate-900 tracking-tighter leading-[0.9] italic">
                 Library <br /> 
                 <span className="text-primary">Resource Center</span>
               </h1>
-              <p className="text-lg md:text-xl text-slate-500 leading-relaxed max-w-2xl font-medium italic">
-                Advancing academic excellence through modern resource management and standardized registry protocols.
+              <p className="text-[1.125rem] md:text-[1.25rem] text-slate-500 leading-relaxed max-w-[40rem] font-medium italic">
+                Advancing scholarship through professional registry synchronization and real-time resource tracking.
               </p>
             </div>
 
-            <Card className="shadow-2xl border-none overflow-hidden rounded-[2.5rem] bg-white ring-1 ring-slate-200/50">
+            <Card className="shadow-2xl border-none overflow-hidden rounded-[2rem] bg-white ring-1 ring-slate-200/50">
               <div className="aspect-[21/10] relative group overflow-hidden">
                 <Image 
                   src={campusImage?.imageUrl || ""} 
@@ -99,134 +98,132 @@ export function GuestView({ onBack, onLogin }: GuestViewProps) {
                   data-ai-hint="university campus"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent" />
-                <div className="absolute bottom-8 left-8 right-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
-                  <div className="text-white space-y-2">
-                    <div className="flex items-center gap-2 mb-1">
-                      <MapPin className="h-4 w-4 text-secondary" />
-                      <span className="text-[10px] font-black uppercase tracking-[0.3em] opacity-80">Quezon City Main</span>
+                <div className="absolute bottom-[2rem] left-[2rem] right-[2rem] flex flex-col md:flex-row md:items-end justify-between gap-[1.5rem]">
+                  <div className="text-white space-y-[0.5rem]">
+                    <div className="flex items-center gap-[0.5rem] mb-[0.25rem]">
+                      <MapPin className="h-[1rem] w-[1rem] text-secondary" />
+                      <span className="text-[0.625rem] font-black uppercase tracking-[0.3em] opacity-80">Quezon City Main</span>
                     </div>
-                    <h3 className="text-3xl font-black uppercase tracking-tighter italic">Knowledge Hub</h3>
+                    <h3 className="text-[1.875rem] font-black uppercase tracking-tighter italic leading-none">Knowledge Hub</h3>
                   </div>
-                  <div className="flex items-center gap-4 bg-white/10 backdrop-blur-md px-6 py-3 rounded-2xl border border-white/20">
-                     <Clock className="h-5 w-5 text-secondary" />
+                  <div className="flex items-center gap-[1rem] bg-white/10 backdrop-blur-md px-[1.5rem] py-[0.75rem] rounded-[1rem] border border-white/20">
+                     <Clock className="h-[1.25rem] w-[1.25rem] text-secondary" />
                      <div className="flex flex-col">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-white">Registry Hours</span>
-                        <span className="text-xs font-bold text-white/80">08:00 AM - 05:00 PM</span>
+                        <span className="text-[0.625rem] font-black uppercase tracking-widest text-white">Registry Hours</span>
+                        <span className="text-[0.75rem] font-bold text-white/80">08:00 AM - 05:00 PM</span>
                      </div>
                   </div>
                 </div>
               </div>
-              <CardContent className="p-10 md:p-14">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                   <div className="space-y-4">
-                      <h4 className="text-xs font-black text-primary uppercase tracking-[0.3em] flex items-center gap-3">
-                         <ShieldCheck className="h-5 w-5 text-secondary" /> Access Protocol
+              <CardContent className="p-[2.5rem] md:p-[3.5rem]">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-[3rem]">
+                   <div className="space-y-[1rem]">
+                      <h4 className="text-[0.75rem] font-black text-primary uppercase tracking-[0.3em] flex items-center gap-[0.75rem]">
+                         <ShieldCheck className="h-[1.25rem] w-[1.25rem] text-secondary" /> Access Protocol
                       </h4>
-                      <p className="text-sm text-slate-500 leading-relaxed italic font-medium">
-                        Standard facility access requires mandatory registration in the institutional registry. All visitors are logged to ensure security compliance.
+                      <p className="text-[0.875rem] text-slate-500 leading-relaxed italic font-medium">
+                        Institutional access requires mandatory synchronization with the registry portal to ensure facility security and audit compliance.
                       </p>
                    </div>
-                   <div className="space-y-4">
-                      <h4 className="text-xs font-black text-primary uppercase tracking-[0.3em] flex items-center gap-3">
-                         <BookOpen className="h-5 w-5 text-secondary" /> Resource Use
+                   <div className="space-y-[1rem]">
+                      <h4 className="text-[0.75rem] font-black text-primary uppercase tracking-[0.3em] flex items-center gap-[0.75rem]">
+                         <BookOpen className="h-[1.25rem] w-[1.25rem] text-secondary" /> Academic Use
                       </h4>
-                      <p className="text-sm text-slate-500 leading-relaxed italic font-medium">
-                        Members gain full access to digital archives and collaborative workspaces upon successful identity synchronization.
+                      <p className="text-[0.875rem] text-slate-500 leading-relaxed italic font-medium">
+                        Registered members gain full access to specialized digital archives and collaborative study zones upon verified check-in.
                       </p>
                    </div>
                 </div>
               </CardContent>
             </Card>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-[1.5rem]">
               {[
-                { title: 'Academic Integrity', desc: 'Secure institutional logging for audit trails.', icon: ShieldCheck },
-                { title: 'Research Archives', desc: 'Comprehensive access to advanced datasets.', icon: BookOpen },
-                { title: 'Global Connectivity', desc: 'Synchronized identity hub for university members.', icon: ExternalLink },
-                { title: 'System Security', desc: 'AES-256 cloud encryption for registry data.', icon: ShieldCheck }
+                { title: 'Academic Integrity', desc: 'Secure logging for university audit trails.', icon: ShieldCheck },
+                { title: 'Research Archives', desc: 'Comprehensive access to institutional datasets.', icon: BookOpen },
+                { title: 'Identity Hub', desc: 'Seamless synchronization for university members.', icon: ExternalLink },
+                { title: 'Registry Security', desc: 'AES-256 cloud encryption for portal data.', icon: ShieldCheck }
               ].map((item, i) => (
-                <div key={i} className="group p-8 bg-white rounded-3xl border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-                  <div className="p-4 bg-slate-50 rounded-2xl w-fit mb-6 transition-colors group-hover:bg-primary/5">
-                    <item.icon className="h-6 w-6 text-primary" />
+                <div key={i} className="group p-[2rem] bg-white rounded-[1.5rem] border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                  <div className="p-[1rem] bg-slate-50 rounded-[1rem] w-fit mb-[1.5rem] transition-colors group-hover:bg-primary/5">
+                    <item.icon className="h-[1.5rem] w-[1.25rem] text-primary" />
                   </div>
-                  <h5 className="text-lg font-black text-slate-800 uppercase italic tracking-tight mb-2">{item.title}</h5>
-                  <p className="text-xs text-slate-500 font-medium leading-relaxed italic">{item.desc}</p>
+                  <h5 className="text-[1.125rem] font-black text-slate-800 uppercase italic tracking-tight mb-[0.5rem]">{item.title}</h5>
+                  <p className="text-[0.75rem] text-slate-500 font-medium leading-relaxed italic">{item.desc}</p>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Sidebar Section */}
-          <aside className="lg:col-span-4 space-y-8 lg:sticky lg:top-24">
-            <Card className="shadow-2xl p-10 space-y-8 rounded-[2.5rem] border-none text-white bg-slate-900 relative overflow-hidden group">
+          <aside className="lg:col-span-4 space-y-[2rem] lg:sticky lg:top-[6rem]">
+            <Card className="shadow-2xl p-[2.5rem] space-y-[2rem] rounded-[2rem] border-none text-white bg-slate-900 relative overflow-hidden group">
               <div className="absolute inset-0 bg-dot-pattern opacity-10" />
-              <div className="space-y-6 relative z-10">
-                <div className="flex flex-col gap-2">
-                  <div className="flex items-center gap-3 bg-white/10 w-fit px-4 py-1.5 rounded-full border border-white/10">
-                    <div className="h-2 w-2 rounded-full bg-green-400 animate-pulse" />
-                    <span className="text-[10px] font-black uppercase tracking-widest text-secondary">Registry Active</span>
+              <div className="space-y-[1.5rem] relative z-10">
+                <div className="flex flex-col gap-[0.5rem]">
+                  <div className="flex items-center gap-[0.75rem] bg-secondary/20 w-fit px-[1rem] py-[0.375rem] rounded-full border border-secondary/30">
+                    <div className="h-[0.5rem] w-[0.5rem] rounded-full bg-secondary animate-pulse" />
+                    <span className="text-[0.625rem] font-black uppercase tracking-widest text-secondary">Portal Active</span>
                   </div>
-                  <h3 className="text-4xl font-black tracking-tighter uppercase italic leading-none mt-4">Portal Gateway</h3>
+                  <h3 className="text-[2.25rem] font-black tracking-tighter uppercase italic leading-none mt-[1rem]">Registry Gateway</h3>
                 </div>
-                <p className="text-base font-medium leading-relaxed opacity-80 italic">
-                  Institutional members must officially log their presence to access academic facilities.
+                <p className="text-[1rem] font-medium leading-relaxed opacity-80 italic">
+                  Institutional members must officially log their presence to access academic facilities and resources.
                 </p>
                 
-                <div className="pt-4 flex justify-start">
+                <div className="pt-[1rem] flex justify-start">
                   <Button 
                     onClick={onLogin}
-                    className="group h-16 px-8 bg-primary text-white hover:bg-primary/90 font-black text-xs uppercase tracking-[0.2em] rounded-2xl shadow-3xl active:scale-95 transition-all flex items-center gap-4"
+                    className="group h-[4rem] px-[2rem] bg-primary text-white hover:bg-primary/90 font-black text-[0.75rem] uppercase tracking-[0.2em] rounded-[1rem] shadow-3xl active:scale-95 transition-all flex items-center gap-[1rem]"
                   >
                     Enter Portal Gateway
-                    <ChevronRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+                    <ChevronRight className="h-[1.25rem] w-[1.25rem] transition-transform group-hover:translate-x-[0.25rem]" />
                   </Button>
                 </div>
               </div>
             </Card>
 
-            <Card className="shadow-sm p-10 space-y-8 rounded-[2.5rem] border-slate-200 bg-white ring-1 ring-slate-100">
-              <div className="flex items-center gap-3 text-slate-400 border-b pb-6">
-                <Info className="h-4 w-4" />
-                <h4 className="font-black uppercase text-[10px] tracking-[0.3em]">Support Gateway</h4>
+            <Card className="shadow-sm p-[2.5rem] space-y-[2rem] rounded-[2rem] border-slate-200 bg-white ring-1 ring-slate-100">
+              <div className="flex items-center gap-[0.75rem] text-slate-400 border-b pb-[1.5rem]">
+                <Info className="h-[1rem] w-[1rem]" />
+                <h4 className="font-black uppercase text-[0.625rem] tracking-[0.3em]">Support Gateway</h4>
               </div>
-              <div className="space-y-8">
-                <div className="flex items-start gap-6 group cursor-default">
-                  <div className="bg-slate-50 p-4 rounded-2xl border transition-colors group-hover:bg-primary group-hover:text-white">
-                    <Phone className="h-5 w-5" />
+              <div className="space-y-[2rem]">
+                <div className="flex items-start gap-[1.5rem] group cursor-default">
+                  <div className="bg-slate-50 p-[1rem] rounded-[1rem] border transition-colors group-hover:bg-primary group-hover:text-white">
+                    <Phone className="h-[1.25rem] w-[1.25rem]" />
                   </div>
-                  <div className="space-y-1">
-                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Institutional Line</p>
-                    <p className="font-black text-slate-800 text-base italic tracking-tight">+63 (2) 8-123-4567</p>
+                  <div className="space-y-[0.25rem]">
+                    <p className="text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest">Institutional Line</p>
+                    <p className="font-black text-slate-800 text-[1rem] italic tracking-tight">+63 (2) 8-123-4567</p>
                   </div>
                 </div>
-                <div className="flex items-start gap-6 group cursor-pointer" onClick={() => window.location.href = 'mailto:library@neu.edu.ph'}>
-                  <div className="bg-slate-50 p-4 rounded-2xl border transition-colors group-hover:bg-primary group-hover:text-white">
-                    <Mail className="h-5 w-5" />
+                <div className="flex items-start gap-[1.5rem] group cursor-pointer" onClick={() => window.location.href = 'mailto:library@neu.edu.ph'}>
+                  <div className="bg-slate-50 p-[1rem] rounded-[1rem] border transition-colors group-hover:bg-primary group-hover:text-white">
+                    <Mail className="h-[1.25rem] w-[1.25rem]" />
                   </div>
-                  <div className="space-y-1">
-                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Official Email</p>
-                    <p className="font-black text-slate-800 text-base italic tracking-tight underline underline-offset-4 decoration-primary/20 hover:decoration-primary transition-all">library@neu.edu.ph</p>
+                  <div className="space-y-[0.25rem]">
+                    <p className="text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest">Official Email</p>
+                    <p className="font-black text-slate-800 text-[1rem] italic tracking-tight underline underline-offset-4 decoration-primary/20 hover:decoration-primary transition-all">library@neu.edu.ph</p>
                   </div>
                 </div>
               </div>
             </Card>
             
-            <p className="text-[10px] font-black text-slate-400 text-center uppercase tracking-[0.4em] px-8 opacity-60">
-               NEU • ACCESS HUB • 2024
+            <p className="text-[0.625rem] font-black text-slate-400 text-center uppercase tracking-[0.4em] px-[2rem] opacity-60">
+               NEU • ACCESS HUB • COLLEGE OF ENG & ARCH
             </p>
           </aside>
         </div>
       </main>
 
-      <footer className="p-10 text-center border-t bg-white mt-auto">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-           <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] italic">
-             © {new Date().getFullYear()} NEW ERA UNIVERSITY • COLLEGE OF ENGINEERING & ARCHITECTURE
+      <footer className="p-[2.5rem] text-center border-t bg-white mt-auto">
+        <div className="max-w-[80rem] mx-auto flex flex-col md:flex-row items-center justify-between gap-[1.5rem]">
+           <p className="text-[0.625rem] font-black text-slate-400 uppercase tracking-[0.4em] italic leading-none">
+             © {new Date().getFullYear()} NEW ERA UNIVERSITY • INSTITUTIONAL REGISTRY
            </p>
-           <div className="flex items-center gap-8">
-              <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest hover:text-primary transition-colors cursor-default">Privacy</span>
-              <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest hover:text-primary transition-colors cursor-default">Audit</span>
-              <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest hover:text-primary transition-colors cursor-default">Compliance</span>
+           <div className="flex items-center gap-[2rem]">
+              <span className="text-[0.5625rem] font-black text-slate-300 uppercase tracking-widest hover:text-primary transition-colors cursor-default">Privacy Protocol</span>
+              <span className="text-[0.5625rem] font-black text-slate-300 uppercase tracking-widest hover:text-primary transition-colors cursor-default">Audit Compliance</span>
            </div>
         </div>
       </footer>

@@ -136,94 +136,94 @@ export function VisitorLog({ onBack }: VisitorLogProps) {
   };
 
   return (
-    <div className="space-y-6 md:space-y-8 animate-in fade-in duration-500 pb-10">
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="space-y-1">
+    <div className="space-y-[2rem] animate-in fade-in duration-500 pb-[2.5rem]">
+      <div className="flex flex-col gap-[1rem]">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-[1rem]">
+          <div className="space-y-[0.25rem]">
             {onBack && (
               <Button 
                 variant="ghost" 
                 size="sm" 
                 onClick={onBack} 
-                className="mb-2 -ml-2 text-muted-foreground font-bold text-[10px] uppercase gap-2 h-9"
+                className="mb-[0.5rem] -ml-[0.5rem] text-muted-foreground font-bold text-[0.625rem] uppercase gap-[0.5rem] h-[2.25rem]"
               >
-                <ArrowLeft className="h-4 w-4" />
+                <ArrowLeft className="h-[1rem] w-[1rem]" />
                 Return
               </Button>
             )}
-            <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900 uppercase">Visitor Registry</h2>
-            <p className="text-[10px] md:text-xs text-muted-foreground font-medium uppercase tracking-widest">Institutional Audit Console</p>
+            <h2 className="text-[1.5rem] md:text-[2rem] font-bold tracking-tight text-slate-900 uppercase italic">Visitor Registry</h2>
+            <p className="text-[0.625rem] md:text-[0.75rem] text-muted-foreground font-black uppercase tracking-widest">Institutional Audit Console</p>
           </div>
-          <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+          <div className="flex flex-wrap gap-[0.5rem] w-full sm:w-auto">
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="outline" size="sm" className="h-10 md:h-11 flex-1 sm:flex-none gap-2 font-bold text-[10px] uppercase rounded-xl text-destructive border-destructive/20 hover:bg-destructive/5">
-                  <Trash2 className="h-4 w-4" />
-                  Purge Logs
+                <Button variant="outline" size="sm" className="h-[2.5rem] md:h-[2.75rem] flex-1 sm:flex-none gap-[0.5rem] font-bold text-[0.625rem] uppercase rounded-[0.75rem] text-destructive border-destructive/20 hover:bg-destructive/5">
+                  <Trash2 className="h-[1rem] w-[1rem]" />
+                  Purge Registry
                 </Button>
               </AlertDialogTrigger>
-              <AlertDialogContent className="w-[95vw] max-w-md rounded-2xl border-none shadow-3xl bg-white p-8">
+              <AlertDialogContent className="w-[95vw] max-w-[28rem] rounded-[1.5rem] border-none shadow-3xl bg-white p-[2rem]">
                 <AlertDialogHeader>
-                  <AlertDialogTitle className="text-xl font-black italic uppercase tracking-tighter text-primary">Institutional Data Purge</AlertDialogTitle>
-                  <AlertDialogDescription className="text-sm font-medium italic opacity-70">
-                    This action will permanently terminate all {visits?.length} recorded logs from the archive. This process is irreversible and will be logged in the audit trail.
+                  <AlertDialogTitle className="text-[1.25rem] font-black italic uppercase tracking-tighter text-primary">Institutional Data Purge</AlertDialogTitle>
+                  <AlertDialogDescription className="text-[0.875rem] font-medium italic opacity-70">
+                    This action will permanently terminate all {visits?.length} recorded logs from the institutional archive. This process is irreversible and will be logged in the system audit trail.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
-                <AlertDialogFooter className="flex-col sm:flex-row gap-3 pt-6">
-                  <AlertDialogCancel className="rounded-xl h-12 text-[10px] font-black uppercase tracking-widest w-full sm:w-auto border-2">Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={handlePurgeLogs} className="rounded-xl h-12 bg-destructive text-white text-[10px] font-black uppercase tracking-widest w-full sm:w-auto shadow-lg">Confirm Purge</AlertDialogAction>
+                <AlertDialogFooter className="flex-col sm:flex-row gap-[0.75rem] pt-[1.5rem]">
+                  <AlertDialogCancel className="rounded-[0.75rem] h-[3rem] text-[0.625rem] font-black uppercase tracking-widest w-full sm:w-auto border-2">Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handlePurgeLogs} className="rounded-[0.75rem] h-[3rem] bg-destructive text-white text-[0.625rem] font-black uppercase tracking-widest w-full sm:w-auto shadow-lg">Confirm Purge</AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
-            <Button variant="default" size="sm" className="h-10 md:h-11 flex-1 sm:flex-none gap-2 font-bold text-[10px] uppercase rounded-xl shadow-lg">
-              <Download className="h-4 w-4" />
+            <Button variant="default" size="sm" className="h-[2.5rem] md:h-[2.75rem] flex-1 sm:flex-none gap-[0.5rem] font-bold text-[0.625rem] uppercase rounded-[0.75rem] shadow-lg">
+              <Download className="h-[1rem] w-[1rem]" />
               Export Archive
             </Button>
           </div>
         </div>
 
-        <div className="sticky top-0 z-40 py-2 bg-background/80 backdrop-blur-md -mx-6 px-6 md:mx-0 md:px-0">
-          <div className="flex flex-col gap-3">
+        <div className="sticky top-0 z-40 py-[0.5rem] bg-background/80 backdrop-blur-md -mx-[1.5rem] px-[1.5rem] md:mx-0 md:px-0">
+          <div className="flex flex-col gap-[0.75rem]">
             <div className="relative group">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
+              <Search className="absolute left-[1rem] top-1/2 -translate-y-1/2 h-[1.25rem] w-[1.25rem] text-muted-foreground group-focus-within:text-primary transition-colors" />
               <Input 
-                placeholder="Universal Search (Name, Purpose, ID...)" 
-                className="pl-12 h-14 md:h-16 rounded-2xl shadow-xl border-2 text-base font-bold italic focus:ring-primary bg-white"
+                placeholder="Universal Registry Search (Name, Purpose, ID...)" 
+                className="pl-[3rem] h-[3.5rem] md:h-[4rem] rounded-[1.25rem] shadow-xl border-2 text-[1rem] font-bold italic focus:ring-primary bg-white"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
             
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 md:gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-[0.5rem] md:gap-[1rem]">
               <Select value={collegeFilter} onValueChange={setCollegeFilter}>
-                <SelectTrigger className="h-12 text-[10px] font-black uppercase tracking-widest rounded-xl border-2 bg-white">
-                  <div className="flex items-center gap-2"><Building2 className="h-4 w-4 opacity-50" /><SelectValue placeholder="All Units" /></div>
+                <SelectTrigger className="h-[3rem] text-[0.625rem] font-black uppercase tracking-widest rounded-[0.75rem] border-2 bg-white">
+                  <div className="flex items-center gap-[0.5rem]"><Building2 className="h-[1rem] w-[1rem] opacity-50" /><SelectValue placeholder="All Units" /></div>
                 </SelectTrigger>
-                <SelectContent className="rounded-xl border-none shadow-2xl">
-                  <SelectItem value="all" className="text-[10px] font-bold uppercase">ALL DEPARTMENTS</SelectItem>
-                  {NEU_COLLEGES.map(c => <SelectItem key={c.id} value={c.id} className="text-[10px] font-medium">{c.id}</SelectItem>)}
+                <SelectContent className="rounded-[0.75rem] border-none shadow-2xl">
+                  <SelectItem value="all" className="text-[0.625rem] font-bold uppercase">ALL DEPARTMENTS</SelectItem>
+                  {NEU_COLLEGES.map(c => <SelectItem key={c.id} value={c.id} className="text-[0.625rem] font-medium">{c.id}</SelectItem>)}
                 </SelectContent>
               </Select>
 
               <Select value={purposeFilter} onValueChange={setPurposeFilter}>
-                <SelectTrigger className="h-12 text-[10px] font-black uppercase tracking-widest rounded-xl border-2 bg-white">
-                  <div className="flex items-center gap-2"><BookOpen className="h-4 w-4 opacity-50" /><SelectValue placeholder="All Purposes" /></div>
+                <SelectTrigger className="h-[3rem] text-[0.625rem] font-black uppercase tracking-widest rounded-[0.75rem] border-2 bg-white">
+                  <div className="flex items-center gap-[0.5rem]"><BookOpen className="h-[1rem] w-[1rem] opacity-50" /><SelectValue placeholder="All Purposes" /></div>
                 </SelectTrigger>
-                <SelectContent className="rounded-xl border-none shadow-2xl">
-                  <SelectItem value="all" className="text-[10px] font-bold uppercase">ALL PURPOSES</SelectItem>
-                  {PURPOSES.map(p => <SelectItem key={p} value={p} className="text-[10px] font-medium capitalize">{p}</SelectItem>)}
+                <SelectContent className="rounded-[0.75rem] border-none shadow-2xl">
+                  <SelectItem value="all" className="text-[0.625rem] font-bold uppercase">ALL PURPOSES</SelectItem>
+                  {PURPOSES.map(p => <SelectItem key={p} value={p} className="text-[0.625rem] font-medium capitalize">{p}</SelectItem>)}
                 </SelectContent>
               </Select>
 
               <Select value={roleFilter} onValueChange={setRoleFilter}>
-                <SelectTrigger className="h-12 text-[10px] font-black uppercase tracking-widest rounded-xl border-2 bg-white">
-                  <div className="flex items-center gap-2"><UserCheck className="h-4 w-4 opacity-50" /><SelectValue placeholder="All Roles" /></div>
+                <SelectTrigger className="h-[3rem] text-[0.625rem] font-black uppercase tracking-widest rounded-[0.75rem] border-2 bg-white">
+                  <div className="flex items-center gap-[0.5rem]"><UserCheck className="h-[1rem] w-[1rem] opacity-50" /><SelectValue placeholder="All Roles" /></div>
                 </SelectTrigger>
-                <SelectContent className="rounded-xl border-none shadow-2xl">
-                  <SelectItem value="all" className="text-[10px] font-bold uppercase">ALL ROLES</SelectItem>
-                  <SelectItem value="user" className="text-[10px] font-medium">STUDENT</SelectItem>
-                  <SelectItem value="guest" className="text-[10px] font-medium">GUEST</SelectItem>
-                  <SelectItem value="admin" className="text-[10px] font-medium">ADMIN</SelectItem>
+                <SelectContent className="rounded-[0.75rem] border-none shadow-2xl">
+                  <SelectItem value="all" className="text-[0.625rem] font-bold uppercase">ALL ROLES</SelectItem>
+                  <SelectItem value="user" className="text-[0.625rem] font-medium">STUDENT</SelectItem>
+                  <SelectItem value="guest" className="text-[0.625rem] font-medium">GUEST</SelectItem>
+                  <SelectItem value="admin" className="text-[0.625rem] font-medium">ADMIN</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -231,31 +231,31 @@ export function VisitorLog({ onBack }: VisitorLogProps) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-        <div className="bg-primary p-6 rounded-2xl flex items-center justify-between text-white shadow-xl group hover:scale-[1.02] transition-transform">
-          <div className="space-y-1">
-            <p className="text-[9px] font-black uppercase tracking-[0.2em] opacity-60">Total Sessions</p>
-            <span className="text-3xl font-black italic">{filteredVisits.length}</span>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[1.5rem]">
+        <div className="bg-primary p-[1.5rem] rounded-[1.25rem] flex items-center justify-between text-white shadow-xl group hover:scale-[1.02] transition-transform">
+          <div className="space-y-[0.25rem]">
+            <p className="text-[0.5625rem] font-black uppercase tracking-[0.2em] opacity-60">Total Sessions</p>
+            <span className="text-[2rem] font-black italic">{filteredVisits.length}</span>
           </div>
-          <History className="h-10 w-10 opacity-20 group-hover:opacity-40 transition-opacity" />
+          <History className="h-[2.5rem] w-[2.5rem] opacity-20 group-hover:opacity-40 transition-opacity" />
         </div>
-        <div className="bg-white border-2 p-6 rounded-2xl flex items-center justify-between text-primary shadow-xl group hover:scale-[1.02] transition-transform">
-          <div className="space-y-1">
-            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-60">Unique Visitors</p>
-            <span className="text-3xl font-black italic">{Object.keys(visitFrequencyMap).length}</span>
+        <div className="bg-white border-2 p-[1.5rem] rounded-[1.25rem] flex items-center justify-between text-primary shadow-xl group hover:scale-[1.02] transition-transform">
+          <div className="space-y-[0.25rem]">
+            <p className="text-[0.5625rem] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-60">Unique Visitors</p>
+            <span className="text-[2rem] font-black italic">{Object.keys(visitFrequencyMap).length}</span>
           </div>
-          <Users className="h-10 w-10 opacity-20 group-hover:opacity-40 transition-opacity" />
+          <Users className="h-[2.5rem] w-[2.5rem] opacity-20 group-hover:opacity-40 transition-opacity" />
         </div>
-        <div className="bg-white border-2 p-6 rounded-2xl flex items-center justify-between text-primary shadow-xl group hover:scale-[1.02] transition-transform sm:col-span-2 lg:col-span-1">
-          <div className="space-y-1">
-            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-60">Avg. Residence (Min)</p>
-            <span className="text-3xl font-black italic">
+        <div className="bg-white border-2 p-[1.5rem] rounded-[1.25rem] flex items-center justify-between text-primary shadow-xl group hover:scale-[1.02] transition-transform sm:col-span-2 lg:col-span-1">
+          <div className="space-y-[0.25rem]">
+            <p className="text-[0.5625rem] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-60">Avg. Residence (Min)</p>
+            <span className="text-[2rem] font-black italic">
               {filteredVisits.length > 0 
                 ? Math.round(filteredVisits.reduce((acc, v) => acc + (v.durationMinutes || 0), 0) / filteredVisits.length) 
                 : 0}
             </span>
           </div>
-          <Clock className="h-10 w-10 opacity-20 group-hover:opacity-40 transition-opacity" />
+          <Clock className="h-[2.5rem] w-[2.5rem] opacity-20 group-hover:opacity-40 transition-opacity" />
         </div>
       </div>
 
@@ -264,44 +264,44 @@ export function VisitorLog({ onBack }: VisitorLogProps) {
           <Table>
             <TableHeader className="bg-slate-50/50">
               <TableRow>
-                <TableHead className="font-black text-[10px] uppercase tracking-widest py-6 px-6 md:px-8">Visitor Identity</TableHead>
-                <TableHead className="font-black text-[10px] uppercase tracking-widest py-6 hidden sm:table-cell">Dept</TableHead>
-                <TableHead className="font-black text-[10px] uppercase tracking-widest py-6">Status</TableHead>
-                <TableHead className="font-black text-[10px] uppercase tracking-widest py-6 hidden md:table-cell">Stay (Min)</TableHead>
-                <TableHead className="font-black text-[10px] uppercase tracking-widest py-6 px-6 md:px-8 text-right">Synchronization</TableHead>
+                <TableHead className="font-black text-[0.625rem] uppercase tracking-widest py-[1.5rem] px-[1.5rem] md:px-[2rem]">Visitor Identity</TableHead>
+                <TableHead className="font-black text-[0.625rem] uppercase tracking-widest py-[1.5rem] hidden sm:table-cell">Dept</TableHead>
+                <TableHead className="font-black text-[0.625rem] uppercase tracking-widest py-[1.5rem]">Status</TableHead>
+                <TableHead className="font-black text-[0.625rem] uppercase tracking-widest py-[1.5rem] hidden md:table-cell">Stay (Min)</TableHead>
+                <TableHead className="font-black text-[0.625rem] uppercase tracking-widest py-[1.5rem] px-[1.5rem] md:px-[2rem] text-right">Handshake Sync</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <TableRow><TableCell colSpan={5} className="text-center py-20 font-bold text-xs uppercase tracking-widest text-muted-foreground animate-pulse">Decrypting Archive...</TableCell></TableRow>
+                <TableRow><TableCell colSpan={5} className="text-center py-[5rem] font-bold text-[0.75rem] uppercase tracking-widest text-muted-foreground animate-pulse">Decrypting Archive...</TableCell></TableRow>
               ) : filteredVisits.length === 0 ? (
-                <TableRow><TableCell colSpan={5} className="text-center py-20 italic text-muted-foreground">No matching institutional logs detected.</TableCell></TableRow>
+                <TableRow><TableCell colSpan={5} className="text-center py-[5rem] italic text-muted-foreground">No matching institutional logs detected.</TableCell></TableRow>
               ) : filteredVisits.map((visit) => (
                 <TableRow key={visit.id} className="hover:bg-slate-50/80 transition-colors">
-                  <TableCell className="py-6 px-6 md:px-8">
+                  <TableCell className="py-[1.5rem] px-[1.5rem] md:px-[2rem]">
                     <div className="flex flex-col min-w-0">
-                      <span className="text-sm font-black text-primary italic truncate">{visit.userName}</span>
-                      <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-tight truncate">{visit.purpose}</span>
-                      <span className="text-[8px] font-bold text-primary/40 block sm:hidden uppercase mt-1">{visit.college}</span>
+                      <span className="text-[0.875rem] font-black text-primary italic truncate">{visit.userName}</span>
+                      <span className="text-[0.5625rem] font-bold text-muted-foreground uppercase tracking-tight truncate">{visit.purpose}</span>
+                      <span className="text-[0.5rem] font-bold text-primary/40 block sm:hidden uppercase mt-[0.25rem]">{visit.college}</span>
                     </div>
                   </TableCell>
-                  <TableCell className="text-[10px] font-black text-primary uppercase italic hidden sm:table-cell">{visit.college}</TableCell>
+                  <TableCell className="text-[0.625rem] font-black text-primary uppercase italic hidden sm:table-cell">{visit.college}</TableCell>
                   <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="secondary" className="text-[8px] md:text-[9px] font-black uppercase tracking-tight hidden xs:inline-flex">
+                    <div className="flex items-center gap-[0.5rem]">
+                      <Badge variant="secondary" className="text-[0.5rem] md:text-[0.5625rem] font-black uppercase tracking-tight hidden xs:inline-flex">
                         {visitFrequencyMap[visit.userId]}x
                       </Badge>
-                      <span className={cn("text-[9px] md:text-[10px] font-black uppercase italic", visit.exitTimestamp ? "text-green-600" : "text-amber-600 animate-pulse")}>
-                        {visit.exitTimestamp ? "Terminated" : "Active"}
+                      <span className={cn("text-[0.5625rem] md:text-[0.625rem] font-black uppercase italic", visit.exitTimestamp ? "text-green-600" : "text-secondary animate-pulse")}>
+                        {visit.exitTimestamp ? "Terminated" : "Active Session"}
                       </span>
                     </div>
                   </TableCell>
                   <TableCell className="hidden md:table-cell">
-                    <span className="text-[10px] font-black text-slate-500 uppercase italic">
+                    <span className="text-[0.625rem] font-black text-slate-500 uppercase italic">
                       {visit.exitTimestamp ? `${visit.durationMinutes}m` : "N/A"}
                     </span>
                   </TableCell>
-                  <TableCell className="text-muted-foreground text-[9px] font-black px-6 md:px-8 text-right uppercase italic tracking-tighter">
+                  <TableCell className="text-muted-foreground text-[0.5625rem] font-black px-[1.5rem] md:px-[2rem] text-right uppercase italic tracking-tighter">
                     {visit.timestamp?.seconds ? format(visit.timestamp.seconds * 1000, 'MMM dd • HH:mm') : 'Syncing'}
                   </TableCell>
                 </TableRow>

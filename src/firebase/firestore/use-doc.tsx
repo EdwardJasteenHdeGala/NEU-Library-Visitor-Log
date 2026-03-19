@@ -51,9 +51,9 @@ export function useDoc<T = any>(
         setIsLoading(false);
       },
       (err: FirestoreError) => {
-        // SILENT ERROR HANDLING: Log permission errors instead of emitting to avoid the Red Screen during identity sync
+        // SILENT ERROR HANDLING: Prevent Red Screen crashes during institutional role synchronization
         if (err.code === 'permission-denied' || err.code === 'unauthenticated') {
-          console.warn(`[Firestore Registry] Access Deferred for doc: ${memoizedDocRef.path}. Identity synchronization in progress.`);
+          console.warn(`[Institutional Registry] Access deferred for doc: ${memoizedDocRef.path}. Identity sync in progress.`);
           setError(err);
           setData(null);
           setIsLoading(false);
