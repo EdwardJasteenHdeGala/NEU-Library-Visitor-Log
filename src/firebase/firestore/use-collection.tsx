@@ -78,6 +78,17 @@ export function useCollection<T = any>(
             ? (memoizedTargetRefOrQuery as CollectionReference).path
             : (memoizedTargetRefOrQuery as unknown as InternalQuery)._query.path.canonicalString()
 
+        // Silent handling for permission-denied during list operations to prevent crashes
+        // during initial auth synchronization or for non-admin attempts.
+        if (serverError.code === 'permission-denied' || serverError.code === 'unauthenticated') {
+          if (process.env.NODE_ENV === 'development') {
+            console.warn(`Firestore: Access deferred for ${path}. Identity synchronization in progress.`);
+          }
+          setData(null);
+          setIsLoading(false);
+          return;
+        }
+
         const contextualError = new FirestorePermissionError({
           operation: 'list',
           path,
@@ -87,16 +98,8 @@ export function useCollection<T = any>(
         setData(null)
         setIsLoading(false)
 
-        // Silent handling for permission-denied during list operations to prevent crashes
-        // during initial auth synchronization or for non-admin attempts.
-        // We do NOT emit the error globally for 'permission-denied' during list to avoid the "Red Screen".
-        if (serverError.code !== 'permission-denied' && serverError.code !== 'unauthenticated') {
-            errorEmitter.emit('permission-error', contextualError);
-        } else {
-          if (process.env.NODE_ENV === 'development') {
-            console.warn(`Firestore: Access deferred for ${path}. Identity synchronization in progress.`);
-          }
-        }
+        // Emit the error for other types of failures
+        errorEmitter.emit('permission-error', contextualError);
       }
     );
 

@@ -7,7 +7,8 @@ service cloud.firestore {
     }
 
     // Prioritized Administrative Whitelist for immediate registry oversight.
-    // Checking the token email directly avoids recursive get() or exists() calls during auth sync.
+    // Checking the token email directly avoids recursive get() calls during initial auth sync.
+    // Deployment Trigger Comment: Synchronizing administrative gateway protocols.
     function isAdmin() {
       return isAuthenticated() && (
         request.auth.token.email == "edwardjasteen.degala@neu.edu.ph" ||
@@ -32,12 +33,10 @@ service cloud.firestore {
       
       // Allow standard users to list their own visits if properly filtered.
       allow list: if isAuthenticated() && (
-         isAdmin() || (
-           request.query.filters.size() > 0 && 
-           request.query.filters[0].field == 'userId' && 
-           request.query.filters[0].op == '==' && 
-           request.query.filters[0].value == request.auth.uid
-         )
+         request.query.filters.size() > 0 && 
+         request.query.filters[0].field == 'userId' && 
+         request.query.filters[0].op == '==' && 
+         request.query.filters[0].value == request.auth.uid
       );
     }
 
