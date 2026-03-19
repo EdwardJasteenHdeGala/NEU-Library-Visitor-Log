@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
@@ -6,6 +7,8 @@ import {
   doc, 
   getDoc, 
   serverTimestamp, 
+  collection,
+  addDoc
 } from 'firebase/firestore';
 import { useFirebase, useUser, setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
@@ -17,6 +20,8 @@ export interface UserProfile {
   role: 'guest' | 'user' | 'admin';
   isAuthorizedAdmin: boolean;
   isSuperAdmin?: boolean;
+  isBlocked?: boolean;
+  blockedReason?: string;
   displayName: string;
   photoURL?: string;
   college?: string;
@@ -34,6 +39,9 @@ interface AuthContextType {
   updateProfileData: (data: Partial<UserProfile>) => Promise<boolean>;
   switchRole: (newRole: 'user' | 'admin') => Promise<void>;
   setUserRole: (userId: string, newRole: 'user' | 'admin' | 'guest') => Promise<void>;
+  blockUser: (userId: string, reason: string) => Promise<void>;
+  unblockUser: (userId: string) => Promise<void>;
+  sendWarning: (userId: string, title: string, message: string) => Promise<void>;
   resignAdmin: () => Promise<void>;
 }
 
@@ -98,7 +106,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if ((isAuthorized || isBootstrapAdmin) && (!data.isAuthorizedAdmin || (isBootstrapAdmin && !data.isSuperAdmin))) {
           updates.isAuthorizedAdmin = true;
           updates.isSuperAdmin = isBootstrapAdmin;
-          // Ensure they are actually in the admin role for the UI if they are an admin
           if (data.role !== 'admin' && !intendedRole) updates.role = 'admin';
           needsUpdate = true;
         }
@@ -110,7 +117,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setProfile(data);
         }
       } else {
-        // Enforce domain restriction for Google login if not Guest
         if (intendedRole !== 'guest' && !isInstitutional) {
           toast({
             title: "Access Denied",
@@ -130,6 +136,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           role: initialRole, 
           isAuthorizedAdmin: !!isAuthorized || isBootstrapAdmin,
           isSuperAdmin: isBootstrapAdmin,
+          isBlocked: false,
+          blockedReason: '',
           displayName: user.displayName || 'Visitor',
           photoURL: user.photoURL || '',
           college: defaultCollege,
@@ -216,6 +224,50 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error: any) {}
   };
 
+  const blockUser = async (userId: string, reason: string) => {
+    if (!profile?.isAuthorizedAdmin || !firestore) return;
+    try {
+      const docRef = doc(firestore, 'users', userId);
+      updateDocumentNonBlocking(docRef, {
+        isBlocked: true,
+        blockedReason: reason,
+        updatedAt: serverTimestamp()
+      });
+      
+      // Also send a notification
+      await sendWarning(userId, "Account Suspended", `Your access has been revoked due to: ${reason}`);
+      
+      toast({ title: "Member Suspended", description: "Identity updated and alert transmitted." });
+    } catch (error: any) {}
+  };
+
+  const unblockUser = async (userId: string) => {
+    if (!profile?.isAuthorizedAdmin || !firestore) return;
+    try {
+      const docRef = doc(firestore, 'users', userId);
+      updateDocumentNonBlocking(docRef, {
+        isBlocked: false,
+        blockedReason: '',
+        updatedAt: serverTimestamp()
+      });
+      toast({ title: "Access Restored", description: "Identity updated." });
+    } catch (error: any) {}
+  };
+
+  const sendWarning = async (userId: string, title: string, message: string) => {
+    if (!profile?.isAuthorizedAdmin || !firestore) return;
+    try {
+      await addDoc(collection(firestore, 'notifications'), {
+        userId,
+        title,
+        message,
+        read: false,
+        type: 'warning',
+        timestamp: serverTimestamp()
+      });
+    } catch (error: any) {}
+  };
+
   const resignAdmin = async () => {
     if (!profile || !profile.isAuthorizedAdmin || profile.isSuperAdmin) return;
     try {
@@ -239,6 +291,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       updateProfileData, 
       switchRole, 
       setUserRole,
+      blockUser,
+      unblockUser,
+      sendWarning,
       resignAdmin
     }}>
       {children}

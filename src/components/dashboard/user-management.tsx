@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState } from "react";
@@ -10,7 +11,10 @@ import {
   ShieldOff, 
   UserPlus,
   Loader2,
-  ArrowLeft
+  ArrowLeft,
+  Ban,
+  AlertTriangle,
+  UserX
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { collection, query, orderBy } from "firebase/firestore";
@@ -37,6 +41,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 interface UserManagementProps {
   onBack?: () => void;
@@ -47,10 +52,21 @@ export function UserManagement({ onBack }: UserManagementProps) {
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
   const [newEmail, setNewEmail] = useState("");
   const [isAdding, setIsAdding] = useState(false);
+  
+  // Blocking UI State
+  const [isBlockDialogOpen, setIsBlockDialogOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [blockReason, setBlockReason] = useState("");
+  const [isWarningDialogOpen, setIsWarningDialogOpen] = useState(false);
+  const [warningTitle, setWarningTitle] = useState("Institutional Warning");
+  const [warningMessage, setWarningMessage] = useState("");
 
   const firestore = useFirestore();
   const { 
     setUserRole, 
+    blockUser, 
+    unblockUser,
+    sendWarning,
     profile: currentUserProfile 
   } = useAuth();
 
@@ -70,13 +86,28 @@ export function UserManagement({ onBack }: UserManagementProps) {
   ) || [];
 
   const handleInviteUser = async () => {
-    // Logic for pre-inviting would go here
     setIsAdding(true);
     setTimeout(() => {
         setIsAdding(false);
         setIsAddUserOpen(false);
         setNewEmail("");
     }, 1000);
+  };
+
+  const handleBlockAction = async () => {
+    if (!selectedUser || !blockReason) return;
+    await blockUser(selectedUser.id, blockReason);
+    setIsBlockDialogOpen(false);
+    setSelectedUser(null);
+    setBlockReason("");
+  };
+
+  const handleSendWarning = async () => {
+    if (!selectedUser || !warningMessage) return;
+    await sendWarning(selectedUser.id, warningTitle, warningMessage);
+    setIsWarningDialogOpen(false);
+    setSelectedUser(null);
+    setWarningMessage("");
   };
 
   return (
@@ -153,7 +184,7 @@ export function UserManagement({ onBack }: UserManagementProps) {
               <TableHead className="font-black text-primary py-5 uppercase text-[10px] tracking-widest px-8">Member Identity</TableHead>
               <TableHead className="font-black text-primary py-5 uppercase text-[10px] tracking-widest">ID Reference</TableHead>
               <TableHead className="font-black text-primary py-5 uppercase text-[10px] tracking-widest">Unit</TableHead>
-              <TableHead className="font-black text-primary py-5 uppercase text-[10px] tracking-widest">Permissions</TableHead>
+              <TableHead className="font-black text-primary py-5 uppercase text-[10px] tracking-widest">Status</TableHead>
               <TableHead className="font-black text-primary py-5 uppercase text-[10px] tracking-widest text-right px-8">Action</TableHead>
             </TableRow>
           </TableHeader>
@@ -184,10 +215,12 @@ export function UserManagement({ onBack }: UserManagementProps) {
                   <TableCell className="text-[10px] font-black uppercase tracking-tight italic text-primary/70">{u.college || 'Guest'}</TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-2">
-                       {u.role === 'admin' ? (
-                        <Badge className="bg-primary text-white text-[9px] uppercase font-black px-3 py-1">Administrator</Badge>
+                       {u.isBlocked ? (
+                         <Badge variant="destructive" className="text-[9px] uppercase font-black px-3 py-1">Suspended</Badge>
+                       ) : u.role === 'admin' ? (
+                        <Badge className="bg-primary text-white text-[9px] uppercase font-black px-3 py-1">Admin</Badge>
                       ) : (
-                        <Badge variant="outline" className="text-primary text-[9px] uppercase font-black px-3 py-1 border-primary/20">Member</Badge>
+                        <Badge variant="outline" className="text-primary text-[9px] uppercase font-black px-3 py-1 border-primary/20">Active</Badge>
                       )}
                     </div>
                   </TableCell>
@@ -203,6 +236,11 @@ export function UserManagement({ onBack }: UserManagementProps) {
                         <DropdownMenuSeparator />
                         {!isCurrentUser && (
                           <>
+                            <DropdownMenuItem onClick={() => { setSelectedUser(u); setIsWarningDialogOpen(true); }} className="gap-2 cursor-pointer text-primary">
+                              <AlertTriangle className="h-4 w-4" />
+                              <span className="text-[10px] uppercase font-black">Issue Warning</span>
+                            </DropdownMenuItem>
+                            
                             {u.role !== 'admin' ? (
                               <DropdownMenuItem onClick={() => setUserRole(u.id, 'admin')} className="gap-2 cursor-pointer text-primary">
                                 <ShieldCheck className="h-4 w-4" />
@@ -212,6 +250,20 @@ export function UserManagement({ onBack }: UserManagementProps) {
                               <DropdownMenuItem onClick={() => setUserRole(u.id, 'user')} className="gap-2 cursor-pointer text-destructive">
                                 <ShieldOff className="h-4 w-4" />
                                 <span className="text-[10px] uppercase font-black">Revoke Access</span>
+                              </DropdownMenuItem>
+                            )}
+
+                            <DropdownMenuSeparator />
+
+                            {u.isBlocked ? (
+                              <DropdownMenuItem onClick={() => unblockUser(u.id)} className="gap-2 cursor-pointer text-green-600">
+                                <ShieldCheck className="h-4 w-4" />
+                                <span className="text-[10px] uppercase font-black">Restore Access</span>
+                              </DropdownMenuItem>
+                            ) : (
+                              <DropdownMenuItem onClick={() => { setSelectedUser(u); setIsBlockDialogOpen(true); }} className="gap-2 cursor-pointer text-destructive">
+                                <Ban className="h-4 w-4" />
+                                <span className="text-[10px] uppercase font-black">Suspend Member</span>
                               </DropdownMenuItem>
                             )}
                           </>
@@ -225,6 +277,74 @@ export function UserManagement({ onBack }: UserManagementProps) {
           </TableBody>
         </Table>
       </Card>
+
+      {/* Block Dialog */}
+      <Dialog open={isBlockDialogOpen} onOpenChange={setIsBlockDialogOpen}>
+        <DialogContent className="rounded-3xl p-8">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-black text-destructive uppercase italic flex items-center gap-3">
+              <UserX className="h-6 w-6" /> Terminate Access
+            </DialogTitle>
+            <DialogDescription className="text-sm font-medium">
+              You are about to suspend <strong>{selectedUser?.displayName}</strong>. They will be immediately logged out and blocked from library entry.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-6 space-y-4">
+            <Label className="text-[10px] font-black uppercase tracking-widest ml-2">Official Reason for Suspension</Label>
+            <Textarea 
+              placeholder="e.g. Violation of library code of conduct, excessive noise, or non-compliance with staff instructions."
+              className="min-h-[120px] rounded-2xl border-2 font-medium italic p-4"
+              value={blockReason}
+              onChange={(e) => setBlockReason(e.target.value)}
+            />
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setIsBlockDialogOpen(false)} className="rounded-xl h-12 font-bold px-8">Cancel</Button>
+            <Button variant="destructive" onClick={handleBlockAction} disabled={!blockReason} className="rounded-xl h-12 font-black px-8 gap-2">
+              <Ban className="h-4 w-4" /> CONFIRM SUSPENSION
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Warning Dialog */}
+      <Dialog open={isWarningDialogOpen} onOpenChange={setIsWarningDialogOpen}>
+        <DialogContent className="rounded-3xl p-8">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-black text-primary uppercase italic flex items-center gap-3">
+              <AlertTriangle className="h-6 w-6 text-secondary" /> Issue Official Warning
+            </DialogTitle>
+            <DialogDescription className="text-sm font-medium">
+              Send a prioritized security alert to <strong>{selectedUser?.displayName}</strong>.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-6 space-y-6">
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase tracking-widest ml-2">Alert Title</Label>
+              <Input 
+                value={warningTitle}
+                onChange={(e) => setWarningTitle(e.target.value)}
+                className="h-12 rounded-xl border-2 font-bold"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase tracking-widest ml-2">Message Content</Label>
+              <Textarea 
+                placeholder="Details of the warning..."
+                className="min-h-[120px] rounded-2xl border-2 font-medium italic p-4"
+                value={warningMessage}
+                onChange={(e) => setWarningMessage(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setIsWarningDialogOpen(false)} className="rounded-xl h-12 font-bold px-8">Cancel</Button>
+            <Button onClick={handleSendWarning} disabled={!warningMessage} className="rounded-xl h-12 font-black px-8 gap-2 bg-primary">
+              <ShieldCheck className="h-4 w-4 text-secondary" /> TRANSMIT ALERT
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

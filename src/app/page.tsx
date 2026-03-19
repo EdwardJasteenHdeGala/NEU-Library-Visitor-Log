@@ -1,9 +1,11 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
 import { useAuth, AuthProvider } from "@/hooks/use-auth";
 import { WelcomeScreen } from "@/components/auth/welcome-screen";
 import { LoginScreen } from "@/components/auth/login-screen";
+import { BlockedScreen } from "@/components/auth/blocked-screen";
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
 import { UserGreeting } from "@/components/dashboard/user-greeting";
 import { GuestView } from "@/components/guest/guest-view";
@@ -68,6 +70,11 @@ function AppContent() {
           <p className="text-muted-foreground font-medium">Setting up your profile...</p>
         </div>
       );
+  }
+
+  // GLOBAL SUSPENSION CHECK
+  if (profile.isBlocked) {
+    return <BlockedScreen />;
   }
 
   if (profile.studentId === 'PENDING-ID' || profile.studentId === 'GUEST-ID') {
