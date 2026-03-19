@@ -51,11 +51,5 @@ service cloud.firestore {
       allow read: if isAdmin();
       allow create: if isAuthenticated();
     }
-    
-    // BLOCKED USERS
-    match /blocked_users/{userId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
   }
 }

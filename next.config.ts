@@ -8,7 +8,7 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   experimental: {
-    // Removed unrecognized allowedDevOrigins to resolve configuration validation error
+    // Optimized for Next.js 15 stability
   },
   images: {
     remotePatterns: [
