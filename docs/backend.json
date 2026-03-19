@@ -1,132 +1,172 @@
-
 {
   "entities": {
-    "User": {
-      "title": "User",
+    "UserProfile": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "UserProfile",
       "type": "object",
-      "description": "Stores user profile information for the NEU Access Hub, including institutional email, student ID, role, and department.",
+      "description": "Represents a user's profile in the NEU Access Hub, including their institutional identity and system access role. This entity stores information about individuals who can log into the system.",
       "properties": {
-        "id": { "type": "string" },
-        "email": { "type": "string", "format": "email" },
-        "studentId": { "type": "string" },
-        "role": { "type": "string", "enum": ["user", "admin", "professor", "guest"] },
-        "college": { "type": "string" },
-        "isBlocked": { "type": "boolean" },
-        "blockedReason": { "type": "string" },
-        "isAuthorizedAdmin": { "type": "boolean" },
-        "isSuperAdmin": { "type": "boolean" },
-        "theme": { "type": "string", "enum": ["light", "dark"] },
-        "photoURL": { "type": "string" },
-        "displayName": { "type": "string" },
-        "updatedAt": { "type": "string", "format": "date-time" },
-        "createdAt": { "type": "string", "format": "date-time" }
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the UserProfile entity. This typically corresponds to the Firebase Authentication User ID."
+        },
+        "email": {
+          "type": "string",
+          "description": "The user's institutional email address. Used for identification, login, and domain restriction. It must follow the 'email' format.",
+          "format": "email"
+        },
+        "studentId": {
+          "type": "string",
+          "description": "The user's student ID, if the user is a student. This field is optional for non-student users like faculty or staff."
+        },
+        "role": {
+          "type": "string",
+          "description": "The access control role assigned to the user within the application. 'user' for regular library access, 'admin' for dashboard and management access, and 'guest' for limited access (e.g., non-institutional email).",
+          "format": "enum",
+          "items": {
+            "type": "string"
+          }
+        },
+        "department": {
+          "type": "string",
+          "description": "The department or college the user belongs to within the institution. This field is optional, especially for 'guest' roles."
+        },
+        "designation": {
+          "type": "string",
+          "description": "The user's official designation or status within the institution (e.g., 'student', 'professor', 'staff'). 'guest' is used for non-institutional users.",
+          "format": "enum",
+          "items": {
+            "type": "string"
+          }
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when this user profile was first created, adhering to the 'date-time' format.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp indicating when this user profile was last updated, adhering to the 'date-time' format.",
+          "format": "date-time"
+        }
       },
-      "required": ["id", "email", "role"]
+      "required": [
+        "id",
+        "email",
+        "role",
+        "designation",
+        "createdAt",
+        "updatedAt"
+      ]
     },
-    "Visit": {
-      "title": "Visit",
+    "VisitorLogEntry": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "VisitorLogEntry",
       "type": "object",
-      "description": "Records individual visits to the NEU Library.",
+      "description": "Represents a single log entry detailing a visit to the NEU Library. This entity captures who visited, their affiliation, and the purpose of their visit.",
       "properties": {
-        "id": { "type": "string" },
-        "userName": { "type": "string" },
-        "college": { "type": "string" },
-        "roleAtTime": { "type": "string" },
-        "purpose": { "type": "string" },
-        "timestamp": { "type": "string", "format": "date-time" },
-        "exitTimestamp": { "type": "string", "format": "date-time" },
-        "userId": { "type": "string" },
-        "durationMinutes": { "type": "number" },
-        "academicYear": { "type": "string" }
-      }
-    },
-    "Notification": {
-      "title": "Notification",
-      "type": "object",
-      "description": "Institutional alerts and system messages sent to users.",
-      "properties": {
-        "id": { "type": "string" },
-        "userId": { "type": "string" },
-        "title": { "type": "string" },
-        "message": { "type": "string" },
-        "read": { "type": "boolean" },
-        "timestamp": { "type": "string", "format": "date-time" },
-        "type": { "type": "string", "enum": ["info", "warning", "alert"] }
-      }
-    },
-    "LibraryConfig": {
-      "title": "LibraryConfig",
-      "type": "object",
-      "description": "Global operational settings and manual status overrides.",
-      "properties": {
-        "mode": { "type": "string", "enum": ["automatic", "manual"] },
-        "manualStatus": { "type": "string", "enum": ["open", "closed"] },
-        "manualReason": { "type": "string" },
-        "manualCategory": { "type": "string", "enum": ["general", "emergency", "institutional"] },
-        "updatedAt": { "type": "string", "format": "date-time" }
-      }
-    },
-    "BlockedUser": {
-      "title": "BlockedUser",
-      "type": "object",
-      "description": "Official registry of suspended institutional accounts.",
-      "properties": {
-        "userId": { "type": "string" },
-        "adminId": { "type": "string" },
-        "reason": { "type": "string" },
-        "details": { "type": "string" },
-        "duration": { "type": "string" },
-        "expiresAt": { "type": "string", "format": "date-time" },
-        "timestamp": { "type": "string", "format": "date-time" }
-      }
-    },
-    "Feedback": {
-      "title": "Feedback",
-      "type": "object",
-      "description": "Institutional sentiments and experience telemetry.",
-      "properties": {
-        "id": { "type": "string" },
-        "userId": { "type": "string" },
-        "userName": { "type": "string" },
-        "userPhoto": { "type": "string" },
-        "rating": { "type": "number" },
-        "visitType": { "type": "string" },
-        "message": { "type": "string" },
-        "timestamp": { "type": "string", "format": "date-time" }
-      }
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the VisitorLogEntry entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to the unique identifier of the UserProfile entity that corresponds to the visitor or the user who created this log entry. (Relationship: UserProfile 1:N VisitorLogEntry)"
+        },
+        "name": {
+          "type": "string",
+          "description": "The full name of the visitor as recorded in this log entry."
+        },
+        "college": {
+          "type": "string",
+          "description": "The college, department, or affiliation of the visitor as recorded in this log entry."
+        },
+        "role": {
+          "type": "string",
+          "description": "The institutional designation or status of the visitor (e.g., 'student', 'professor', 'staff', 'guest') at the time of the visit. This reflects their primary capacity, not their system access role.",
+          "format": "enum",
+          "items": {
+            "type": "string"
+          }
+        },
+        "purpose": {
+          "type": "string",
+          "description": "The reason or specific purpose for the visitor's entry into the library."
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "The precise date and time when the visitor entry was logged, adhering to the 'date-time' format.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "name",
+        "college",
+        "role",
+        "purpose",
+        "timestamp"
+      ]
     }
   },
   "auth": {
-    "providers": ["google.com"]
+    "providers": [
+      "password",
+      "anonymous"
+    ]
   },
   "firestore": {
-    "/users/{userId}": {
-      "schema": "User",
-      "description": "User profiles and institutional roles."
-    },
-    "/visits/{visitId}": {
-      "schema": "Visit",
-      "description": "Library entry and exit registry."
-    },
-    "/notifications/{notifId}": {
-      "schema": "Notification",
-      "description": "User-specific alerts and warnings."
-    },
-    "/library_config/{configId}": {
-      "schema": "LibraryConfig",
-      "description": "Operational mode and status overrides."
-    },
-    "/blocked_users/{userId}": {
-      "schema": "BlockedUser",
-      "description": "Official record of a user's suspension."
-    },
-    "/feedback/{feedbackId}": {
-      "schema": "Feedback",
-      "description": "User feedback and sentiments."
-    },
-    "/audit_logs/{logId}": {
-      "schema": "object",
-      "description": "Administrative action trail."
-    }
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "UserProfile",
+          "schema": {
+            "$ref": "#/backend/entities/UserProfile"
+          },
+          "description": "Stores individual user profiles. Access is restricted to the user themselves for read/write. This collection holds essential user details and their system role, which can be updated for role switching functionality.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique Firebase Authentication User ID of the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/roles_admin/{adminId}",
+        "definition": {
+          "entityName": "AdminRole",
+          "schema": {
+            "$ref": "#/backend/entities/AdminRole"
+          },
+          "description": "A dedicated marker collection used for Database Access Control (DBAC) to identify system administrators. The existence of a document `{adminId}` in this collection (where `adminId` matches `request.auth.uid`) grants administrative privileges. This design ensures Authorization Independence and atomic role checks in security rules.",
+          "params": [
+            {
+              "name": "adminId",
+              "description": "The unique Firebase Authentication User ID of an administrator."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/visits/{visitId}",
+        "definition": {
+          "entityName": "VisitorLogEntry",
+          "schema": {
+            "$ref": "#/backend/entities/VisitorLogEntry"
+          },
+          "description": "Centralized log of all visitor entries to the NEU Library. Admins have full read/write access (including listing the entire collection). Regular users and guests can create their own entries, with `userId` in the document matching `request.auth.uid`. Individual document reads are allowed for the creator, but listing of the entire collection is restricted to admins only to ensure QAP compliance and guest access limitations.",
+          "params": [
+            {
+              "name": "visitId",
+              "description": "The unique identifier for a specific visitor log entry."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure is designed to adhere strictly to the CORE DESIGN PRINCIPLES and DESIGN STRATEGY MANDATES, prioritizing Authorization Independence, Clarity of Intent, DBAC, QAPs, and Invariants. \n\n1.  **Authorization Independence (CRITICAL):** The most significant improvement addresses the `get()` call for role checking in security rules. Instead of `get(/users/$(request.auth.uid)).data.role == \"admin\"`, a dedicated top-level collection, `/roles_admin/{adminId}`, is introduced. The existence of a document in this collection (`get(/roles_admin/$(request.auth.uid)).exists()`) now signifies admin status. This change ensures security rules remain atomic, robust, and performant, eliminating the hierarchical authorization dependency and supporting batch/transactional operations without breaking atomicity.\n\n2.  **Clarity of Intent (Debuggability):**\n    *   `/users/{userId}` clearly defines self-owned user profiles, where `userId` explicitly matches `request.auth.uid`. \n    *   `/roles_admin/{adminId}` explicitly marks administrators through document existence, making the admin role instantly verifiable without inspecting user profile data.\n    *   `/visits/{visitId}` acts as a centralized log. The `userId` field within each `VisitorLogEntry` document clearly indicates ownership for creation purposes, and rules will enforce that `request.auth.uid` matches `request.resource.data.userId` for new entries. This makes the intent of individual entry ownership explicit.\n\n3.  **DBAC (No Custom Claims):** Roles (`admin`) are stored directly in Firestore (`/roles_admin`) rather than relying on Firebase Auth custom claims, aligning with the mandate. All authorization logic relies solely on `request.auth.uid`.\n\n4.  **QAPs (Rules are not Filters):**\n    *   For `/users/{userId}`, access is path-based and user-specific, making `list` operations inherently QAP-compliant as users can only list their own data (effectively a `get` of a known ID).\n    *   For `/visits/{visitId}`, the challenge was allowing guests to create but not list/export. The structure supports this by making `/visits` a top-level collection for central admin access. Security rules will be crafted such that: \n        *   Admins have `read` and `write` access, including `list` capability for the entire collection (QAP-compliant for admins).\n        *   Regular users and guests can `create` entries, ensuring `request.resource.data.userId == request.auth.uid` (QAP-compliant for create as it validates data integrity).\n        *   `read` access to *individual* visit entries (`get`) is granted to the `userId` who created them, ensuring users can see their own specific entries after creation.\n        *   Crucially, `list` operations for the `/visits` collection will be explicitly denied to non-admin users and guests. This ensures that guests cannot query or 'export' the list of visits, directly addressing the requirement without relying on inefficient filters, and preserving the homogeneous security posture of the collection while segregating list capabilities.\n\n5.  **Invariants:** Ownership is maintained through `userId` in `VisitorLogEntry` and path-based ownership in `/users/{userId}`. Timestamps (`createdAt`, `updatedAt`, `timestamp`) are explicitly defined in schemas for data integrity.\n\n**Structural Segregation:**\n*   `/users` is dedicated to unique user profiles, with access restricted to the profile owner.\n*   `/roles_admin` is a specialized collection solely for role identification, segregating authorization data from user profile data. \n*   `/visits` serves as a consolidated log where all entries conform to the `VisitorLogEntry` schema. While permissions vary, the data structure itself is uniformly managed for central administrative oversight, preventing the mixing of fundamentally different data types or access models within the same document type."
   }
 }
