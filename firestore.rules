@@ -38,16 +38,16 @@ service cloud.firestore {
 
     // VISITS: Attendance registry
     match /visits/{visitId} {
-      // Allow users to see their own visits or admins to see everything
-      allow read: if isSignedIn() && (isAdmin() || (resource != null && resource.data.userId == request.auth.uid) || true); 
-      // Note: The 'true' above is a fallback for listing, but filtered by query in code
+      // Allow authenticated users to read (list/get) for their own or admin oversight
+      // Application level filtering (where 'userId' == uid) handles the specific view
+      allow read: if isSignedIn(); 
       allow create: if isSignedIn() && isNotBlocked();
       allow update, delete: if isAdmin();
     }
 
     // NOTIFICATIONS: Institutional alerts
     match /notifications/{notificationId} {
-      allow read: if isSignedIn() && (isAdmin() || (resource != null && resource.data.userId == request.auth.uid) || true);
+      allow read: if isSignedIn();
       allow create: if isAdmin();
       allow update: if isSignedIn() && (isAdmin() || (resource != null && resource.data.userId == request.auth.uid));
       allow delete: if isAdmin();
