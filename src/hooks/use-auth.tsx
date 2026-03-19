@@ -5,7 +5,11 @@ import { GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
 import { 
   doc, 
   getDoc, 
-  serverTimestamp
+  serverTimestamp,
+  collection,
+  query,
+  where,
+  getDocs
 } from 'firebase/firestore';
 import { 
   useFirebase, 
@@ -59,6 +63,10 @@ const AUTHORIZED_ADMIN_EMAILS = [
   'nhica.valderas@neu.edu.ph'
 ];
 
+/**
+ * AuthProvider manages the institutional identity synchronization logic.
+ * It handles role inheritance from pending invites and Super Admin whitelisting.
+ */
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { auth, firestore } = useFirebase();
   const { user, isUserLoading } = useUser();
@@ -89,32 +97,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       const userEmail = user.email?.toLowerCase() || '';
       const isInstitutional = userEmail.endsWith('@neu.edu.ph');
-      const isAuthorized = AUTHORIZED_ADMIN_EMAILS.includes(userEmail);
+      const isWhitelisted = AUTHORIZED_ADMIN_EMAILS.includes(userEmail);
+
+      // Check for pending pre-authorized invites
+      let inheritedRole: 'user' | 'admin' | 'guest' | null = null;
+      try {
+        const inviteQuery = query(collection(firestore, 'invites'), where('email', '==', userEmail));
+        const inviteSnap = await getDocs(inviteQuery);
+        if (!inviteSnap.empty) {
+          inheritedRole = inviteSnap.docs[0].data().role;
+        }
+      } catch (e) {
+        console.warn("Invite registry scan deferred.");
+      }
 
       if (docSnap.exists()) {
         const data = docSnap.data() as UserProfile;
         const updatedProfile = { 
           ...data, 
-          isAuthorizedAdmin: isAuthorized || data.isAuthorizedAdmin,
+          isAuthorizedAdmin: isWhitelisted || data.isAuthorizedAdmin || inheritedRole === 'admin',
           isSuperAdmin: userEmail === BOOTSTRAP_SUPER_ADMIN_EMAIL
         };
         setProfile(updatedProfile);
       } else {
-        const defaultRole = isAuthorized ? 'admin' : (isInstitutional ? 'user' : 'guest');
+        const defaultRole = isWhitelisted ? 'admin' : (inheritedRole || (isInstitutional ? 'user' : 'guest'));
         const defaultDesignation = isInstitutional ? 'student' : 'guest';
-        const defaultDepartment = isInstitutional ? 'Pending Assignment' : 'External';
+        const defaultUnit = isInstitutional ? 'Pending Assignment' : 'External';
 
         const profileData: Partial<UserProfile> = {
           id: user.uid,
           email: userEmail,
           studentId: isInstitutional ? '' : 'GUEST-ID',
           role: defaultRole as any, 
-          isAuthorizedAdmin: isAuthorized,
+          isAuthorizedAdmin: isWhitelisted || inheritedRole === 'admin',
           isSuperAdmin: userEmail === BOOTSTRAP_SUPER_ADMIN_EMAIL,
           displayName: user.displayName || 'Visitor',
           photoURL: user.photoURL || '',
-          department: defaultDepartment,
-          college: defaultDepartment,
+          department: defaultUnit,
+          college: defaultUnit,
           designation: defaultDesignation as any,
           profileCompleted: !isInstitutional, 
           createdAt: serverTimestamp(),
@@ -147,15 +167,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error.code === 'auth/popup-closed-by-user') {
         toast({
           title: "Identity Sync Deferred",
-          description: "Institutional synchronization was cancelled. Please try again to access the portal.",
+          description: "Institutional synchronization was cancelled.",
         });
         return;
       }
-
-      console.error("Authentication Gateway Error:", error);
       toast({
         title: "Synchronization Error",
-        description: error.message || "The institutional identity hub is currently unreachable.",
+        description: error.message || "Identity hub unreachable.",
         variant: "destructive"
       });
     }
@@ -204,6 +222,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         role: newRole,
         updatedAt: serverTimestamp()
       });
+      toast({ title: "Role Updated", description: "Identity registry synchronized." });
     } catch (error: any) {}
   };
 

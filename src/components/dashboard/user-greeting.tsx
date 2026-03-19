@@ -20,7 +20,7 @@ import {
   Info,
   ChevronRight,
   Sparkles,
-  Megaphone
+  Megaphone // IMPORTED
 } from "lucide-react";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
@@ -108,7 +108,7 @@ export function UserGreeting() {
       setAnnouncementIndex((prev) => (prev + 1) % announcements.length);
     }, 5000);
     return () => clearInterval(interval);
-  }, []);
+  }, [announcements.length]);
 
   const logoImage = PlaceHolderImages.find(img => img.id === 'neu-logo');
   const isGuest = profile?.role === 'guest';

@@ -36,7 +36,7 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
-  AlertDialogDescription,
+  AlertDialogDescription, // FIXED IMPORT
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,

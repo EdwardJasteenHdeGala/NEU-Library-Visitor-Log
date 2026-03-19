@@ -13,8 +13,7 @@ service cloud.firestore {
     }
 
     /** 
-     * @description Determines if the user is an admin via role doc OR bootstrap whitelist.
-     * Prioritizes the whitelist to ensure immediate access for authorized university personnel.
+     * @description Optimized admin check prioritizes email whitelist for immediate access.
      */
     function isAdmin() {
       return isSignedIn() && (
@@ -37,7 +36,7 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    // Root level visits collection rule - synchronized with flat data model
+    // Root level visits collection rule - secured for institutional oversight
     match /visits/{visitId} {
       allow read, list: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
       allow create: if isSignedIn();
@@ -55,7 +54,8 @@ service cloud.firestore {
     }
 
     match /invites/{inviteId} {
-      allow read: if isSignedIn();
+      // Allow newly signed-in users to query for their inheritance role
+      allow read, list: if isAdmin() || (isSignedIn() && request.auth.token.email.lower() == resource.data.email.lower());
       allow create, update, delete: if isAdmin();
     }
     

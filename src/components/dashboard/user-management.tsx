@@ -21,7 +21,8 @@ import {
   XCircle,
   History,
   ShieldAlert,
-  UserCog
+  UserCog,
+  Megaphone // IMPORTED
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { collection, query, orderBy, serverTimestamp, doc } from "firebase/firestore";
@@ -78,6 +79,7 @@ export function UserManagement({ onBack }: UserManagementProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
   const [newEmail, setNewEmail] = useState("");
+  const [inviteRole, setInviteRole] = useState<"user" | "admin">("user");
   const [isAdding, setIsAdding] = useState(false);
   
   const [isBlockDialogOpen, setIsBlockDialogOpen] = useState(false);
@@ -136,7 +138,7 @@ export function UserManagement({ onBack }: UserManagementProps) {
     
     addDocumentNonBlocking(collection(firestore, 'invites'), {
       email: newEmail.toLowerCase().trim(),
-      role: 'user',
+      role: inviteRole,
       invitedBy: currentUserProfile.id,
       invitedByName: currentUserProfile.displayName,
       timestamp: serverTimestamp(),
@@ -147,7 +149,8 @@ export function UserManagement({ onBack }: UserManagementProps) {
         setIsAdding(false);
         setIsAddUserOpen(false);
         setNewEmail("");
-        toast({ title: "Invitation Sent", description: `Pending authorization created for ${newEmail}.` });
+        setInviteRole("user");
+        toast({ title: "Invitation Sent", description: `Pending ${inviteRole.toUpperCase()} authorization created for ${newEmail}.` });
     }, 800);
   };
 
@@ -215,6 +218,19 @@ export function UserManagement({ onBack }: UserManagementProps) {
                       onChange={(e) => setNewEmail(e.target.value)}
                       className="h-12 rounded-xl border-2 font-bold"
                   />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase tracking-widest">Pre-Authorized Role</Label>
+                  <RadioGroup value={inviteRole} onValueChange={(v: any) => setInviteRole(v)} className="flex gap-4">
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="user" id="invite-user" />
+                      <Label htmlFor="invite-user" className="font-bold text-xs uppercase">Member</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="admin" id="invite-admin" />
+                      <Label htmlFor="invite-admin" className="font-bold text-xs uppercase">Admin</Label>
+                    </div>
+                  </RadioGroup>
                 </div>
               </div>
               <DialogFooter>
@@ -343,14 +359,15 @@ export function UserManagement({ onBack }: UserManagementProps) {
                   <TableRow className="bg-muted/50 border-none">
                     <TableHead className="font-black text-primary py-5 uppercase text-[10px] tracking-widest px-6 md:px-8">Target Email</TableHead>
                     <TableHead className="font-black text-primary py-5 uppercase text-[10px] tracking-widest">Invited By</TableHead>
+                    <TableHead className="font-black text-primary py-5 uppercase text-[10px] tracking-widest">Pre-Auth Role</TableHead>
                     <TableHead className="font-black text-primary py-5 uppercase text-[10px] tracking-widest text-right px-6 md:px-8">Action</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {isLoadingInvites ? (
-                    <TableRow><TableCell colSpan={3} className="text-center py-20 font-bold text-muted-foreground uppercase animate-pulse">Syncing Invitations...</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={4} className="text-center py-20 font-bold text-muted-foreground uppercase animate-pulse">Syncing Invitations...</TableCell></TableRow>
                   ) : invites?.length === 0 ? (
-                    <TableRow><TableCell colSpan={3} className="text-center py-20 italic text-muted-foreground">No pending invitations recorded.</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={4} className="text-center py-20 italic text-muted-foreground">No pending invitations recorded.</TableCell></TableRow>
                   ) : invites?.map((inv) => (
                     <TableRow key={inv.id} className="hover:bg-muted/30 border-b transition-colors duration-300">
                       <TableCell className="py-5 px-6 md:px-8">
@@ -360,6 +377,11 @@ export function UserManagement({ onBack }: UserManagementProps) {
                         </div>
                       </TableCell>
                       <TableCell className="text-[10px] font-bold text-muted-foreground uppercase">{inv.invitedByName || 'Admin'}</TableCell>
+                      <TableCell>
+                        <Badge variant={inv.role === 'admin' ? 'default' : 'outline'} className="text-[8px] uppercase font-black">
+                          {inv.role || 'user'}
+                        </Badge>
+                      </TableCell>
                       <TableCell className="text-right px-6 md:px-8">
                         <Button 
                           variant="ghost" 

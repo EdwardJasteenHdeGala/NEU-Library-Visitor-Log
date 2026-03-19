@@ -29,6 +29,10 @@ export interface InternalQuery extends Query<DocumentData> {
   }
 }
 
+/**
+ * useCollection provides a real-time listener for Firestore collections.
+ * It includes a "Silent Handshake" mode to prevent crashes during identity sync.
+ */
 export function useCollection<T = any>(
     memoizedTargetRefOrQuery: ((CollectionReference<DocumentData> | Query<DocumentData>) & {__memo?: boolean})  | null | undefined,
 ): UseCollectionResult<T> {
@@ -67,11 +71,11 @@ export function useCollection<T = any>(
             ? (memoizedTargetRefOrQuery as CollectionReference).path
             : (memoizedTargetRefOrQuery as unknown as InternalQuery)._query.path.canonicalString();
 
-        // SILENT ERROR HANDLING: Prevent Red Screen crashes during institutional role synchronization
+        // SILENT HANDSHAKE: Catch permission-denied errors during transient role verification
         if (err.code === 'permission-denied' || err.code === 'unauthenticated') {
-          console.warn(`[Institutional Registry] Access deferred for path: ${path}. Identity sync in progress.`);
+          console.warn(`[Institutional Registry] Access deferred for: ${path}. Identity sync in progress.`);
           setError(err);
-          setData(null);
+          setData([]); // Return empty list instead of crashing
           setIsLoading(false);
           return;
         }

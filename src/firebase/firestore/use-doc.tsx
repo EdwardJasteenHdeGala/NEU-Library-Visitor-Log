@@ -19,6 +19,9 @@ export interface UseDocResult<T> {
   error: FirestoreError | Error | null;
 }
 
+/**
+ * useDoc provides a real-time listener for a specific Firestore document.
+ */
 export function useDoc<T = any>(
   memoizedDocRef: DocumentReference<DocumentData> | null | undefined,
 ): UseDocResult<T> {
@@ -51,9 +54,9 @@ export function useDoc<T = any>(
         setIsLoading(false);
       },
       (err: FirestoreError) => {
-        // SILENT ERROR HANDLING: Prevent Red Screen crashes during institutional role synchronization
+        // SILENT HANDSHAKE: Catch permission-denied errors during transient role verification
         if (err.code === 'permission-denied' || err.code === 'unauthenticated') {
-          console.warn(`[Institutional Registry] Access deferred for doc: ${memoizedDocRef.path}. Identity sync in progress.`);
+          console.warn(`[Institutional Registry] Access deferred for doc: ${memoizedDocRef.path}.`);
           setError(err);
           setData(null);
           setIsLoading(false);
