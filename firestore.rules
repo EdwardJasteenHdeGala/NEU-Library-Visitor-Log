@@ -29,13 +29,13 @@ service cloud.firestore {
 
     // VISITS REGISTRY
     match /visits/{visitId} {
-      // Allow listing for admins OR if the query is restricted to the user's own data
-      allow list: if isAuthenticated() && (isAdmin() || resource.data.userId == request.auth.uid || request.query.limit <= 5);
+      // Split list rules to ensure query-wide access for admins
+      // and filtered access for standard members.
+      allow list: if isAuthenticated() && isAdmin();
+      allow list: if isAuthenticated() && resource.data.userId == request.auth.uid;
       
-      // Allow retrieval if admin or record owner
+      // Retrieval and creation
       allow get: if isAuthenticated() && (isAdmin() || resource.data.userId == request.auth.uid);
-
-      // Authenticated users can create their own logs
       allow create: if isAuthenticated();
       
       // Administrative modifications
@@ -50,7 +50,7 @@ service cloud.firestore {
 
     // NOTIFICATIONS & ALERTS
     match /notifications/{notificationId} {
-      allow list: if isAuthenticated();
+      allow list: if isAuthenticated() && (isAdmin() || resource.data.userId == request.auth.uid);
       allow get: if isAuthenticated() && (isAdmin() || resource.data.userId == request.auth.uid);
       allow create, write: if isAdmin();
     }
