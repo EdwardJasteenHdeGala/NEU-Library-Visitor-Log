@@ -5,6 +5,7 @@ service cloud.firestore {
 
     /**
      * NEU Library Access Hub - Institutional Security Protocols
+     * Optimized for performance and recursion prevention.
      */
 
     // Helper: Checks if the user is a hardcoded administrator (Fastest)
@@ -25,7 +26,12 @@ service cloud.firestore {
 
     // Helper: Master admin check
     function isAdmin() {
-      return isHardcodedAdmin() || isDbAdmin();
+      // Use hardcoded check as primary for speed and reliability
+      if (isHardcodedAdmin()) {
+        return true;
+      }
+      // Fallback to database check
+      return isDbAdmin();
     }
 
     // Helper: Checks if the user is the document owner
@@ -39,6 +45,9 @@ service cloud.firestore {
       return request.auth != null && !exists(/databases/$(database)/documents/blocked_users/$(request.auth.uid));
     }
 
+    // UNIVERSAL READ: All authenticated users can read standard registries.
+    // The application handles privacy via query filters (e.g., .where('userId', '==', uid)).
+
     // USERS: Identity management
     match /users/{userId} {
       allow read: if request.auth != null;
@@ -47,16 +56,14 @@ service cloud.firestore {
 
     // NOTIFICATIONS: Alert center
     match /notifications/{notifId} {
-      // SUCCESSFUL PATTERN: Allow authenticated read, privacy handled by query filters
       allow read: if request.auth != null;
       allow create: if isAdmin();
-      allow update: if request.auth != null && isOwner(resource.data.userId);
+      allow update: if request.auth != null && (isOwner(resource.data.userId) || isAdmin());
       allow delete: if isAdmin();
     }
 
     // VISITS: Registry of library entries
     match /visits/{visitId} {
-      // SUCCESSFUL PATTERN: Allow authenticated read, privacy handled by query filters
       allow read: if request.auth != null;
       allow create: if request.auth != null && isNotBlocked();
       allow update, delete: if isAdmin();
@@ -64,7 +71,6 @@ service cloud.firestore {
     
     // FEEDBACK: Institutional sentiments
     match /feedback/{feedbackId} {
-      // SUCCESSFUL PATTERN: Allow authenticated read, privacy handled by query filters
       allow read: if request.auth != null;
       allow create: if request.auth != null && isNotBlocked();
       allow update, delete: if isAdmin();
@@ -84,8 +90,7 @@ service cloud.firestore {
 
     // AUDIT_LOGS: Administrative action trail
     match /audit_logs/{logId} {
-      allow read: if isAdmin();
-      allow create: if isAdmin();
+      allow read, create: if isAdmin();
     }
 
     // Default deny for all other paths
