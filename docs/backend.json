@@ -1,104 +1,41 @@
-
 {
   "entities": {
     "User": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "User",
       "type": "object",
-      "description": "Stores user profile information for the NEU Access Hub, including institutional email, student ID, role, and department. This entity is used for authentication and role-based access control.",
+      "description": "Stores user profile information for the NEU Access Hub, including institutional email, student ID, role, and department.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the User entity."
-        },
-        "email": {
-          "type": "string",
-          "description": "The user's institutional email address (e.g., from the 'neu.edu.ph' domain).",
-          "format": "email"
-        },
-        "studentId": {
-          "type": "string",
-          "description": "The user's unique student identification number, used for login and identification."
-        },
-        "role": {
-          "type": "string",
-          "description": "The assigned role of the user within the application (e.g., 'user', 'admin', 'professor'), determining access privileges."
-        },
-        "college": {
-          "type": "string",
-          "description": "The academic department or college the user is affiliated with."
-        },
-        "isBlocked": {
-          "type": "boolean",
-          "description": "Indicates if the user is suspended from library access."
-        },
-        "blockedReason": {
-          "type": "string",
-          "description": "The official reason provided by an admin for the user's suspension."
-        },
-        "isAuthorizedAdmin": {
-          "type": "boolean",
-          "description": "Flag for institutional admin privileges."
-        },
-        "isSuperAdmin": {
-          "type": "boolean",
-          "description": "Flag for root system access."
-        },
-        "theme": {
-          "type": "string",
-          "enum": ["light", "dark"],
-          "description": "User's preferred interface theme."
-        }
+        "id": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "studentId": { "type": "string" },
+        "role": { "type": "string", "enum": ["user", "admin", "professor", "guest"] },
+        "college": { "type": "string" },
+        "isBlocked": { "type": "boolean" },
+        "blockedReason": { "type": "string" },
+        "isAuthorizedAdmin": { "type": "boolean" },
+        "isSuperAdmin": { "type": "boolean" },
+        "theme": { "type": "string", "enum": ["light", "dark"] }
       },
-      "required": [
-        "id",
-        "email",
-        "studentId",
-        "role"
-      ]
+      "required": ["id", "email", "studentId", "role"]
     },
     "Visit": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Visit",
       "type": "object",
-      "description": "Records individual visits to the NEU Library, including details about the visitor, their purpose, and the timestamp of their entry.",
+      "description": "Records individual visits to the NEU Library.",
       "properties": {
-        "id": {
-          "type": "string"
-        },
-        "userName": {
-          "type": "string"
-        },
-        "college": {
-          "type": "string"
-        },
-        "roleAtTime": {
-          "type": "string"
-        },
-        "purpose": {
-          "type": "string"
-        },
-        "timestamp": {
-          "type": "string",
-          "format": "date-time"
-        },
-        "exitTimestamp": {
-          "type": "string",
-          "format": "date-time"
-        },
-        "userId": {
-          "type": "string"
-        },
-        "durationMinutes": {
-          "type": "number"
-        },
-        "academicYear": {
-          "type": "string"
-        }
+        "id": { "type": "string" },
+        "userName": { "type": "string" },
+        "college": { "type": "string" },
+        "roleAtTime": { "type": "string" },
+        "purpose": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "exitTimestamp": { "type": "string", "format": "date-time" },
+        "userId": { "type": "string" },
+        "durationMinutes": { "type": "number" },
+        "academicYear": { "type": "string" }
       }
     },
     "Notification": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Notification",
       "type": "object",
       "description": "Institutional alerts and system messages sent to users.",
@@ -113,7 +50,6 @@
       }
     },
     "LibraryConfig": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "LibraryConfig",
       "type": "object",
       "description": "Global operational settings and manual status overrides.",
@@ -127,9 +63,7 @@
     }
   },
   "auth": {
-    "providers": [
-      "google.com"
-    ]
+    "providers": ["google.com"]
   },
   "firestore": {
     "structure": [

@@ -1,4 +1,3 @@
-
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -7,15 +6,26 @@ service cloud.firestore {
      * NEU Library Access Hub - Institutional Security Protocols
      */
 
-    // Helper: Checks if the user is an authorized admin
-    function isAdmin() {
+    // Helper: Checks if the user is a hardcoded administrator
+    function isHardcodedAdmin() {
       return request.auth != null && (
         request.auth.token.email == 'edwardjasteen.degala@neu.edu.ph' ||
         request.auth.token.email == 'jcesperanza@neu.edu.ph' ||
-        request.auth.token.email == 'nhica.valderas@neu.edu.ph' ||
-        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
-         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin')
+        request.auth.token.email == 'nhica.valderas@neu.edu.ph'
       );
+    }
+
+    // Helper: Checks if the user is a database-verified admin
+    // We avoid checking this for the user's own document to prevent recursion
+    function isDbAdmin() {
+      return request.auth != null && 
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Helper: Master admin check (Hardcoded check first to avoid DB hits)
+    function isAdmin() {
+      return isHardcodedAdmin() || isDbAdmin();
     }
 
     // Helper: Checks if the user is the document owner
@@ -23,21 +33,12 @@ service cloud.firestore {
       return request.auth != null && request.auth.uid == userId;
     }
 
-    // Helper: Checks if the user is NOT suspended
-    function isNotBlocked() {
-      // Allow access if profile doesn't exist yet (onboarding phase)
-      // or if it exists and isBlocked is not explicitly true
-      return request.auth != null && (
-        !exists(/databases/$(database)/documents/users/$(request.auth.uid)) || 
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isBlocked != true
-      );
-    }
-
     // USERS collection: Identity management
     match /users/{userId} {
-      allow read: if isOwner(userId) || isAdmin();
-      // Allow write for own profile (onboarding) or admin oversight
-      allow write: if isOwner(userId) || isAdmin();
+      // Priority: Self-access (prevents recursion)
+      allow read, write: if isOwner(userId);
+      // Fallback: Admin oversight
+      allow read, write: if isAdmin();
     }
 
     // VISITS collection: Registry of library entries
@@ -45,17 +46,20 @@ service cloud.firestore {
       // Admins have absolute registry oversight
       allow read, write: if isAdmin();
       
-      // Standard members
-      allow create: if request.auth != null && isNotBlocked();
-      // Allow reading own history or when admin is verified
-      allow get, list: if request.auth != null && (isAdmin() || (resource != null && resource.data.userId == request.auth.uid));
+      // Standard members: Can log entry
+      allow create: if request.auth != null;
+      // Can read own history or when admin is verified
+      allow read: if request.auth != null && (isAdmin() || (resource != null && resource.data.userId == request.auth.uid));
     }
     
     // NOTIFICATIONS: Alert center
     match /notifications/{notifId} {
+      // Admins have absolute control
       allow read, write: if isAdmin();
-      allow read: if request.auth != null && (isAdmin() || resource.data.userId == request.auth.uid);
-      allow update: if request.auth != null && resource.data.userId == request.auth.uid;
+      // Users can read their own notifications
+      allow read: if request.auth != null && (isAdmin() || (resource != null && resource.data.userId == request.auth.uid));
+      // Users can mark their own as read (update)
+      allow update: if request.auth != null && (resource != null && resource.data.userId == request.auth.uid);
     }
 
     // LIBRARY_CONFIG: Operational status and manual overrides
