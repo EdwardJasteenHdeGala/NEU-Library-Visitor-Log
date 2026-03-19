@@ -14,16 +14,14 @@ service cloud.firestore {
       );
     }
 
-    // VISITS REGISTRY - Experimental Permissive Access
-    // This resolves the 'method: list' permission error for all members
+    // VISITS REGISTRY - Experimental Permissive Access (Fixes 'method: list' errors)
     match /visits/{visitId} {
-      allow read, write: if true;
+      allow read, write: if isAuthenticated();
     }
 
     // USER PROFILES
     match /users/{userId} {
-      allow read, write: if isAuthenticated() && request.auth.uid == userId;
-      allow read: if isAdmin();
+      allow read, write: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
     }
 
     // INSTITUTIONAL CONFIG
