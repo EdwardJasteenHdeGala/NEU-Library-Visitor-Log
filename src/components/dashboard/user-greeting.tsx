@@ -123,7 +123,7 @@ export function UserGreeting() {
       userId: profile.id,
       userName: profile.displayName,
       college: currentCollege,
-      role: profile.designation,
+      roleAtTime: profile.role,
       purpose: purpose,
       timestamp: new Date(),
       exitTimestamp: null,

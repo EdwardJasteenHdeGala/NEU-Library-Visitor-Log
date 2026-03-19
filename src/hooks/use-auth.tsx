@@ -101,12 +101,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else {
         const defaultRole = isAuthorized ? 'admin' : (isInstitutional ? 'user' : 'guest');
         const defaultDesignation = isInstitutional ? 'student' : 'guest';
-        const defaultDepartment = isInstitutional ? 'General Education' : 'External';
+        const defaultDepartment = isInstitutional ? 'Pending Assignment' : 'External';
 
         const profileData: Partial<UserProfile> = {
           id: user.uid,
           email: userEmail,
-          studentId: isInstitutional ? 'PENDING-ID' : 'GUEST-ID',
+          studentId: isInstitutional ? '' : 'GUEST-ID',
           role: defaultRole as any, 
           isAuthorizedAdmin: isAuthorized,
           isSuperAdmin: userEmail === BOOTSTRAP_SUPER_ADMIN_EMAIL,
@@ -115,7 +115,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           department: defaultDepartment,
           college: defaultDepartment,
           designation: defaultDesignation as any,
-          profileCompleted: !isInstitutional, // Guests are auto-completed
+          profileCompleted: !isInstitutional, // Institutional members must complete setup
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
           theme: 'light',
@@ -126,7 +126,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setProfile(profileData as any);
       }
     } catch (error) {
-      console.error("Institutional Identity Sync Error:", error);
+      console.error("Identity Sync Error:", error);
     } finally {
       setLoading(false);
     }
@@ -135,13 +135,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (roleHint?: 'user' | 'guest') => {
     try {
       const provider = new GoogleAuthProvider();
-      const params: any = { prompt: 'select_account' };
-      
-      provider.setCustomParameters(params);
+      // Ensure select_account prompt is present
+      provider.setCustomParameters({ 
+        prompt: 'select_account'
+      });
       await signInWithPopup(auth, provider);
     } catch (error: any) {
       toast({
-        title: "Synchronization Failed",
+        title: "Login Failed",
         description: error.message,
         variant: "destructive"
       });
@@ -177,8 +178,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
       setProfile({ ...profile, role: newRole });
       toast({
-        title: "Protocol Switched",
-        description: `Active role updated to ${newRole.toUpperCase()}.`,
+        title: "Role Switched",
+        description: `Now operating as ${newRole.toUpperCase()}.`,
       });
     } catch (error: any) {}
   };
@@ -225,7 +226,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         timestamp: serverTimestamp()
       }, { merge: true });
 
-      toast({ title: "Member Suspended", description: "Identity registry updated." });
+      toast({ title: "User Blocked", description: "Identity registry updated." });
     } catch (error: any) {}
   };
 
@@ -257,7 +258,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         read: false,
         timestamp: serverTimestamp()
       });
-      toast({ title: "Alert Transmitted", description: "Warning logged in member registry." });
+      toast({ title: "Warning Sent", description: "Alert logged in member registry." });
     } catch (error: any) {}
   };
 

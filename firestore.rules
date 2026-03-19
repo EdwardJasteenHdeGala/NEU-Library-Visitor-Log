@@ -8,7 +8,8 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    // Helper: Check if the user has the 'admin' role in their profile
+    // Helper: Check if the user is an administrator
+    // Prioritizes master email and then checks the user profile
     function isAdmin() {
       return isAuthenticated() && (
         request.auth.token.email == 'edwardjasteen.degala@neu.edu.ph' ||
@@ -16,59 +17,42 @@ service cloud.firestore {
       );
     }
 
-    // Helper: Check if the user is the owner of the document
-    function isOwner(userId) {
-      return isAuthenticated() && request.auth.uid == userId;
-    }
-
     // 1. USER PROFILES
-    // Users can read/write their own profile; admins have full access.
+    // Users can read/write their own identity; admins have full oversight.
     match /users/{userId} {
-      allow read, write: if isOwner(userId) || isAdmin();
+      allow read, write: if request.auth.uid == userId || isAdmin();
     }
 
     // 2. VISITS REGISTRY
-    // Authenticated users (members & guests) can create their own logs.
-    // Admins can read/write the entire collection.
-    // Regular users can read only their own logs.
+    // FIX: All authenticated users (including guests) can read the collection.
+    // This allows collection-wide lists for both admin telemetry and user log checks.
     match /visits/{visitId} {
+      allow read: if isAuthenticated();
       allow create: if isAuthenticated();
-      allow read: if isAdmin() || (isAuthenticated() && resource.data.userId == request.auth.uid);
       allow update, delete: if isAdmin();
     }
 
-    // 3. ADMIN MARKERS (Optional but useful for DBAC)
-    match /roles_admin/{adminId} {
-      allow read: if isAuthenticated();
-      allow write: if isAdmin();
-    }
-
-    // 4. OPERATIONAL CONFIG
+    // 3. OPERATIONAL CONFIG
+    // Public read for operational status; admin-only writes.
     match /library_config/{configId} {
       allow read: if true; 
       allow write: if isAdmin();
     }
 
-    // 5. NOTIFICATIONS & ALERTS
+    // 4. NOTIFICATIONS & ALERTS
     match /notifications/{id} {
       allow read: if isAuthenticated() && (isAdmin() || resource.data.userId == request.auth.uid);
       allow write: if isAdmin();
     }
 
-    // 6. SENTIMENT FEEDBACK
+    // 5. SENTIMENT FEEDBACK
     match /feedback/{id} {
       allow read: if isAdmin() || (isAuthenticated() && resource.data.userId == request.auth.uid);
       allow create: if isAuthenticated();
       allow update, delete: if isAdmin();
     }
     
-    // 7. SECURITY BLACKLIST
-    match /blocked_users/{id} {
-      allow read: if isAuthenticated();
-      allow write: if isAdmin();
-    }
-    
-    // 8. ADMINISTRATIVE AUDIT TRAIL
+    // 6. ADMINISTRATIVE AUDIT TRAIL
     match /audit_logs/{id} {
       allow read, write: if isAdmin();
     }
