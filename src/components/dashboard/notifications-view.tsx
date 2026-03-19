@@ -10,6 +10,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
+import { cn } from "@/lib/utils";
 
 interface NotificationsViewProps {
   onBack?: () => void;
@@ -21,13 +22,14 @@ export function NotificationsView({ onBack }: NotificationsViewProps) {
   const { toast } = useToast();
 
   const notificationsQuery = useMemoFirebase(() => {
-    if (!profile || !firestore) return null;
+    if (!profile?.id || !firestore) return null;
+    // CRITICAL: Ensure the query filter matches the intended row-level privacy
     return query(
       collection(firestore, 'notifications'),
       where('userId', '==', profile.id),
       orderBy('timestamp', 'desc')
     );
-  }, [firestore, profile]);
+  }, [firestore, profile?.id]);
 
   const { data: notifications, isLoading } = useCollection(notificationsQuery);
 
@@ -77,12 +79,12 @@ export function NotificationsView({ onBack }: NotificationsViewProps) {
           <Card 
             key={n.id} 
             className={cn(
-              "neu-card-shadow border-none rounded-2xl overflow-hidden transition-all duration-300",
+              "neu-card-shadow border-none rounded-2xl overflow-hidden transition-all duration-300 cursor-pointer",
               n.read ? "bg-white opacity-70" : "bg-white border-l-8 border-l-primary scale-[1.01] shadow-xl"
             )}
             onClick={() => !n.read && markRead(n.id)}
           >
-            <CardContent className="p-6 flex items-start gap-6 cursor-pointer">
+            <CardContent className="p-6 flex items-start gap-6">
               <div className={cn(
                 "p-3 rounded-xl",
                 n.read ? "bg-slate-100 text-slate-400" : "bg-primary/5 text-primary"

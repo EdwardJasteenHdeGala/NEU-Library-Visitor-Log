@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Star, MessageSquare, Loader2, Send, History, User, LayoutList, PenLine, ArrowLeft } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useFirebase, useCollection, useMemoFirebase, addDocumentNonBlocking } from "@/firebase";
-import { collection, query, orderBy } from "firebase/firestore";
+import { collection, query, orderBy, where } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -32,9 +32,17 @@ export function FeedbackView({ onBack }: FeedbackViewProps) {
   const isAdmin = profile?.role === 'admin';
 
   const feedbackQuery = useMemoFirebase(() => {
-    if (!isAdmin || !firestore) return null;
-    return query(collection(firestore, 'feedback'), orderBy('timestamp', 'desc'));
-  }, [firestore, isAdmin]);
+    if (!profile?.id || !firestore) return null;
+    // Admins see all, users see only their own
+    if (isAdmin) {
+      return query(collection(firestore, 'feedback'), orderBy('timestamp', 'desc'));
+    }
+    return query(
+      collection(firestore, 'feedback'), 
+      where('userId', '==', profile.id),
+      orderBy('timestamp', 'desc')
+    );
+  }, [firestore, profile?.id, isAdmin]);
 
   const { data: feedbackList, isLoading: isLoadingFeedback } = useCollection(feedbackQuery);
 
