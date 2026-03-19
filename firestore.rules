@@ -24,24 +24,21 @@ service cloud.firestore {
 
     // USER PROFILES
     match /users/{userId} {
-      allow read, write: if isAuthenticated() && request.auth.uid == userId;
-      allow read, write: if isAdmin();
+      allow read, write: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
     }
 
     // VISITS REGISTRY
     match /visits/{visitId} {
-      // Admins can list, read, and write all visits
+      // Admins can perform all operations (get, list, create, update, delete)
       allow read, write: if isAdmin();
 
-      // All authenticated users can create new visits
+      // Authenticated users can create their own logs
       allow create: if isAuthenticated();
       
-      // Allow users to read their own visits (for active session check)
-      // Collection listing requires specific query filters if not admin
+      // Allow users to read their own entries (list requires query filter)
       allow read: if isAuthenticated() && (
-        isAdmin() || 
         (resource != null && resource.data.userId == request.auth.uid) ||
-        (resource == null) // Allow query evaluation
+        (resource == null)
       );
     }
 
@@ -54,8 +51,8 @@ service cloud.firestore {
     // NOTIFICATIONS & ALERTS
     match /notifications/{notificationId} {
       allow read: if isAuthenticated() && (
-        (resource != null && resource.data.userId == request.auth.uid) ||
-        isAdmin()
+        isAdmin() || 
+        (resource != null && resource.data.userId == request.auth.uid)
       );
       allow create, write: if isAdmin();
     }
