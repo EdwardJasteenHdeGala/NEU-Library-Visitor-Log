@@ -10,6 +10,8 @@ import {
   QuerySnapshot,
   CollectionReference,
 } from 'firebase/firestore';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 /** Utility type to add an 'id' field to a given type T. */
 export type WithId<T> = T & { id: string };
@@ -71,7 +73,7 @@ export function useCollection<T = any>(
         setError(null);
         setIsLoading(false);
       },
-      (serverError: FirestoreError) => {
+      async (serverError: FirestoreError) => {
         // Silent handling for permission-denied during list operations to prevent crashes
         // during initial auth synchronization or for non-admin attempts.
         if (serverError.code === 'permission-denied' || serverError.code === 'unauthenticated') {
@@ -80,7 +82,17 @@ export function useCollection<T = any>(
           return;
         }
 
-        setError(serverError);
+        const path = 'path' in memoizedTargetRefOrQuery 
+            ? (memoizedTargetRefOrQuery as CollectionReference).path 
+            : (memoizedTargetRefOrQuery as unknown as InternalQuery)._query.path.canonicalString();
+
+        const contextualError = new FirestorePermissionError({
+          operation: 'list',
+          path,
+        });
+
+        errorEmitter.emit('permission-error', contextualError);
+        setError(contextualError);
         setData(null);
         setIsLoading(false);
       }
