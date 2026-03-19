@@ -8,7 +8,6 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    // Optimized Admin Check: Prioritizes hardcoded emails and marker collection
     function isAdmin() {
       let adminEmails = [
         "edwardjasteen.degala@neu.edu.ph",
@@ -38,8 +37,6 @@ service cloud.firestore {
 
     // VISITS: Attendance registry
     match /visits/{visitId} {
-      // Allow authenticated users to read (list/get) for their own or admin oversight
-      // Application level filtering (where 'userId' == uid) handles the specific view
       allow read: if isSignedIn(); 
       allow create: if isSignedIn() && isNotBlocked();
       allow update, delete: if isAdmin();
