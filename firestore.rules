@@ -29,17 +29,17 @@ service cloud.firestore {
 
     // VISITS REGISTRY
     match /visits/{visitId} {
-      // Admins can perform all operations (get, list, create, update, delete)
-      allow read, write: if isAdmin();
+      // Explicitly allow listing for administrators
+      allow list: if isAdmin();
+      
+      // Allow individual record retrieval for administrators or the record owner
+      allow get: if isAdmin() || (isAuthenticated() && resource.data.userId == request.auth.uid);
 
       // Authenticated users can create their own logs
       allow create: if isAuthenticated();
       
-      // Allow users to read their own entries (list requires query filter)
-      allow read: if isAuthenticated() && (
-        (resource != null && resource.data.userId == request.auth.uid) ||
-        (resource == null)
-      );
+      // Administrative modifications
+      allow update, delete: if isAdmin();
     }
 
     // INSTITUTIONAL CONFIG
@@ -50,17 +50,16 @@ service cloud.firestore {
 
     // NOTIFICATIONS & ALERTS
     match /notifications/{notificationId} {
-      allow read: if isAuthenticated() && (
-        isAdmin() || 
-        (resource != null && resource.data.userId == request.auth.uid)
-      );
+      allow list: if isAuthenticated();
+      allow get: if isAuthenticated() && (isAdmin() || resource.data.userId == request.auth.uid);
       allow create, write: if isAdmin();
     }
 
     // FEEDBACK TELEMETRY
     match /feedback/{feedbackId} {
       allow create: if isAuthenticated();
-      allow read: if isAdmin() || (isAuthenticated() && resource.data.userId == request.auth.uid);
+      allow list: if isAdmin();
+      allow get: if isAdmin() || (isAuthenticated() && resource.data.userId == request.auth.uid);
     }
 
     // AUDIT TRAIL
