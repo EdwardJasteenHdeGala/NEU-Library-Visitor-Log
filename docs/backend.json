@@ -48,6 +48,29 @@
         "duration": { "type": "string" },
         "timestamp": { "type": "string", "format": "date-time" }
       }
+    },
+    "LibraryConfig": {
+      "title": "LibraryConfig",
+      "description": "Global operational status and manual override settings.",
+      "type": "object",
+      "properties": {
+        "mode": { "type": "string", "enum": ["auto", "manual"] },
+        "manualStatus": { "type": "string", "enum": ["open", "closed"] },
+        "manualReason": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "Notification": {
+      "title": "Notification",
+      "description": "An alert or system update sent to a specific user.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "message": { "type": "string" },
+        "read": { "type": "boolean" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      }
     }
   },
   "auth": {
@@ -71,11 +94,11 @@
       "description": "Centralized library access log."
     },
     "/library_config/{configId}": {
-      "schema": { "type": "object" },
+      "schema": { "$ref": "#/backend/entities/LibraryConfig" },
       "description": "Global operational status configuration."
     },
     "/notifications/{notificationId}": {
-      "schema": { "type": "object" },
+      "schema": { "$ref": "#/backend/entities/Notification" },
       "description": "User-specific alerts."
     },
     "/feedback/{feedbackId}": {

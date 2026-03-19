@@ -35,8 +35,8 @@ service cloud.firestore {
     match /users/{userId} {
       allow get: if isSignedIn();
       allow list: if isAdmin();
-      allow create: if isOwner(userId);
-      allow update: if isOwner(userId) || isAdmin();
+      allow create: if isSignedIn() && request.auth.uid == userId;
+      allow update: if (isSignedIn() && request.auth.uid == userId) || isAdmin();
       allow delete: if isAdmin();
     }
 
@@ -54,9 +54,11 @@ service cloud.firestore {
 
     // VISITS: Library access logs
     match /visits/{visitId} {
-      // Allow read for authenticated, unblocked users. 
-      // Privacy is enforced by frontend filters for non-admins.
-      allow read: if isSignedIn() && isNotBlocked();
+      // Allow read for admins (all) or unblocked owners (own)
+      allow read: if isSignedIn() && (
+        isAdmin() || 
+        (isNotBlocked() && (resource == null || resource.data.userId == request.auth.uid))
+      );
       allow create: if isSignedIn() && isNotBlocked();
       allow update, delete: if isAdmin();
     }
@@ -69,16 +71,22 @@ service cloud.firestore {
 
     // NOTIFICATIONS: User alerts
     match /notifications/{notificationId} {
-      // Allow read for recipients or admins
-      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      // Allow read for admins (all) or owners (own)
+      allow read: if isSignedIn() && (
+        isAdmin() || 
+        (resource == null || resource.data.userId == request.auth.uid)
+      );
       allow create: if isAdmin();
-      allow update: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow update: if isSignedIn() && (
+        isAdmin() || 
+        (resource != null && resource.data.userId == request.auth.uid)
+      );
       allow delete: if isAdmin();
     }
 
     // FEEDBACK: Institutional sentiments
     match /feedback/{feedbackId} {
-      allow read: if isSignedIn(); 
+      allow read: if isSignedIn() || isAdmin(); 
       allow create: if isSignedIn() && isNotBlocked();
       allow update, delete: if isAdmin();
     }
