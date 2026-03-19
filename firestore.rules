@@ -14,14 +14,21 @@ service cloud.firestore {
       );
     }
 
-    // VISITS REGISTRY - Experimental Permissive Access (Fixes 'method: list' errors)
-    match /visits/{visitId} {
-      allow read, write: if isAuthenticated();
-    }
-
     // USER PROFILES
     match /users/{userId} {
       allow read, write: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+    }
+
+    // VISITS REGISTRY
+    match /visits/{visitId} {
+      // Admins have full institutional oversight
+      allow read, write: if isAdmin();
+      
+      // Members and Guests can log their presence
+      allow create: if isAuthenticated();
+      
+      // Members can read their own telemetry logs (required for Active Session check)
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
     }
 
     // INSTITUTIONAL CONFIG
