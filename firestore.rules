@@ -7,9 +7,18 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      return isAuthenticated() && 
-        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+      return isAuthenticated() && (
+        // Hardcoded Super Admin Whitelist for initial synchronization reliability
+        request.auth.token.email in [
+          "edwardjasteen.degala@neu.edu.ph",
+          "jcesperanza@neu.edu.ph",
+          "nhica.valderas@neu.edu.ph"
+        ] || (
+          // Role-based lookup in Firestore for manually promoted administrators
+          exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin"
+        )
+      );
     }
 
     // USER PROFILES
@@ -26,6 +35,7 @@ service cloud.firestore {
       allow read, write: if isAdmin();
 
       // Standard members can read their own logs (supports Active Session check)
+      // For collection queries (list), the query MUST be filtered by userId
       allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
       
       // All authenticated members can create registry entries
