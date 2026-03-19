@@ -121,7 +121,7 @@ export function WelcomeScreen({ onLogin, onGuest }: WelcomeScreenProps) {
                 variant="outline" 
                 size="xl"
                 onClick={onGuest}
-                className="w-full sm:w-auto h-20 px-14 text-xl font-black border-2 border-white text-white hover:bg-white/10 rounded-[1.5rem] backdrop-blur-sm transition-all active:scale-95"
+                className="w-full sm:w-auto h-20 px-14 text-xl font-black border-2 border-primary text-primary hover:bg-primary/5 rounded-[1.5rem] backdrop-blur-sm transition-all active:scale-95"
               >
                 GUEST INQUIRY
               </Button>
