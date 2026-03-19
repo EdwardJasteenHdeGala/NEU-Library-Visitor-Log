@@ -12,9 +12,10 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    /** 
-     * @description Optimized admin check prioritizes email whitelist for immediate access.
-     */
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
     function isAdmin() {
       return isSignedIn() && (
         request.auth.token.email.lower() in [
@@ -23,8 +24,12 @@ service cloud.firestore {
           'nhica.valderas@neu.edu.ph'
         ] ||
         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
-         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin')
+         getUserData().role == 'admin')
       );
+    }
+
+    function isMember() {
+      return isSignedIn() && getUserData().role == 'user';
     }
 
     // --- Collection Rules ---
@@ -33,13 +38,13 @@ service cloud.firestore {
       allow read, write: if isOwner(userId) || isAdmin();
     }
 
-    // Root level visits collection rule - secured for institutional oversight
     match /visits/{visitId} {
       // Admins see all. Users see only their own.
       allow read: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
-      // Listing is allowed for admins. Users can list if they apply a filter for their own UID.
-      allow list: if isAdmin() || (isSignedIn() && request.query.limit <= 100); 
-      allow create: if isSignedIn();
+      // Listing is allowed for admins only for aggregated statistics.
+      allow list: if isAdmin(); 
+      // Only members (non-guests) can log visits.
+      allow create: if isMember() || isAdmin();
       allow update, delete: if isAdmin();
     }
 
@@ -54,7 +59,6 @@ service cloud.firestore {
     }
 
     match /invites/{inviteId} {
-      // Allow newly signed-in users to query for their inheritance role
       allow read: if isAdmin() || (isSignedIn() && request.auth.token.email.lower() == resource.data.email.lower());
       allow write: if isAdmin();
     }

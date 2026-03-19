@@ -14,7 +14,8 @@ import {
   BookOpen,
   UserCheck,
   Clock,
-  History
+  History,
+  Briefcase
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { 
@@ -36,7 +37,7 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
-  AlertDialogDescription, // FIXED IMPORT
+  AlertDialogDescription,
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
@@ -55,8 +56,6 @@ const NEU_COLLEGES = [
   { id: "COM", name: "Medicine" },
   { id: "COL", name: "Law" },
   { id: "GRAD", name: "Graduate School" },
-  { id: "SHS", name: "Senior High School" },
-  { id: "HS", name: "High School" },
   { id: "EXTERNAL", name: "External / Guest" },
 ];
 
@@ -73,6 +72,13 @@ const PURPOSES = [
   "resource borrowing"
 ];
 
+const DESIGNATIONS = [
+  { id: 'student', label: 'Student' },
+  { id: 'professor', label: 'Professor' },
+  { id: 'staff', label: 'Staff' },
+  { id: 'guest', label: 'Guest' }
+];
+
 interface VisitorLogProps {
   onBack?: () => void;
 }
@@ -81,7 +87,8 @@ export function VisitorLog({ onBack }: VisitorLogProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [collegeFilter, setCollegeFilter] = useState("all");
   const [purposeFilter, setPurposeFilter] = useState("all");
-  const [roleFilter, setRoleFilter] = useState("all");
+  const [designationFilter, setDesignationFilter] = useState("all");
+  const [temporalFilter, setTemporalFilter] = useState("all");
   
   const firestore = useFirestore();
   const { toast } = useToast();
@@ -105,24 +112,22 @@ export function VisitorLog({ onBack }: VisitorLogProps) {
       const matchesSearch = 
         visit.userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         visit.college.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        visit.purpose.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (visit.academicYear && visit.academicYear.includes(searchTerm));
+        visit.purpose.toLowerCase().includes(searchTerm.toLowerCase());
       
       const matchesCollege = collegeFilter === "all" || visit.college === collegeFilter;
       const matchesPurpose = purposeFilter === "all" || visit.purpose === purposeFilter;
-      const matchesRole = roleFilter === "all" || visit.roleAtTime === roleFilter;
+      const matchesDesignation = designationFilter === "all" || visit.designation === designationFilter;
 
-      return matchesSearch && matchesCollege && matchesPurpose && matchesRole;
-    });
-  }, [visits, searchTerm, collegeFilter, purposeFilter, roleFilter]);
+      // Basic temporal logic for the filter
+      let matchesTime = true;
+      if (temporalFilter === 'today' && visit.timestamp) {
+        const today = new Date().toDateString();
+        matchesTime = visit.timestamp.toDate().toDateString() === today;
+      }
 
-  const visitFrequencyMap = useMemo(() => {
-    const map: Record<string, number> = {};
-    filteredVisits.forEach(v => {
-      map[v.userId] = (map[v.userId] || 0) + 1;
+      return matchesSearch && matchesCollege && matchesPurpose && matchesDesignation && matchesTime;
     });
-    return map;
-  }, [filteredVisits]);
+  }, [visits, searchTerm, collegeFilter, purposeFilter, designationFilter, temporalFilter]);
 
   const handlePurgeLogs = () => {
     if (!visits || visits.length === 0) return;
@@ -194,7 +199,7 @@ export function VisitorLog({ onBack }: VisitorLogProps) {
               />
             </div>
             
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-[0.5rem] md:gap-[1rem]">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[0.5rem] md:gap-[1rem]">
               <Select value={collegeFilter} onValueChange={setCollegeFilter}>
                 <SelectTrigger className="h-[3rem] text-[0.625rem] font-black uppercase tracking-widest rounded-[0.75rem] border-2 bg-white">
                   <div className="flex items-center gap-[0.5rem]"><Building2 className="h-[1rem] w-[1rem] opacity-50" /><SelectValue placeholder="All Units" /></div>
@@ -202,6 +207,27 @@ export function VisitorLog({ onBack }: VisitorLogProps) {
                 <SelectContent className="rounded-[0.75rem] border-none shadow-2xl">
                   <SelectItem value="all" className="text-[0.625rem] font-bold uppercase">ALL DEPARTMENTS</SelectItem>
                   {NEU_COLLEGES.map(c => <SelectItem key={c.id} value={c.id} className="text-[0.625rem] font-medium">{c.id}</SelectItem>)}
+                </SelectContent>
+              </Select>
+
+              <Select value={designationFilter} onValueChange={setDesignationFilter}>
+                <SelectTrigger className="h-[3rem] text-[0.625rem] font-black uppercase tracking-widest rounded-[0.75rem] border-2 bg-white">
+                  <div className="flex items-center gap-[0.5rem]"><Briefcase className="h-[1rem] w-[1rem] opacity-50" /><SelectValue placeholder="All Designations" /></div>
+                </SelectTrigger>
+                <SelectContent className="rounded-[0.75rem] border-none shadow-2xl">
+                  <SelectItem value="all" className="text-[0.625rem] font-bold uppercase">ALL DESIGNATIONS</SelectItem>
+                  {DESIGNATIONS.map(d => <SelectItem key={d.id} value={d.id} className="text-[0.625rem] font-medium">{d.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
+
+              <Select value={temporalFilter} onValueChange={setTemporalFilter}>
+                <SelectTrigger className="h-[3rem] text-[0.625rem] font-black uppercase tracking-widest rounded-[0.75rem] border-2 bg-white">
+                  <div className="flex items-center gap-[0.5rem]"><Clock className="h-[1rem] w-[1rem] opacity-50" /><SelectValue placeholder="All Time" /></div>
+                </SelectTrigger>
+                <SelectContent className="rounded-[0.75rem] border-none shadow-2xl">
+                  <SelectItem value="all" className="text-[0.625rem] font-bold uppercase">ALL RECORDS</SelectItem>
+                  <SelectItem value="today" className="text-[0.625rem] font-medium">TODAY'S REGISTRY</SelectItem>
+                  <SelectItem value="week" className="text-[0.625rem] font-medium">CURRENT WEEK</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -214,48 +240,8 @@ export function VisitorLog({ onBack }: VisitorLogProps) {
                   {PURPOSES.map(p => <SelectItem key={p} value={p} className="text-[0.625rem] font-medium capitalize">{p}</SelectItem>)}
                 </SelectContent>
               </Select>
-
-              <Select value={roleFilter} onValueChange={setRoleFilter}>
-                <SelectTrigger className="h-[3rem] text-[0.625rem] font-black uppercase tracking-widest rounded-[0.75rem] border-2 bg-white">
-                  <div className="flex items-center gap-[0.5rem]"><UserCheck className="h-[1rem] w-[1rem] opacity-50" /><SelectValue placeholder="All Roles" /></div>
-                </SelectTrigger>
-                <SelectContent className="rounded-[0.75rem] border-none shadow-2xl">
-                  <SelectItem value="all" className="text-[0.625rem] font-bold uppercase">ALL ROLES</SelectItem>
-                  <SelectItem value="user" className="text-[0.625rem] font-medium">STUDENT</SelectItem>
-                  <SelectItem value="guest" className="text-[0.625rem] font-medium">GUEST</SelectItem>
-                  <SelectItem value="admin" className="text-[0.625rem] font-medium">ADMIN</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
           </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[1.5rem]">
-        <div className="bg-primary p-[1.5rem] rounded-[1.25rem] flex items-center justify-between text-white shadow-xl group hover:scale-[1.02] transition-transform">
-          <div className="space-y-[0.25rem]">
-            <p className="text-[0.5625rem] font-black uppercase tracking-[0.2em] opacity-60">Total Sessions</p>
-            <span className="text-[2rem] font-black italic">{filteredVisits.length}</span>
-          </div>
-          <History className="h-[2.5rem] w-[2.5rem] opacity-20 group-hover:opacity-40 transition-opacity" />
-        </div>
-        <div className="bg-white border-2 p-[1.5rem] rounded-[1.25rem] flex items-center justify-between text-primary shadow-xl group hover:scale-[1.02] transition-transform">
-          <div className="space-y-[0.25rem]">
-            <p className="text-[0.5625rem] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-60">Unique Visitors</p>
-            <span className="text-[2rem] font-black italic">{Object.keys(visitFrequencyMap).length}</span>
-          </div>
-          <Users className="h-[2.5rem] w-[2.5rem] opacity-20 group-hover:opacity-40 transition-opacity" />
-        </div>
-        <div className="bg-white border-2 p-[1.5rem] rounded-[1.25rem] flex items-center justify-between text-primary shadow-xl group hover:scale-[1.02] transition-transform sm:col-span-2 lg:col-span-1">
-          <div className="space-y-[0.25rem]">
-            <p className="text-[0.5625rem] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-60">Avg. Residence (Min)</p>
-            <span className="text-[2rem] font-black italic">
-              {filteredVisits.length > 0 
-                ? Math.round(filteredVisits.reduce((acc, v) => acc + (v.durationMinutes || 0), 0) / filteredVisits.length) 
-                : 0}
-            </span>
-          </div>
-          <Clock className="h-[2.5rem] w-[2.5rem] opacity-20 group-hover:opacity-40 transition-opacity" />
         </div>
       </div>
 
@@ -266,8 +252,8 @@ export function VisitorLog({ onBack }: VisitorLogProps) {
               <TableRow>
                 <TableHead className="font-black text-[0.625rem] uppercase tracking-widest py-[1.5rem] px-[1.5rem] md:px-[2rem]">Visitor Identity</TableHead>
                 <TableHead className="font-black text-[0.625rem] uppercase tracking-widest py-[1.5rem] hidden sm:table-cell">Dept</TableHead>
-                <TableHead className="font-black text-[0.625rem] uppercase tracking-widest py-[1.5rem]">Status</TableHead>
-                <TableHead className="font-black text-[0.625rem] uppercase tracking-widest py-[1.5rem] hidden md:table-cell">Stay (Min)</TableHead>
+                <TableHead className="font-black text-[0.625rem] uppercase tracking-widest py-[1.5rem] hidden md:table-cell">Status</TableHead>
+                <TableHead className="font-black text-[0.625rem] uppercase tracking-widest py-[1.5rem]">Temporal</TableHead>
                 <TableHead className="font-black text-[0.625rem] uppercase tracking-widest py-[1.5rem] px-[1.5rem] md:px-[2rem] text-right">Handshake Sync</TableHead>
               </TableRow>
             </TableHeader>
@@ -282,23 +268,15 @@ export function VisitorLog({ onBack }: VisitorLogProps) {
                     <div className="flex flex-col min-w-0">
                       <span className="text-[0.875rem] font-black text-primary italic truncate">{visit.userName}</span>
                       <span className="text-[0.5625rem] font-bold text-muted-foreground uppercase tracking-tight truncate">{visit.purpose}</span>
-                      <span className="text-[0.5rem] font-bold text-primary/40 block sm:hidden uppercase mt-[0.25rem]">{visit.college}</span>
                     </div>
                   </TableCell>
                   <TableCell className="text-[0.625rem] font-black text-primary uppercase italic hidden sm:table-cell">{visit.college}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-[0.5rem]">
-                      <Badge variant="secondary" className="text-[0.5rem] md:text-[0.5625rem] font-black uppercase tracking-tight hidden xs:inline-flex">
-                        {visitFrequencyMap[visit.userId]}x
-                      </Badge>
-                      <span className={cn("text-[0.5625rem] md:text-[0.625rem] font-black uppercase italic", visit.exitTimestamp ? "text-green-600" : "text-secondary animate-pulse")}>
-                        {visit.exitTimestamp ? "Terminated" : "Active Session"}
-                      </span>
-                    </div>
-                  </TableCell>
                   <TableCell className="hidden md:table-cell">
-                    <span className="text-[0.625rem] font-black text-slate-500 uppercase italic">
-                      {visit.exitTimestamp ? `${visit.durationMinutes}m` : "N/A"}
+                    <Badge variant="outline" className="text-[0.5rem] font-black uppercase">{visit.designation || 'Member'}</Badge>
+                  </TableCell>
+                  <TableCell>
+                    <span className={cn("text-[0.5625rem] md:text-[0.625rem] font-black uppercase italic", visit.exitTimestamp ? "text-green-600" : "text-secondary animate-pulse")}>
+                      {visit.exitTimestamp ? "Terminated" : "Active"}
                     </span>
                   </TableCell>
                   <TableCell className="text-muted-foreground text-[0.5625rem] font-black px-[1.5rem] md:px-[2rem] text-right uppercase italic tracking-tighter">

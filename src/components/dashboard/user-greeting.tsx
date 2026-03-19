@@ -19,7 +19,9 @@ import {
   Bell,
   Info,
   Sparkles,
-  Megaphone
+  Megaphone,
+  UserCheck,
+  Lock
 } from "lucide-react";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
@@ -50,6 +52,13 @@ import { HelpView } from "./help-view";
 import { ProfileView } from "./profile-view";
 import { NotificationsView } from "./notifications-view";
 
+const MEMBER_PURPOSES = [
+  { value: "reading books", label: "Reading & Study" },
+  { value: "research in thesis", label: "Thesis Research" },
+  { value: "use of computer", label: "Computer Laboratory" },
+  { value: "doing assignments", label: "Assignments" },
+];
+
 const NEU_COLLEGES = [
   { id: "CICS", name: "Computer & Info Sciences" },
   { id: "CEA", name: "Engineering & Architecture" },
@@ -60,23 +69,7 @@ const NEU_COLLEGES = [
   { id: "COM", name: "Medicine" },
   { id: "COL", name: "Law" },
   { id: "GRAD", name: "Graduate School" },
-  { id: "SHS", name: "Senior High School" },
-  { id: "HS", name: "High School" },
   { id: "EXTERNAL", name: "External / Guest" },
-];
-
-const MEMBER_PURPOSES = [
-  { value: "reading books", label: "Reading & Study" },
-  { value: "research in thesis", label: "Thesis Research" },
-  { value: "use of computer", label: "Computer Laboratory" },
-  { value: "doing assignments", label: "Assignments" },
-];
-
-const GUEST_PURPOSES = [
-  { value: "visit", label: "General Visitation" },
-  { value: "inquiry", label: "Information Inquiry" },
-  { value: "tour", label: "Facility Tour" },
-  { value: "media use", label: "Media Consultation" },
 ];
 
 type UserSubView = 'log-entry' | 'feedback' | 'help' | 'profile' | 'notifications';
@@ -95,7 +88,7 @@ export function UserGreeting() {
   const [announcementIndex, setAnnouncementIndex] = useState(0);
 
   const announcements = [
-    "Library Registry synchronization is mandatory for all visitors.",
+    "Library Registry synchronization is mandatory for all members.",
     "CICS thesis repository access now available via digital terminal.",
     "New academic resources added to the Research Archive.",
     "Quiet study protocols active in the South Wing."
@@ -113,19 +106,24 @@ export function UserGreeting() {
   const isGuest = profile?.role === 'guest';
 
   const activeVisitQuery = useMemoFirebase(() => {
-    if (!profile?.id || !firestore) return null;
+    if (!profile?.id || !firestore || isGuest) return null;
     return query(
       collection(firestore, 'visits'),
       where('userId', '==', profile.id),
       orderBy('timestamp', 'desc'),
       limit(1)
     );
-  }, [profile?.id, firestore]);
+  }, [profile?.id, firestore, isGuest]);
 
   const { data: visits } = useCollection(activeVisitQuery);
   const activeVisit = visits && visits[0] && !visits[0].exitTimestamp ? visits[0] : null;
 
   const handleCheckIn = () => {
+    if (isGuest) {
+      toast({ title: "Access Denied", description: "Guests cannot log visits in the institutional registry.", variant: "destructive" });
+      return;
+    }
+
     if (!purpose || !profile || !firestore || !currentCollege) {
       toast({ title: "Incomplete Protocol", description: "Select academic unit and purpose.", variant: "destructive" });
       return;
@@ -137,6 +135,7 @@ export function UserGreeting() {
       userName: profile.displayName,
       college: currentCollege,
       roleAtTime: profile.role,
+      designation: profile.designation,
       purpose: purpose,
       timestamp: new Date(),
       exitTimestamp: null,
@@ -180,8 +179,6 @@ export function UserGreeting() {
     { id: 'help', label: 'Support', icon: HelpCircle },
     { id: 'profile', label: 'Identity', icon: Settings },
   ];
-
-  const purposes = isGuest ? GUEST_PURPOSES : MEMBER_PURPOSES;
 
   if (subView === 'notifications') return <NotificationsView onBack={() => setSubView('log-entry')} />;
   if (subView === 'feedback') return <FeedbackView onBack={() => setSubView('log-entry')} />;
@@ -264,14 +261,15 @@ export function UserGreeting() {
               <div className="space-y-[1.5rem] text-center md:text-left">
                 <div className="inline-flex items-center gap-[0.5rem] bg-white/10 px-[1rem] py-[0.5rem] rounded-full border border-white/20">
                   <Sparkles className="h-[1rem] w-[1rem] text-secondary" />
-                  <span className="text-[0.625rem] font-bold uppercase tracking-[0.2em]">Institutional Handshake Complete</span>
+                  <span className="text-[0.625rem] font-bold uppercase tracking-[0.2em]">Identity Synchronized</span>
                 </div>
                 <h2 className="text-[clamp(2rem,6vw,4rem)] font-black italic tracking-tighter uppercase leading-none drop-shadow-lg">
-                  Welcome back, <br /> 
+                  {isGuest ? "Welcome to NEU Library" : "Welcome back,"} <br /> 
                   <span className="text-secondary">{profile?.displayName?.split(' ')[0]}!</span>
                 </h2>
                 <p className="text-[clamp(1rem,2vw,1.125rem)] opacity-80 font-medium max-w-[30rem] italic">
-                  Advancing academic excellence through precision registry protocols. Access your resources below.
+                  Advancing academic excellence through precision registry protocols. 
+                  {isGuest ? " Enjoy your limited institutional access." : " Use the registry below to log your visit."}
                 </p>
               </div>
               <div className="flex flex-col items-center gap-[1rem] bg-white/10 p-[2rem] rounded-[2rem] backdrop-blur-md border border-white/20 min-w-[clamp(15rem,30vw,18rem)] shadow-inner">
@@ -296,13 +294,26 @@ export function UserGreeting() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-[clamp(1.5rem,5vw,3.5rem)] space-y-[clamp(1.5rem,5vh,2.5rem)]">
-                {activeVisit ? (
+                {isGuest ? (
+                   <div className="bg-muted/30 border-2 border-dashed rounded-[2rem] p-[clamp(2rem,8vw,4rem)] text-center space-y-6">
+                      <div className="mx-auto w-20 h-20 bg-white rounded-2xl shadow-lg flex items-center justify-center border-2 border-muted">
+                        <Lock className="h-10 w-10 text-muted-foreground" />
+                      </div>
+                      <div className="space-y-2">
+                        <h3 className="text-xl font-black text-primary uppercase italic tracking-tighter">Limited Guest View</h3>
+                        <p className="text-sm text-muted-foreground font-medium italic">
+                          Visitor logging is restricted to institutional members only. Guests may browse informational resources but cannot register presence.
+                        </p>
+                      </div>
+                      <Button variant="outline" onClick={() => setSubView('help')} className="font-black uppercase text-[10px] tracking-widest rounded-xl">View Visitor Guide</Button>
+                   </div>
+                ) : activeVisit ? (
                   <div className="bg-primary/5 border-2 border-dashed border-primary/20 p-[clamp(2rem,8vw,4rem)] rounded-[2rem] text-center space-y-[clamp(1.5rem,4vh,2rem)] animate-in zoom-in duration-500">
                     <div className="h-[clamp(4.5rem,10vw,6rem)] w-[clamp(4.5rem,10vw,6rem)] bg-white rounded-[1.5rem] shadow-xl flex items-center justify-center mx-auto border-[4px] border-primary/10">
                       <Activity className="h-[clamp(2rem,5vw,3rem)] w-[clamp(2rem,5vw,3rem)] text-primary animate-pulse" />
                     </div>
                     <div className="space-y-[0.5rem]">
-                      <h3 className="text-[clamp(1.25rem,3vw,1.75rem)] font-black text-primary italic uppercase tracking-tighter">Active Log Synchronization</h3>
+                      <h3 className="text-[clamp(1.25rem,3vw,1.75rem)] font-black text-primary italic uppercase tracking-tighter">Active Session Synchronized</h3>
                       <p className="text-muted-foreground font-black uppercase text-[0.625rem] tracking-widest bg-white/50 px-[1rem] py-[0.25rem] rounded-full inline-block">
                         Logged entry: {activeVisit.timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </p>
@@ -329,11 +340,7 @@ export function UserGreeting() {
                             <SelectValue placeholder="Select Unit" />
                           </SelectTrigger>
                           <SelectContent className="rounded-[1rem] border-none shadow-2xl">
-                            {isGuest ? (
-                              <SelectItem value="EXTERNAL" className="font-bold">External Visitor</SelectItem>
-                            ) : (
-                              NEU_COLLEGES.map(c => <SelectItem key={c.id} value={c.id} className="font-bold">{c.name} ({c.id})</SelectItem>)
-                            )}
+                            {NEU_COLLEGES.map(c => <SelectItem key={c.id} value={c.id} className="font-bold">{c.name} ({c.id})</SelectItem>)}
                           </SelectContent>
                         </Select>
                       </div>
@@ -346,7 +353,7 @@ export function UserGreeting() {
                             <SelectValue placeholder="Select Purpose" />
                           </SelectTrigger>
                           <SelectContent className="rounded-[1rem] border-none shadow-2xl">
-                            {purposes.map(p => (
+                            {MEMBER_PURPOSES.map(p => (
                               <SelectItem key={p.value} value={p.value} className="font-bold">{p.label}</SelectItem>
                             ))}
                           </SelectContent>
@@ -378,7 +385,7 @@ export function UserGreeting() {
                 <h4 className="font-black text-[0.75rem] uppercase tracking-[0.2em] text-primary">Institutional Policy</h4>
               </div>
               <p className="text-[0.875rem] font-bold italic leading-relaxed text-muted-foreground">
-                Registry synchronization is mandatory for all visitors. Your academic logs are archived for institutional oversight and facility optimization compliance.
+                Registry synchronization is mandatory for all university members. Your academic logs are archived for institutional oversight and audit compliance.
               </p>
               <div className="space-y-[0.75rem]">
                 <div className="flex items-center gap-[1rem] p-[1rem] bg-slate-50 rounded-[1rem] border">
