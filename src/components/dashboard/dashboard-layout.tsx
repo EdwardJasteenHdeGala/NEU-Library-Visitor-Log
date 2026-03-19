@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -98,7 +97,7 @@ export function DashboardLayout() {
               </div>
               <div className="flex flex-col leading-none">
                 <h1 className="text-xs font-black tracking-tighter text-primary uppercase italic">NEU Hub</h1>
-                <span className="text-[7px] font-bold text-muted-foreground uppercase tracking-widest">Admin Console</span>
+                <span className="text-[7px] font-bold text-muted-foreground uppercase tracking-widest">CICS Console</span>
               </div>
             </div>
           </SidebarHeader>
@@ -203,7 +202,7 @@ export function DashboardLayout() {
           <footer className="p-8 bg-card border-t border-border flex flex-col items-center gap-4">
             <div className="flex items-center gap-3 opacity-30 grayscale">
               <Image src={logoImage?.imageUrl || ""} alt="NEU" width={24} height={24} />
-              <span className="text-[8px] font-black uppercase tracking-[0.4em] text-primary">New Era University Institutional Hub</span>
+              <span className="text-[8px] font-black uppercase tracking-[0.4em] text-primary">New Era University Institutional Hub • CICS</span>
             </div>
           </footer>
         </div>

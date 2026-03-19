@@ -52,4 +52,4 @@ The codebase is organized into modular directories to ensure scalability and mai
 - **Accessibility:** All designs must adhere to institutional contrast ratios and support keyboard navigation.
 
 ---
-© 2026 NEW ERA UNIVERSITY • THE HUB • COLLEGE OF ENGINEERING & ARCHITECTURE
+© 2026 NEW ERA UNIVERSITY • THE HUB • COLLEGE OF INFORMATICS & COMPUTING SCIENCES

@@ -20,7 +20,7 @@ import {
   Info,
   ChevronRight,
   Sparkles,
-  Megaphone // IMPORTED
+  Megaphone
 } from "lucide-react";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
@@ -90,14 +90,14 @@ export function UserGreeting() {
   
   const [subView, setSubView] = useState<UserSubView>('log-entry');
   const [purpose, setPurpose] = useState<string>("");
-  const [currentCollege, setCurrentCollege] = useState<string>(profile?.college || "EXTERNAL");
+  const [currentCollege, setCurrentCollege] = useState<string>(profile?.college || "CICS");
   const [isLogging, setIsLogging] = useState(false);
   const [academicYear, setAcademicYear] = useState("");
   const [announcementIndex, setAnnouncementIndex] = useState(0);
 
   const announcements = [
     "Library Registry synchronization is mandatory for all visitors.",
-    "Thesis repository access now available via digital terminal.",
+    "CICS thesis repository access now available via digital terminal.",
     "New academic resources added to the Research Archive.",
     "Quiet study protocols active in the South Wing."
   ];
@@ -406,7 +406,7 @@ export function UserGreeting() {
       </main>
 
       <footer className="p-[2.5rem] text-center text-muted-foreground text-[0.625rem] font-black uppercase tracking-[0.4em] opacity-40 mt-auto">
-        © {new Date().getFullYear()} NEW ERA UNIVERSITY • THE HUB • COLLEGE OF ENGINEERING & ARCHITECTURE
+        © {new Date().getFullYear()} NEW ERA UNIVERSITY • THE HUB • COLLEGE OF INFORMATICS & COMPUTING SCIENCES
       </footer>
     </div>
   );

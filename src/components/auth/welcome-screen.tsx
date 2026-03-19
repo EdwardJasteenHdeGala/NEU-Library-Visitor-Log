@@ -1,4 +1,3 @@
-
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -189,7 +188,7 @@ export function WelcomeScreen({ onLogin, onGuest }: WelcomeScreenProps) {
       <footer className="p-10 text-center border-t bg-slate-50">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
           <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.4em] italic opacity-60">
-            © {new Date().getFullYear()} NEW ERA UNIVERSITY • THE HUB • COLLEGE OF ENGINEERING & ARCHITECTURE
+            © {new Date().getFullYear()} NEW ERA UNIVERSITY • THE HUB • COLLEGE OF INFORMATICS & COMPUTING SCIENCES
           </p>
           <div className="flex items-center gap-6">
              <span className="text-[9px] font-bold text-primary/40 uppercase tracking-widest hover:text-primary transition-colors cursor-default">Scholarship</span>

@@ -158,8 +158,8 @@ export function GuestView({ onBack, onLogin }: GuestViewProps) {
           <aside className="lg:col-span-4 space-y-[2rem] lg:sticky lg:top-[6rem]">
             <Card className="shadow-2xl p-[2.5rem] space-y-[2rem] rounded-[2rem] border-none text-white bg-slate-900 relative overflow-hidden group">
               <div className="absolute inset-0 bg-dot-pattern opacity-10" />
-              <div className="space-y-[1.5rem] relative z-10">
-                <div className="flex flex-col gap-[0.5rem]">
+              <div className="space-y-[1.5rem] relative z-10 flex flex-col items-center text-center">
+                <div className="flex flex-col gap-[0.5rem] items-center">
                   <div className="flex items-center gap-[0.75rem] bg-secondary/20 w-fit px-[1rem] py-[0.375rem] rounded-full border border-secondary/30">
                     <div className="h-[0.5rem] w-[0.5rem] rounded-full bg-secondary animate-pulse" />
                     <span className="text-[0.625rem] font-black uppercase tracking-widest text-secondary">Portal Active</span>
@@ -170,10 +170,10 @@ export function GuestView({ onBack, onLogin }: GuestViewProps) {
                   Institutional members must officially log their presence to access academic facilities and resources.
                 </p>
                 
-                <div className="pt-[1rem] flex justify-start">
+                <div className="pt-[1rem] w-full">
                   <Button 
                     onClick={onLogin}
-                    className="group h-[4rem] px-[2rem] bg-primary text-white hover:bg-primary/90 font-black text-[0.75rem] uppercase tracking-[0.2em] rounded-[1rem] shadow-3xl active:scale-95 transition-all flex items-center gap-[1rem]"
+                    className="group w-full h-[4rem] px-[2rem] bg-primary text-white hover:bg-primary/90 font-black text-[0.75rem] uppercase tracking-[0.2em] rounded-[1rem] shadow-3xl active:scale-95 transition-all flex items-center justify-center gap-[1rem]"
                   >
                     Enter Portal Gateway
                     <ChevronRight className="h-[1.25rem] w-[1.25rem] transition-transform group-hover:translate-x-[0.25rem]" />
@@ -210,7 +210,7 @@ export function GuestView({ onBack, onLogin }: GuestViewProps) {
             </Card>
             
             <p className="text-[0.625rem] font-black text-slate-400 text-center uppercase tracking-[0.4em] px-[2rem] opacity-60">
-               NEU • ACCESS HUB • COLLEGE OF ENG & ARCH
+               NEU • ACCESS HUB • COLLEGE OF INFORMATICS & COMPUTING SCIENCES
             </p>
           </aside>
         </div>
