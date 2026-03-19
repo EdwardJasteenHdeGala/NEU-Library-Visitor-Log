@@ -18,8 +18,8 @@ const buttonVariants = cva(
           "bg-secondary text-secondary-foreground hover:brightness-105 shadow-sm",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
-        neu: "bg-primary text-white hover:bg-primary/95 shadow-xl neu-button-shadow",
-        neuSecondary: "bg-secondary text-primary hover:brightness-105 shadow-xl neu-button-shadow-secondary",
+        neu: "bg-primary text-white hover:bg-primary/95 shadow-xl",
+        neuSecondary: "bg-secondary text-primary hover:brightness-105 shadow-xl",
       },
       size: {
         default: "h-10 px-5 py-2",

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -31,7 +30,7 @@ export function WelcomeScreen({ onLogin, onGuest }: WelcomeScreenProps) {
       {/* Institutional Top Bar */}
       <header className="p-6 flex justify-between items-center max-w-7xl mx-auto w-full z-20">
         <div className="flex items-center gap-3">
-          <div className="bg-white p-1 rounded shadow-sm w-10 h-10 relative overflow-hidden flex items-center justify-center">
+          <div className="bg-white p-1 rounded shadow-sm w-10 h-10 relative overflow-hidden flex items-center justify-center transition-transform hover:scale-110">
              <Image 
                 src={logoImage?.imageUrl || ""} 
                 alt="NEU Logo" 
@@ -53,7 +52,7 @@ export function WelcomeScreen({ onLogin, onGuest }: WelcomeScreenProps) {
           </div>
           <Dialog>
             <DialogTrigger asChild>
-              <button className="text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors">Registry Protocols</button>
+              <button className="text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-all active:scale-95">Registry Protocols</button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-xl rounded-[2rem] border-none shadow-3xl">
               <DialogHeader>
@@ -64,18 +63,18 @@ export function WelcomeScreen({ onLogin, onGuest }: WelcomeScreenProps) {
                 <DialogDescription className="font-medium text-lg italic">Access and facility guidelines.</DialogDescription>
               </DialogHeader>
               <div className="space-y-6 py-6">
-                <div className="p-6 bg-primary/5 rounded-2xl border-2 border-dashed border-primary/20 space-y-3">
+                <div className="p-6 bg-primary/5 rounded-2xl border-2 border-dashed border-primary/20 space-y-3 transition-colors hover:bg-primary/10">
                   <h4 className="font-black text-sm uppercase tracking-tight text-primary">Mandatory Attendance Logging</h4>
                   <p className="text-xs text-muted-foreground leading-relaxed italic">All visitors must officially register their entry via the Access Hub portal. Records are synchronized with the university's institutional audit registry.</p>
                 </div>
-                <div className="p-6 bg-secondary/5 rounded-2xl border-2 border-dashed border-secondary/20 space-y-3">
+                <div className="p-6 bg-secondary/5 rounded-2xl border-2 border-dashed border-secondary/20 space-y-3 transition-colors hover:bg-secondary/10">
                   <h4 className="font-black text-sm uppercase tracking-tight text-primary">Identity Synchronization</h4>
                   <p className="text-xs text-muted-foreground leading-relaxed italic">Institutional members must provide valid ID details. Guests are permitted access within designated academic zones only.</p>
                 </div>
               </div>
             </DialogContent>
           </Dialog>
-          <Button onClick={onLogin} size="sm" className="font-black uppercase text-[10px] tracking-widest rounded-xl shadow-lg h-10 px-6">Institutional Gateway</Button>
+          <Button onClick={onLogin} size="sm" className="font-black uppercase text-[10px] tracking-widest rounded-xl shadow-lg h-10 px-6 transition-all hover:scale-105 active:scale-95">Institutional Gateway</Button>
         </div>
       </header>
 
@@ -96,13 +95,13 @@ export function WelcomeScreen({ onLogin, onGuest }: WelcomeScreenProps) {
 
           <div className="relative z-10 max-w-4xl px-6 space-y-10 animate-in fade-in slide-in-from-bottom-8 duration-1000">
             <div className="space-y-4">
-              <div className="inline-flex items-center gap-3 bg-white/10 backdrop-blur-md text-white border border-white/20 px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.3em] shadow-2xl">
+              <div className="inline-flex items-center gap-3 bg-white/10 backdrop-blur-md text-white border border-white/20 px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.3em] shadow-2xl transition-all hover:bg-white/20">
                 <Info className="h-4 w-4 text-secondary" />
                 Official Portal of New Era University
               </div>
-              <h1 className="text-5xl md:text-8xl font-black text-white tracking-tighter uppercase italic leading-[0.9]">
+              <h1 className="text-5xl md:text-8xl font-black text-white tracking-tighter uppercase italic leading-[0.9] drop-shadow-2xl">
                 Library <br /> 
-                <span className="text-secondary drop-shadow-2xl">Access Hub</span>
+                <span className="text-secondary">Access Hub</span>
               </h1>
               <p className="text-lg md:text-2xl text-white/90 max-w-2xl mx-auto leading-relaxed font-medium italic drop-shadow-lg">
                 Advancing scholarship through automated registry synchronization and real-time resource tracking.
@@ -113,7 +112,7 @@ export function WelcomeScreen({ onLogin, onGuest }: WelcomeScreenProps) {
               <Button 
                 size="xl" 
                 onClick={onLogin}
-                className="w-full sm:w-auto h-20 px-14 text-xl font-black gap-4 rounded-[1.5rem] shadow-3xl bg-white text-primary hover:bg-secondary transition-all group"
+                className="w-full sm:w-auto h-20 px-14 text-xl font-black gap-4 rounded-[1.5rem] shadow-3xl bg-white text-primary hover:bg-secondary transition-all group active:scale-95"
               >
                 ACCESS PORTAL
                 <ArrowRight className="h-6 w-6 group-hover:translate-x-2 transition-transform" />
@@ -122,7 +121,7 @@ export function WelcomeScreen({ onLogin, onGuest }: WelcomeScreenProps) {
                 variant="outline" 
                 size="xl"
                 onClick={onGuest}
-                className="w-full sm:w-auto h-20 px-14 text-xl font-black border-2 border-white text-white hover:bg-white/10 rounded-[1.5rem] backdrop-blur-sm"
+                className="w-full sm:w-auto h-20 px-14 text-xl font-black border-2 border-white text-white hover:bg-white/10 rounded-[1.5rem] backdrop-blur-sm transition-all active:scale-95"
               >
                 GUEST INQUIRY
               </Button>
@@ -152,7 +151,7 @@ export function WelcomeScreen({ onLogin, onGuest }: WelcomeScreenProps) {
                 }
               ].map((item, i) => (
                 <div key={i} className="flex flex-col items-center text-center gap-6 p-10 rounded-[2.5rem] bg-slate-50 border-2 border-transparent hover:border-primary/10 transition-all group">
-                  <div className="p-6 rounded-3xl bg-white shadow-xl group-hover:scale-110 group-hover:rotate-3 transition-all">
+                  <div className="p-6 rounded-3xl bg-white shadow-xl group-hover:scale-110 group-hover:rotate-3 transition-all duration-500">
                     <item.icon className="h-10 w-10 text-primary" />
                   </div>
                   <div className="space-y-2">
@@ -163,21 +162,21 @@ export function WelcomeScreen({ onLogin, onGuest }: WelcomeScreenProps) {
               ))}
             </div>
 
-            <div className="mt-24 p-12 bg-primary rounded-[3rem] text-white flex flex-col md:flex-row items-center justify-between gap-10 shadow-3xl relative overflow-hidden">
+            <div className="mt-24 p-12 bg-primary rounded-[3rem] text-white flex flex-col md:flex-row items-center justify-between gap-10 shadow-3xl relative overflow-hidden group">
               <div className="absolute inset-0 bg-dot-pattern opacity-10" />
               <div className="space-y-3 relative z-10 text-center md:text-left">
                 <div className="flex items-center justify-center md:justify-start gap-3 text-secondary font-black uppercase text-[10px] tracking-[0.4em]">
                   <Clock className="h-4 w-4" /> Real-time Operational Status
                 </div>
-                <h3 className="text-3xl font-black italic uppercase tracking-tighter">{status.label}</h3>
+                <h3 className="text-3xl font-black italic uppercase tracking-tighter transition-all group-hover:translate-x-1">{status.label}</h3>
                 <p className="text-white/70 font-medium italic">{status.nextEvent}</p>
               </div>
-              <div className="flex items-center gap-6 relative z-10">
+              <div className="flex items-center gap-6 relative z-10 transition-transform group-hover:scale-110">
                 <div className="hidden lg:flex flex-col items-end leading-none">
                   <span className="text-[10px] font-black uppercase tracking-widest text-secondary">Campus Location</span>
                   <span className="text-lg font-black italic">Quezon City Main</span>
                 </div>
-                <div className="p-4 bg-white/10 rounded-2xl border border-white/20">
+                <div className="p-4 bg-white/10 rounded-2xl border border-white/20 shadow-inner">
                   <MapPin className="h-8 w-8 text-secondary" />
                 </div>
               </div>
@@ -188,13 +187,13 @@ export function WelcomeScreen({ onLogin, onGuest }: WelcomeScreenProps) {
 
       <footer className="p-10 text-center border-t bg-slate-50">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-          <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.4em] italic">
+          <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.4em] italic opacity-60">
             © {new Date().getFullYear()} NEW ERA UNIVERSITY • THE HUB • COLLEGE OF ENGINEERING & ARCHITECTURE
           </p>
           <div className="flex items-center gap-6">
-             <span className="text-[9px] font-bold text-primary/40 uppercase tracking-widest">Scholarship</span>
-             <span className="text-[9px] font-bold text-primary/40 uppercase tracking-widest">Research</span>
-             <span className="text-[9px] font-bold text-primary/40 uppercase tracking-widest">Integrity</span>
+             <span className="text-[9px] font-bold text-primary/40 uppercase tracking-widest hover:text-primary transition-colors cursor-default">Scholarship</span>
+             <span className="text-[9px] font-bold text-primary/40 uppercase tracking-widest hover:text-primary transition-colors cursor-default">Research</span>
+             <span className="text-[9px] font-bold text-primary/40 uppercase tracking-widest hover:text-primary transition-colors cursor-default">Integrity</span>
           </div>
         </div>
       </footer>

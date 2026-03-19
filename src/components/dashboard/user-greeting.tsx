@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -99,7 +98,6 @@ export function UserGreeting() {
     setAcademicYear(getAcademicYear());
   }, []);
 
-  // Secure personal visit registry query
   const activeVisitQuery = useMemoFirebase(() => {
     if (!profile?.id || !firestore) return null;
     return query(
@@ -111,7 +109,6 @@ export function UserGreeting() {
   }, [profile?.id, firestore]);
 
   const { data: visits } = useCollection(activeVisitQuery);
-
   const activeVisit = visits && visits[0] && !visits[0].exitTimestamp ? visits[0] : null;
 
   const handleCheckIn = () => {
@@ -182,7 +179,7 @@ export function UserGreeting() {
       <header className="neu-header">
         <div className="max-w-7xl mx-auto flex justify-between items-center px-6 w-full">
           <div className="flex items-center gap-4">
-            <div className="bg-white p-1 rounded shadow-sm w-9 h-9 relative overflow-hidden flex items-center justify-center cursor-pointer" onClick={() => setSubView('log-entry')}>
+            <div className="bg-white p-1 rounded shadow-sm w-9 h-9 relative overflow-hidden flex items-center justify-center cursor-pointer transition-transform hover:scale-105 active:scale-95" onClick={() => setSubView('log-entry')}>
               <Image src={logoImage?.imageUrl || ""} alt="NEU" fill priority className="object-contain p-1.5" />
             </div>
             <div className="flex flex-col leading-none">
@@ -200,7 +197,9 @@ export function UserGreeting() {
                 onClick={() => setSubView(item.id as UserSubView)} 
                 className={cn(
                   "px-4 py-2 text-[9px] font-bold uppercase tracking-widest transition-all flex items-center gap-2 rounded-lg", 
-                  subView === item.id ? "bg-white/10 text-white shadow-sm" : "text-white/60 hover:text-white"
+                  subView === item.id 
+                    ? "bg-white/20 text-white shadow-inner scale-105" 
+                    : "text-white/60 hover:text-white hover:bg-white/5"
                 )}
               >
                 <item.icon className="h-3.5 w-3.5" /> {item.label}
@@ -210,13 +209,13 @@ export function UserGreeting() {
 
           <div className="flex items-center gap-4">
             {profile?.isAuthorizedAdmin && (
-              <Button variant="secondary" size="sm" onClick={() => switchRole('admin')} className="h-8 px-4 gap-2 font-bold text-[9px] uppercase rounded-lg hidden sm:flex">
+              <Button variant="secondary" size="sm" onClick={() => switchRole('admin')} className="h-8 px-4 gap-2 font-bold text-[9px] uppercase rounded-lg hidden sm:flex shadow-md hover:scale-105 active:scale-95">
                 <ShieldCheck className="h-3.5 w-3.5" /> Admin Portal
               </Button>
             )}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Avatar className="h-8 w-8 border border-white/20 cursor-pointer hover:scale-105 transition-transform">
+                <Avatar className="h-8 w-8 border-2 border-white/20 cursor-pointer hover:scale-110 transition-transform">
                   <AvatarImage src={profile?.photoURL} />
                   <AvatarFallback className="bg-secondary text-primary font-bold text-[10px]">{userInitials}</AvatarFallback>
                 </Avatar>
@@ -224,10 +223,10 @@ export function UserGreeting() {
               <DropdownMenuContent align="end" className="w-56 mt-2 rounded-xl shadow-2xl border-none bg-white">
                 <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Registry Identity</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => setSubView('notifications')} className="gap-2 cursor-pointer font-medium text-xs"><Bell className="h-4 w-4" /> Alerts</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setSubView('profile')} className="gap-2 cursor-pointer font-medium text-xs"><Settings className="h-4 w-4" /> Identity Sync</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSubView('notifications')} className="gap-2 cursor-pointer font-medium text-xs transition-colors hover:bg-primary/5"><Bell className="h-4 w-4" /> Alerts</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSubView('profile')} className="gap-2 cursor-pointer font-medium text-xs transition-colors hover:bg-primary/5"><Settings className="h-4 w-4" /> Identity Sync</DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={logout} className="gap-2 text-destructive cursor-pointer font-medium text-xs"><LogOut className="h-4 w-4" /> Terminate Session</DropdownMenuItem>
+                <DropdownMenuItem onClick={logout} className="gap-2 text-destructive cursor-pointer font-medium text-xs transition-colors hover:bg-destructive/5"><LogOut className="h-4 w-4" /> Terminate Session</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
@@ -236,22 +235,22 @@ export function UserGreeting() {
 
       <main className="flex-1 w-full max-w-7xl mx-auto p-6 md:p-10 space-y-10">
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-          <Card className="border-none rounded-[2.5rem] bg-primary text-white overflow-hidden shadow-2xl relative">
+          <Card className="border-none rounded-[2.5rem] bg-primary text-white overflow-hidden shadow-2xl relative group">
             <div className="absolute inset-0 bg-dot-pattern opacity-10" />
             <CardContent className="p-10 md:p-16 flex flex-col md:flex-row items-center justify-between gap-10 relative z-10">
               <div className="space-y-6 text-center md:text-left">
-                <div className="inline-flex items-center gap-2 bg-white/10 px-4 py-2 rounded-full border border-white/20">
+                <div className="inline-flex items-center gap-2 bg-white/10 px-4 py-2 rounded-full border border-white/20 transition-all group-hover:bg-white/20">
                   <Library className="h-4 w-4 text-secondary" />
                   <span className="text-[10px] font-bold uppercase tracking-[0.2em]">Institutional Hub Active</span>
                 </div>
-                <h2 className="text-4xl md:text-6xl font-black italic tracking-tighter uppercase leading-none">
+                <h2 className="text-4xl md:text-6xl font-black italic tracking-tighter uppercase leading-none drop-shadow-lg">
                   Welcome to <br /> NEU Library!
                 </h2>
-                <p className="text-lg opacity-80 font-medium max-w-lg">
+                <p className="text-lg opacity-80 font-medium max-w-lg italic">
                   Synchronize your attendance registry and access institutional resources with precision.
                 </p>
               </div>
-              <div className="flex flex-col items-center gap-4 bg-white/10 p-8 rounded-[2rem] backdrop-blur-md border border-white/20 min-w-[280px]">
+              <div className="flex flex-col items-center gap-4 bg-white/10 p-8 rounded-[2rem] backdrop-blur-md border border-white/20 min-w-[280px] shadow-inner transition-transform group-hover:scale-105">
                 <LiveClock className="!bg-transparent !border-none !text-white !p-0" showSelector={false} />
                 <div className="h-px w-full bg-white/20" />
                 <div className="flex items-center gap-2">
@@ -275,12 +274,12 @@ export function UserGreeting() {
               <CardContent className="p-10 md:p-14 space-y-10">
                 {activeVisit ? (
                   <div className="bg-primary/5 border-2 border-dashed border-primary/20 p-16 rounded-[2.5rem] text-center space-y-8 animate-in zoom-in duration-500">
-                    <div className="h-24 w-24 bg-white rounded-[2rem] shadow-xl flex items-center justify-center mx-auto border-4 border-primary/10">
+                    <div className="h-24 w-24 bg-white rounded-[2rem] shadow-xl flex items-center justify-center mx-auto border-4 border-primary/10 transition-transform hover:scale-110">
                       <Activity className="h-12 w-12 text-primary animate-pulse" />
                     </div>
                     <div className="space-y-2">
                       <h3 className="text-3xl font-black text-primary italic uppercase tracking-tighter">Active Attendance Protocol</h3>
-                      <p className="text-muted-foreground font-bold uppercase text-[10px] tracking-widest">
+                      <p className="text-muted-foreground font-bold uppercase text-[10px] tracking-widest bg-white/50 px-4 py-1 rounded-full inline-block">
                         Logged since: {activeVisit.timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </p>
                     </div>
@@ -288,7 +287,7 @@ export function UserGreeting() {
                       onClick={handleCheckOut} 
                       disabled={isLogging} 
                       variant="destructive" 
-                      className="h-20 px-12 text-xl font-black uppercase tracking-widest rounded-2xl shadow-2xl active:scale-95 transition-all w-full md:w-auto"
+                      className="h-20 px-12 text-xl font-black uppercase tracking-widest rounded-2xl shadow-2xl active:scale-95 transition-all w-full md:w-auto hover:bg-destructive/95"
                     >
                       {isLogging ? <Loader2 className="h-6 w-6 animate-spin" /> : "TERMINATE SESSION"}
                     </Button>
@@ -297,9 +296,11 @@ export function UserGreeting() {
                   <div className="space-y-10">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                       <div className="space-y-4">
-                        <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] ml-3">Academic Unit</label>
+                        <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] ml-3 flex items-center gap-2">
+                          <Library className="h-3 w-3" /> Academic Unit
+                        </label>
                         <Select value={currentCollege} onValueChange={setCurrentCollege}>
-                          <SelectTrigger className="h-16 font-black text-lg rounded-2xl border-2 shadow-inner bg-slate-50/50 px-8">
+                          <SelectTrigger className="h-16 font-black text-lg rounded-2xl border-2 shadow-inner bg-slate-50/50 px-8 transition-all hover:border-primary/50 focus:ring-primary">
                             <SelectValue placeholder="Select Dept" />
                           </SelectTrigger>
                           <SelectContent className="rounded-2xl border-none shadow-3xl">
@@ -312,9 +313,11 @@ export function UserGreeting() {
                         </Select>
                       </div>
                       <div className="space-y-4">
-                        <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] ml-3">Access Purpose</label>
+                        <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] ml-3 flex items-center gap-2">
+                          <Activity className="h-3 w-3" /> Access Purpose
+                        </label>
                         <Select value={purpose} onValueChange={setPurpose}>
-                          <SelectTrigger className="h-16 font-black text-lg rounded-2xl border-2 shadow-inner bg-slate-50/50 px-8">
+                          <SelectTrigger className="h-16 font-black text-lg rounded-2xl border-2 shadow-inner bg-slate-50/50 px-8 transition-all hover:border-primary/50 focus:ring-primary">
                             <SelectValue placeholder="Select Purpose" />
                           </SelectTrigger>
                           <SelectContent className="rounded-2xl border-none shadow-3xl">
@@ -328,7 +331,7 @@ export function UserGreeting() {
                     <Button 
                       onClick={handleCheckIn} 
                       disabled={!purpose || isLogging} 
-                      className="w-full h-24 text-3xl font-black gap-6 rounded-[2rem] shadow-3xl bg-primary hover:bg-primary/95 transition-all group overflow-hidden relative"
+                      className="w-full h-24 text-3xl font-black gap-6 rounded-[2rem] shadow-3xl bg-primary hover:bg-primary/95 transition-all group overflow-hidden relative active:scale-95"
                     >
                       <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                       {isLogging ? <Loader2 className="h-10 w-10 animate-spin" /> : <CheckCircle2 className="h-10 w-10 text-secondary" />}
@@ -341,7 +344,7 @@ export function UserGreeting() {
           </div>
 
           <aside className="lg:col-span-4 space-y-10">
-            <Card className="p-10 border-none rounded-[2.5rem] bg-white shadow-2xl space-y-8">
+            <Card className="p-10 border-none rounded-[2.5rem] bg-white shadow-2xl space-y-8 hover:shadow-3xl transition-shadow">
               <div className="flex items-center gap-4 border-b pb-6">
                 <div className="p-3 bg-primary/5 rounded-xl">
                   <Globe className="h-6 w-6 text-primary" />
@@ -352,11 +355,11 @@ export function UserGreeting() {
                 Registry synchronization is mandatory for all visitors. Your academic logs are archived for institutional oversight and facility optimization.
               </p>
               <div className="space-y-4">
-                <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border">
+                <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border transition-colors hover:bg-slate-100">
                   <ShieldCheck className="h-5 w-5 text-green-600" />
                   <span className="text-[10px] font-black uppercase tracking-widest">Secure Sync Active</span>
                 </div>
-                <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border">
+                <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border transition-colors hover:bg-slate-100">
                   <Info className="h-5 w-5 text-secondary" />
                   <span className="text-[10px] font-black uppercase tracking-widest">AY {academicYear}</span>
                 </div>

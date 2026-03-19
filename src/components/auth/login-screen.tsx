@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -49,9 +48,9 @@ export function LoginScreen({ onBack }: LoginScreenProps) {
   return (
     <div className="min-h-screen flex items-center justify-center p-6 neu-background">
       <Card className="w-full max-w-md overflow-hidden shadow-3xl border-none rounded-[2.5rem] bg-white animate-in zoom-in duration-500">
-        <CardHeader className="bg-primary text-white text-center py-12 space-y-4 relative overflow-hidden">
+        <CardHeader className="bg-primary text-white text-center py-12 space-y-4 relative overflow-hidden group">
           <div className="absolute inset-0 bg-dot-pattern opacity-10" />
-          <div className="mx-auto w-24 h-24 bg-white p-4 rounded-3xl shadow-2xl relative z-10 transition-transform hover:scale-110">
+          <div className="mx-auto w-24 h-24 bg-white p-4 rounded-3xl shadow-2xl relative z-10 transition-transform group-hover:scale-110 group-hover:rotate-3">
             <Image 
               src={logoImage?.imageUrl || ""} 
               alt="NEU Logo" 
@@ -67,7 +66,7 @@ export function LoginScreen({ onBack }: LoginScreenProps) {
           <Button 
             variant="ghost" 
             size="sm" 
-            className="absolute left-6 top-6 text-white hover:bg-white/10 rounded-xl font-bold uppercase text-[9px] tracking-widest gap-2"
+            className="absolute left-6 top-6 text-white hover:bg-white/10 rounded-xl font-bold uppercase text-[9px] tracking-widest gap-2 transition-all active:scale-90"
             onClick={onBack}
           >
             <ArrowLeft className="h-4 w-4" />
@@ -78,16 +77,16 @@ export function LoginScreen({ onBack }: LoginScreenProps) {
         <CardContent className="p-0">
           <Tabs defaultValue="user" onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-2 rounded-none h-18 bg-slate-50 border-b">
-              <TabsTrigger value="user" className="gap-3 text-[10px] font-black uppercase tracking-[0.2em] data-[state=active]:bg-white data-[state=active]:text-primary transition-all">
+              <TabsTrigger value="user" className="gap-3 text-[10px] font-black uppercase tracking-[0.2em] data-[state=active]:bg-white data-[state=active]:text-primary transition-all active:scale-95">
                 <ShieldCheck className="h-4 w-4" /> Member
               </TabsTrigger>
-              <TabsTrigger value="guest" className="gap-3 text-[10px] font-black uppercase tracking-[0.2em] data-[state=active]:bg-white data-[state=active]:text-primary transition-all">
+              <TabsTrigger value="guest" className="gap-3 text-[10px] font-black uppercase tracking-[0.2em] data-[state=active]:bg-white data-[state=active]:text-primary transition-all active:scale-95">
                 <Globe className="h-4 w-4" /> Guest
               </TabsTrigger>
             </TabsList>
 
             <div className="p-10 md:p-14 space-y-10">
-              <TabsContent value="user" className="mt-0 space-y-10 animate-in slide-in-from-left-6 duration-500">
+              <TabsContent value="user" className="mt-0 space-y-10 animate-in slide-in-from-left-6 duration-500 focus-visible:outline-none">
                 <div className="text-center space-y-3">
                   <h3 className="text-2xl font-black text-primary italic uppercase tracking-tighter">Academic Access</h3>
                   <p className="text-[11px] text-muted-foreground font-bold uppercase tracking-widest opacity-60">Use your @neu.edu.ph account</p>
@@ -97,7 +96,7 @@ export function LoginScreen({ onBack }: LoginScreenProps) {
                   <Button 
                     onClick={() => handleLogin('user')} 
                     variant="outline"
-                    className="w-full h-20 font-black text-sm uppercase tracking-widest gap-6 border-2 rounded-2xl hover:bg-slate-50 hover:scale-[1.02] transition-all shadow-xl"
+                    className="w-full h-20 font-black text-sm uppercase tracking-widest gap-6 border-2 rounded-2xl hover:bg-slate-50 hover:scale-[1.02] active:scale-95 transition-all shadow-xl"
                   >
                     <Image src="https://www.google.com/favicon.ico" alt="Google" width={24} height={24} />
                     Sync Academic Identity
@@ -116,7 +115,7 @@ export function LoginScreen({ onBack }: LoginScreenProps) {
                     variant="neu"
                     onClick={handleRFIDTap}
                     disabled={isScanning}
-                    className="w-full h-20 gap-6 rounded-2xl shadow-3xl text-xl font-black italic uppercase"
+                    className="w-full h-20 gap-6 rounded-2xl shadow-3xl text-xl font-black italic uppercase transition-all hover:scale-[1.02] active:scale-95"
                   >
                     {isScanning ? (
                       <Loader2 className="h-8 w-8 animate-spin" />
@@ -128,7 +127,7 @@ export function LoginScreen({ onBack }: LoginScreenProps) {
                 </div>
               </TabsContent>
 
-              <TabsContent value="guest" className="mt-0 space-y-10 animate-in slide-in-from-right-6 duration-500">
+              <TabsContent value="guest" className="mt-0 space-y-10 animate-in slide-in-from-right-6 duration-500 focus-visible:outline-none">
                 <div className="text-center space-y-3">
                   <h3 className="text-2xl font-black text-primary italic uppercase tracking-tighter">Visitor Protocol</h3>
                   <p className="text-[11px] text-muted-foreground font-bold uppercase tracking-widest opacity-60">Limited access inquiry</p>
@@ -137,14 +136,14 @@ export function LoginScreen({ onBack }: LoginScreenProps) {
                 <div className="space-y-6">
                   <Button 
                     onClick={() => handleLogin('guest')} 
-                    className="w-full h-24 bg-primary hover:bg-primary/95 text-white font-black text-xl gap-6 rounded-2xl shadow-3xl group relative overflow-hidden"
+                    className="w-full h-24 bg-primary hover:bg-primary/95 text-white font-black text-xl gap-6 rounded-2xl shadow-3xl group relative overflow-hidden active:scale-95 transition-all"
                   >
                     <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <UserCheck className="h-8 w-8 text-secondary" />
+                    <UserCheck className="h-8 w-8 text-secondary group-hover:scale-110 transition-transform" />
                     Continue as Visitor
                   </Button>
                   
-                  <div className="p-8 bg-primary/5 rounded-3xl border-2 border-dashed border-primary/20 flex items-start gap-4">
+                  <div className="p-8 bg-primary/5 rounded-3xl border-2 border-dashed border-primary/20 flex items-start gap-4 transition-colors hover:bg-primary/10">
                       <Info className="h-6 w-6 text-primary shrink-0 mt-1" />
                       <p className="text-xs font-medium text-primary/80 leading-relaxed italic">
                         Guests must officially log their presence in the registry for institutional security compliance.
