@@ -40,22 +40,11 @@ export interface InternalQuery extends Query<DocumentData> {
 /**
  * React hook to subscribe to a Firestore collection or query in real-time.
  * Handles nullable references/queries.
- * 
- *
- * IMPORTANT! YOU MUST MEMOIZE the inputted memoizedTargetRefOrQuery or BAD THINGS WILL HAPPEN
- * use useMemo to memoize it per React guidence.  Also make sure that it's dependencies are stable
- * references
- *  
- * @template T Optional type for document data. Defaults to any.
- * @param {CollectionReference<DocumentData> | Query<DocumentData> | null | undefined} targetRefOrQuery -
- * The Firestore CollectionReference or Query. Waits if null/undefined.
- * @returns {UseCollectionResult<T>} Object with data, isLoading, error.
  */
 export function useCollection<T = any>(
     memoizedTargetRefOrQuery: ((CollectionReference<DocumentData> | Query<DocumentData>) & {__memo?: boolean})  | null | undefined,
 ): UseCollectionResult<T> {
-  type ResultItemType = WithId<T>;
-  type StateDataType = ResultItemType[] | null;
+  type StateDataType = WithId<T>[] | null;
 
   const [data, setData] = useState<StateDataType>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -72,11 +61,10 @@ export function useCollection<T = any>(
     setIsLoading(true);
     setError(null);
 
-    // Directly use memoizedTargetRefOrQuery as it's assumed to be the final query
     const unsubscribe = onSnapshot(
       memoizedTargetRefOrQuery,
       (snapshot: QuerySnapshot<DocumentData>) => {
-        const results: ResultItemType[] = [];
+        const results: WithId<T>[] = [];
         for (const doc of snapshot.docs) {
           results.push({ ...(doc.data() as T), id: doc.id });
         }
@@ -85,7 +73,6 @@ export function useCollection<T = any>(
         setIsLoading(false);
       },
       (serverError: FirestoreError) => {
-        // This logic extracts the path from either a ref or a query
         const path: string =
           memoizedTargetRefOrQuery.type === 'collection'
             ? (memoizedTargetRefOrQuery as CollectionReference).path
@@ -100,22 +87,21 @@ export function useCollection<T = any>(
         setData(null)
         setIsLoading(false)
 
-        // For list operations, we avoid emitting the global permission-error to prevent
-        // the app from crashing on a failed query if the component can handle it locally.
-        // This is especially important during initial authentication sync or transient states.
+        // Silent handling for permission-denied during list operations to prevent crashes
+        // during initial auth synchronization or for non-admin attempts.
         if (serverError.code !== 'permission-denied' && serverError.code !== 'unauthenticated') {
             errorEmitter.emit('permission-error', contextualError);
         } else {
-          // Log permission denied locally for debugging but don't emit globally to avoid crashing
           if (process.env.NODE_ENV === 'development') {
-            console.warn(`Firestore: Permission denied for query on ${path}. This may be expected during auth sync or if the user is not an admin.`);
+            console.warn(`Firestore: Access deferred for ${path}. Identity synchronization in progress.`);
           }
         }
       }
     );
 
     return () => unsubscribe();
-  }, [memoizedTargetRefOrQuery]); // Re-run if the target query/reference changes.
+  }, [memoizedTargetRefOrQuery]);
+
   if(memoizedTargetRefOrQuery && !memoizedTargetRefOrQuery.__memo) {
     throw new Error(memoizedTargetRefOrQuery + ' was not properly memoized using useMemoFirebase');
   }
