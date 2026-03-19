@@ -15,9 +15,13 @@
         "blockedReason": { "type": "string" },
         "isAuthorizedAdmin": { "type": "boolean" },
         "isSuperAdmin": { "type": "boolean" },
-        "theme": { "type": "string", "enum": ["light", "dark"] }
+        "theme": { "type": "string", "enum": ["light", "dark"] },
+        "photoURL": { "type": "string" },
+        "displayName": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "createdAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["id", "email", "studentId", "role"]
+      "required": ["id", "email", "role"]
     },
     "Visit": {
       "title": "Visit",
@@ -96,55 +100,33 @@
     "providers": ["google.com"]
   },
   "firestore": {
-    "structure": [
-      {
-        "path": "/users/{userId}",
-        "definition": {
-          "entityName": "User",
-          "schema": { "$ref": "#/backend/entities/User" },
-          "description": "User profiles and institutional roles."
-        }
-      },
-      {
-        "path": "/visits/{visitId}",
-        "definition": {
-          "entityName": "Visit",
-          "schema": { "$ref": "#/backend/entities/Visit" },
-          "description": "Library entry and exit registry."
-        }
-      },
-      {
-        "path": "/notifications/{notifId}",
-        "definition": {
-          "entityName": "Notification",
-          "schema": { "$ref": "#/backend/entities/Notification" },
-          "description": "User-specific alerts and warnings."
-        }
-      },
-      {
-        "path": "/library_config/{configId}",
-        "definition": {
-          "entityName": "LibraryConfig",
-          "schema": { "$ref": "#/backend/entities/LibraryConfig" },
-          "description": "Operational mode and status overrides."
-        }
-      },
-      {
-        "path": "/blocked_users/{userId}",
-        "definition": {
-          "entityName": "BlockedUser",
-          "schema": { "$ref": "#/backend/entities/BlockedUser" },
-          "description": "Official record of a user's suspension."
-        }
-      },
-      {
-        "path": "/feedback/{feedbackId}",
-        "definition": {
-          "entityName": "Feedback",
-          "schema": { "$ref": "#/backend/entities/Feedback" },
-          "description": "User feedback and sentiments."
-        }
-      }
-    ]
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles and institutional roles."
+    },
+    "/visits/{visitId}": {
+      "schema": "Visit",
+      "description": "Library entry and exit registry."
+    },
+    "/notifications/{notifId}": {
+      "schema": "Notification",
+      "description": "User-specific alerts and warnings."
+    },
+    "/library_config/{configId}": {
+      "schema": "LibraryConfig",
+      "description": "Operational mode and status overrides."
+    },
+    "/blocked_users/{userId}": {
+      "schema": "BlockedUser",
+      "description": "Official record of a user's suspension."
+    },
+    "/feedback/{feedbackId}": {
+      "schema": "Feedback",
+      "description": "User feedback and sentiments."
+    },
+    "/audit_logs/{logId}": {
+      "schema": "object",
+      "description": "Administrative action trail."
+    }
   }
 }
