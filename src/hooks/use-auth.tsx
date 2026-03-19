@@ -135,9 +135,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({ 
-        prompt: 'select_account',
-        hd: roleHint === 'user' ? 'neu.edu.ph' : '*'
+        prompt: 'select_account'
       });
+      // Domain hint if strictly member login
+      if (roleHint === 'user') {
+        provider.setCustomParameters({ hd: 'neu.edu.ph' });
+      }
       await signInWithPopup(auth, provider);
     } catch (error: any) {
       toast({

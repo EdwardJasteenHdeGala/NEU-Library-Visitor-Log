@@ -2,47 +2,54 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // EXPERIMENTAL PERMISSION START
-    // This allows global read/write access for authenticated users to facilitate 
-    // registry synchronization and administrative oversight debugging.
-    match /{document=**} {
-      allow read, write: if request.auth != null;
+    // INSTITUTIONAL RBAC HELPERS
+    function isAuthenticated() {
+      return request.auth != null;
     }
 
-    match /visits/{visitId} {
-      allow read, write: if true;
-    }
-
-    // INSTITUTIONAL RBAC PROTOCOLS
     function isAdmin() {
-      return request.auth != null && (
+      return isAuthenticated() && (
         request.auth.token.email == 'edwardjasteen.degala@neu.edu.ph' ||
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
       );
     }
 
+    // VISITS REGISTRY - Permissive for synchronization
+    match /visits/{visitId} {
+      allow read, write: if true;
+    }
+
+    // USER PROFILES
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if isAuthenticated() && request.auth.uid == userId;
       allow read: if isAdmin();
     }
 
+    // INSTITUTIONAL CONFIG
     match /library_config/{configId} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
+    // NOTIFICATIONS & ALERTS
     match /notifications/{notificationId} {
-      allow read: if request.auth != null && (
+      allow read: if isAuthenticated() && (
         resource.data.userId == request.auth.uid ||
         isAdmin()
       );
-      allow write: if isAdmin();
+      allow create, write: if isAdmin();
     }
 
+    // FEEDBACK TELEMETRY
     match /feedback/{feedbackId} {
-      allow create: if request.auth != null;
-      allow read: if isAdmin() || (request.auth != null && resource.data.userId == request.auth.uid);
-      allow write: if isAdmin();
+      allow create: if isAuthenticated();
+      allow read: if isAdmin() || (isAuthenticated() && resource.data.userId == request.auth.uid);
+    }
+
+    // AUDIT TRAIL
+    match /audit_logs/{logId} {
+      allow read: if isAdmin();
+      allow create: if isAuthenticated();
     }
   }
 }
