@@ -99,6 +99,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const data = docSnap.data() as UserProfile;
         setProfile({ ...data, isAuthorizedAdmin: isAuthorized || data.isAuthorizedAdmin });
       } else {
+        // AUTOMATIC ROLE ASSIGNMENT
         const defaultRole = isAuthorized ? 'admin' : (isInstitutional ? 'user' : 'guest');
         const defaultDesignation = isInstitutional ? 'student' : 'guest';
         const defaultDepartment = isInstitutional ? 'Pending Assignment' : 'External';
@@ -135,7 +136,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (roleHint?: 'user' | 'guest') => {
     try {
       const provider = new GoogleAuthProvider();
-      // Ensure select_account prompt is present
+      // IDENTITY PROTOCOL: Force account selection
       provider.setCustomParameters({ 
         prompt: 'select_account'
       });

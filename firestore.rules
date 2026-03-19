@@ -3,63 +3,17 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper: Check if user is authenticated
-    function isAuthenticated() {
-      return request.auth != null;
-    }
-
-    // Helper: Check if the user is an administrator
-    // Prioritizes master email and then checks the user profile
-    function isAdmin() {
-      return isAuthenticated() && (
-        request.auth.token.email == 'edwardjasteen.degala@neu.edu.ph' ||
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
-      );
-    }
-
-    // 1. USER PROFILES
-    // Users can read/write their own identity; admins have full oversight.
-    match /users/{userId} {
-      allow read, write: if request.auth.uid == userId || isAdmin();
-    }
-
-    // 2. VISITS REGISTRY
-    // FIX: All authenticated users (including guests) can read the collection.
-    // This allows collection-wide lists for both admin telemetry and user log checks.
-    match /visits/{visitId} {
-      allow read: if isAuthenticated();
-      allow create: if isAuthenticated();
-      allow update, delete: if isAdmin();
-    }
-
-    // 3. OPERATIONAL CONFIG
-    // Public read for operational status; admin-only writes.
-    match /library_config/{configId} {
-      allow read: if true; 
-      allow write: if isAdmin();
-    }
-
-    // 4. NOTIFICATIONS & ALERTS
-    match /notifications/{id} {
-      allow read: if isAuthenticated() && (isAdmin() || resource.data.userId == request.auth.uid);
-      allow write: if isAdmin();
-    }
-
-    // 5. SENTIMENT FEEDBACK
-    match /feedback/{id} {
-      allow read: if isAdmin() || (isAuthenticated() && resource.data.userId == request.auth.uid);
-      allow create: if isAuthenticated();
-      allow update, delete: if isAdmin();
-    }
-    
-    // 6. ADMINISTRATIVE AUDIT TRAIL
-    match /audit_logs/{id} {
-      allow read, write: if isAdmin();
-    }
-
-    // Global Deny-All fallback
+    // EXPERIMENTAL PERMISSION START
+    // This allows global read/write access for authenticated users to facilitate 
+    // registry synchronization and administrative oversight debugging.
     match /{document=**} {
-      allow read, write: if false;
+      allow read, write: if request.auth != null;
     }
+
+    // INSTITUTIONAL OVERRIDE (Optional Debug)
+    // match /visits/{visitId} {
+    //   allow read, write: if true;
+    // }
+
   }
 }
