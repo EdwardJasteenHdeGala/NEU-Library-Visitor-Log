@@ -105,6 +105,11 @@ export function useCollection<T = any>(
         // This is especially important during initial authentication sync.
         if (serverError.code !== 'permission-denied') {
             errorEmitter.emit('permission-error', contextualError);
+        } else {
+          // Log permission denied locally for debugging but don't emit globally to avoid crashing
+          if (process.env.NODE_ENV === 'development') {
+            console.warn(`Firestore: Permission denied for query on ${path}. This may be expected during auth sync.`);
+          }
         }
       }
     );

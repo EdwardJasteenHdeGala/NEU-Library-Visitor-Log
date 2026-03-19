@@ -7,8 +7,9 @@ service cloud.firestore {
     }
 
     // Prioritized Administrative Whitelist for immediate registry oversight
+    // This allows admins to bypass profile-fetch recursion
     function isWhitelisted() {
-      return request.auth.token.email in [
+      return isAuthenticated() && request.auth.token.email in [
         "edwardjasteen.degala@neu.edu.ph",
         "jcesperanza@neu.edu.ph",
         "nhica.valderas@neu.edu.ph"
@@ -16,12 +17,10 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      return isAuthenticated() && (
-        isWhitelisted() ||
-        (
-          exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin"
-        )
+      return isWhitelisted() || (
+        isAuthenticated() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin"
       );
     }
 
