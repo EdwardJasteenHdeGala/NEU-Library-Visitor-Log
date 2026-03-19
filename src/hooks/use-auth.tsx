@@ -43,7 +43,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const BOOTSTRAP_SUPER_ADMIN_EMAIL = 'edwardjasteen.degala@neu.edu.ph';
 const AUTHORIZED_ADMIN_EMAILS = [
   BOOTSTRAP_SUPER_ADMIN_EMAIL,
-  'jcesperanza@neu.edu.ph'
+  'jcesperanza@neu.edu.ph',
+  'nhica.valderas@neu.edu.ph'
 ];
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -154,7 +155,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setIntendedRole(requestedRole);
       }
       const provider = new GoogleAuthProvider();
-      provider.setCustomParameters({ prompt: 'select_account' });
+      provider.setCustomParameters({ 
+        prompt: 'select_account',
+        hd: 'neu.edu.ph'
+      });
       await signInWithPopup(auth, provider);
     } catch (error: any) {
       toast({

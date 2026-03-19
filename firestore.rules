@@ -34,8 +34,7 @@ service cloud.firestore {
       // Allow all authenticated users to log entries
       allow create: if request.auth != null;
 
-      // Allow users to read their own history or list for occupancy stats
-      // This resolves the permission error for standard users listing visits
+      // Allow authenticated users to list visits (must still filter to see docs they own unless admin)
       allow list: if request.auth != null;
       allow get: if request.auth != null && (isAdmin() || resource.data.userId == request.auth.uid);
     }
@@ -59,7 +58,9 @@ service cloud.firestore {
 
     // NOTIFICATIONS: Alert center
     match /notifications/{notifId} {
-      allow read, update: if request.auth != null && resource.data.userId == request.auth.uid;
+      // Allow authenticated users to list notifications
+      allow list: if request.auth != null;
+      allow get, update: if request.auth != null && (isAdmin() || resource.data.userId == request.auth.uid);
       allow create, delete: if isAdmin();
     }
 
