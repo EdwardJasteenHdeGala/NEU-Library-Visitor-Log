@@ -98,7 +98,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       if (docSnap.exists()) {
         const data = docSnap.data() as UserProfile;
-        // Keep the role from the database, but ensure isAuthorizedAdmin is checked against current list
         setProfile({ ...data, isAuthorizedAdmin: isAuthorized || data.isAuthorizedAdmin });
 
         if (isAuthorized || data.isAuthorizedAdmin) {

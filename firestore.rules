@@ -37,7 +37,6 @@ service cloud.firestore {
     }
 
     // VISITS: Library access logs
-    // Simplified read rule to allow collection-wide list operations for authenticated users
     match /visits/{visitId} {
       allow read: if isSignedIn();
       allow create: if isSignedIn() && isNotBlocked();
@@ -45,7 +44,6 @@ service cloud.firestore {
     }
 
     // NOTIFICATIONS: User alerts
-    // Synchronized with the successful patterns for telemetry collections
     match /notifications/{notificationId} {
       allow read: if isSignedIn();
       allow create: if isAdmin();
