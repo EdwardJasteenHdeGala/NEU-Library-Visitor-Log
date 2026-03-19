@@ -24,7 +24,7 @@
           "type": "string",
           "description": "The assigned role of the user within the application (e.g., 'user', 'admin', 'professor'), determining access privileges."
         },
-        "department": {
+        "college": {
           "type": "string",
           "description": "The academic department or college the user is affiliated with."
         },
@@ -35,6 +35,14 @@
         "blockedReason": {
           "type": "string",
           "description": "The official reason provided by an admin for the user's suspension."
+        },
+        "isAuthorizedAdmin": {
+          "type": "boolean",
+          "description": "Flag for institutional admin privileges."
+        },
+        "isSuperAdmin": {
+          "type": "boolean",
+          "description": "Flag for root system access."
         },
         "theme": {
           "type": "string",
@@ -53,41 +61,39 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Visit",
       "type": "object",
-      "description": "Records individual visits to the NEU Library, including details about the visitor, their purpose, and the timestamp of their entry. This entity supports tracking library usage.",
+      "description": "Records individual visits to the NEU Library, including details about the visitor, their purpose, and the timestamp of their entry.",
       "properties": {
         "id": {
-          "type": "string",
-          "description": "Unique identifier for the Visit entity."
+          "type": "string"
         },
         "userName": {
-          "type": "string",
-          "description": "The full name of the visitor."
+          "type": "string"
         },
         "college": {
-          "type": "string",
-          "description": "The college or institutional affiliation of the visitor at the time of the visit."
+          "type": "string"
         },
         "roleAtTime": {
-          "type": "string",
-          "description": "The role of the visitor during this specific visit (e.g., 'student', 'faculty', 'guest')."
+          "type": "string"
         },
         "purpose": {
-          "type": "string",
-          "description": "The stated purpose or reason for the visit to the library."
+          "type": "string"
         },
         "timestamp": {
           "type": "string",
-          "description": "The date and time when the visit was recorded.",
           "format": "date-time"
         },
         "exitTimestamp": {
           "type": "string",
-          "description": "The date and time when the visit ended.",
           "format": "date-time"
         },
         "userId": {
-          "type": "string",
-          "description": "Reference to the User entity."
+          "type": "string"
+        },
+        "durationMinutes": {
+          "type": "number"
+        },
+        "academicYear": {
+          "type": "string"
         }
       }
     },

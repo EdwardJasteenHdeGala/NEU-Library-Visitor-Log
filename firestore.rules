@@ -7,10 +7,15 @@ service cloud.firestore {
      * NEU Library Access Hub - Institutional Security Protocols
      */
 
-    // Helper: Checks if the user is an authorized admin via profile data
+    // Helper: Checks if the user is an authorized admin
     function isAdmin() {
-      return request.auth != null && 
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+      return request.auth != null && (
+        request.auth.token.email == 'edwardjasteen.degala@neu.edu.ph' ||
+        request.auth.token.email == 'jcesperanza@neu.edu.ph' ||
+        request.auth.token.email == 'nhica.valderas@neu.edu.ph' ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin')
+      );
     }
 
     // Helper: Checks if the user is the document owner
@@ -18,32 +23,39 @@ service cloud.firestore {
       return request.auth != null && request.auth.uid == userId;
     }
 
-    // Helper: Checks if the user is suspended
+    // Helper: Checks if the user is NOT suspended
     function isNotBlocked() {
-      return request.auth != null && 
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isBlocked != true;
+      // Allow access if profile doesn't exist yet (onboarding phase)
+      // or if it exists and isBlocked is not explicitly true
+      return request.auth != null && (
+        !exists(/databases/$(database)/documents/users/$(request.auth.uid)) || 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isBlocked != true
+      );
     }
 
     // USERS collection: Identity management
     match /users/{userId} {
       allow read: if isOwner(userId) || isAdmin();
-      allow write: if (isOwner(userId) && isNotBlocked()) || isAdmin();
+      // Allow write for own profile (onboarding) or admin oversight
+      allow write: if isOwner(userId) || isAdmin();
     }
 
     // VISITS collection: Registry of library entries
     match /visits/{visitId} {
+      // Admins have absolute registry oversight
       allow read, write: if isAdmin();
       
-      // Standard members can list their own visits if NOT blocked
+      // Standard members
       allow create: if request.auth != null && isNotBlocked();
-      allow get, list: if request.auth != null && (isAdmin() || (resource.data.userId == request.auth.uid && isNotBlocked()));
+      // Allow reading own history or when admin is verified
+      allow get, list: if request.auth != null && (isAdmin() || (resource != null && resource.data.userId == request.auth.uid));
     }
     
     // NOTIFICATIONS: Alert center
     match /notifications/{notifId} {
       allow read, write: if isAdmin();
-      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
-      allow update: if request.auth != null && resource.data.userId == request.auth.uid && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']);
+      allow read: if request.auth != null && (isAdmin() || resource.data.userId == request.auth.uid);
+      allow update: if request.auth != null && resource.data.userId == request.auth.uid;
     }
 
     // LIBRARY_CONFIG: Operational status and manual overrides
