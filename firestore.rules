@@ -3,13 +3,12 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // --- Helpers ---
+    // --- Institutional Helpers ---
     function isSignedIn() {
       return request.auth != null;
     }
 
     function isAdmin() {
-      // Direct email check for core admins to avoid recursion and rule evaluation limits
       let adminEmails = [
         "edwardjasteen.degala@neu.edu.ph",
         "jcesperanza@neu.edu.ph",
@@ -25,9 +24,9 @@ service cloud.firestore {
       return isSignedIn() && !exists(/databases/$(database)/documents/blocked_users/$(request.auth.uid));
     }
 
-    // --- Collections ---
+    // --- Collection Protocols ---
 
-    // USERS: Institutional profiles
+    // USERS: Institutional identities
     match /users/{userId} {
       allow get: if isSignedIn();
       allow list: if isAdmin();
@@ -36,14 +35,15 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    // VISITS: Library access logs
+    // VISITS: Attendance registry
+    // Pattern: Authenticated users can read (list/get) to enable personal telemetry.
     match /visits/{visitId} {
       allow read: if isSignedIn();
       allow create: if isSignedIn() && isNotBlocked();
       allow update, delete: if isAdmin();
     }
 
-    // NOTIFICATIONS: User alerts
+    // NOTIFICATIONS: Institutional alerts
     match /notifications/{notificationId} {
       allow read: if isSignedIn();
       allow create: if isAdmin();
@@ -51,20 +51,20 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    // FEEDBACK: Institutional sentiments
+    // FEEDBACK: Institutional sentiment
     match /feedback/{feedbackId} {
       allow read: if isSignedIn();
       allow create: if isSignedIn() && isNotBlocked();
       allow update, delete: if isAdmin();
     }
 
-    // CONFIG: Global operational status
+    // CONFIG: Operational status
     match /library_config/{configId} {
       allow read: if isSignedIn();
       allow write: if isAdmin();
     }
 
-    // ADMIN ROLES: Marker collection for DBAC
+    // ADMIN ROLES: DBAC markers
     match /roles_admin/{adminId} {
       allow read: if isSignedIn();
       allow write: if isAdmin();
@@ -76,14 +76,13 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // AUDIT: Admin action trail
+    // AUDIT: Action trail
     match /audit_logs/{logId} {
       allow read: if isAdmin();
       allow create: if isAdmin();
       allow update, delete: if false;
     }
     
-    // Default fallback
     match /{document=**} {
       allow read, write: if false;
     }
