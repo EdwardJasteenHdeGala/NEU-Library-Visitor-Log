@@ -9,11 +9,12 @@ service cloud.firestore {
     function isAdmin() {
       return isAuthenticated() && (
         // Prioritized Email Whitelist for immediate administrative authorization
+        // This bypasses the need for document-based checks during initial sync
         request.auth.token.email == "edwardjasteen.degala@neu.edu.ph" ||
         request.auth.token.email == "jcesperanza@neu.edu.ph" ||
         request.auth.token.email == "nhica.valderas@neu.edu.ph" ||
         (
-          // Document-based check for manually synchronized administrators
+          // Fallback document-based check for synchronized administrators
           exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
           get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin"
         )

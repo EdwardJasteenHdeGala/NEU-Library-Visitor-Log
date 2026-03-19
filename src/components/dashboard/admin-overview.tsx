@@ -36,6 +36,8 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
 
   // Real-time queries for telemetry - authorized admins see all registry logs
   const recentVisitsQuery = useMemoFirebase(() => {
+    // We only construct the query if the user is a verified administrator
+    // This prevents "Missing or insufficient permissions" errors during initial sync
     if (!isAdmin || !firestore) return null;
     return query(
       collection(firestore, 'visits'), 
@@ -131,7 +133,7 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
             <Clock className="h-5 w-5 text-primary" />
           </CardHeader>
           <CardContent className="pt-8">
-            <div className="text-sm font-black text-primary truncate italic uppercase tracking-tighter leading-none">{status.nextEvent}</div>
+            <div className="text-sm font-black text-primary truncate italic uppercase tracking-tighter leading-none">Institutional Advisory</div>
             <p className="text-[9px] font-bold text-muted-foreground mt-2 uppercase tracking-tight">Real-time Scheduler</p>
           </CardContent>
         </Card>

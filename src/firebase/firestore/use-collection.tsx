@@ -84,7 +84,7 @@ export function useCollection<T = any>(
         setError(null);
         setIsLoading(false);
       },
-      (error: FirestoreError) => {
+      (serverError: FirestoreError) => {
         // This logic extracts the path from either a ref or a query
         const path: string =
           memoizedTargetRefOrQuery.type === 'collection'
@@ -100,8 +100,12 @@ export function useCollection<T = any>(
         setData(null)
         setIsLoading(false)
 
-        // trigger global error propagation
-        errorEmitter.emit('permission-error', contextualError);
+        // For list operations, we avoid emitting the global permission-error to prevent
+        // the app from crashing on a failed query if the component can handle it locally.
+        // This is especially important during initial authentication sync.
+        if (serverError.code !== 'permission-denied') {
+            errorEmitter.emit('permission-error', contextualError);
+        }
       }
     );
 
