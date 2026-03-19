@@ -50,7 +50,16 @@ export function useDoc<T = any>(
         setError(null);
         setIsLoading(false);
       },
-      (error: FirestoreError) => {
+      (err: FirestoreError) => {
+        // SILENT ERROR HANDLING: Suppress red screen for transient permission issues
+        if (err.code === 'permission-denied' || err.code === 'unauthenticated') {
+          console.warn(`Registry Document Access Deferred: ${memoizedDocRef.path}`);
+          setError(err);
+          setData(null);
+          setIsLoading(false);
+          return;
+        }
+
         const contextualError = new FirestorePermissionError({
           operation: 'get',
           path: memoizedDocRef.path,
@@ -59,11 +68,7 @@ export function useDoc<T = any>(
         setError(contextualError);
         setData(null);
         setIsLoading(false);
-
-        // SILENT ERROR HANDLING: Suppress red screen for transient permission issues
-        if (error.code !== 'permission-denied' && error.code !== 'unauthenticated') {
-          errorEmitter.emit('permission-error', contextualError);
-        }
+        errorEmitter.emit('permission-error', contextualError);
       }
     );
 
