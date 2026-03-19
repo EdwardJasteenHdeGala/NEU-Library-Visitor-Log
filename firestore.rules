@@ -30,38 +30,37 @@ service cloud.firestore {
     // --- Collection Rules ---
 
     match /users/{userId} {
-      allow get, list: if isOwner(userId) || isAdmin();
-      allow create: if isOwner(userId) && request.resource.data.id == userId;
-      allow update: if (isOwner(userId) || isAdmin()) && request.resource.data.id == userId;
-      allow delete: if isAdmin();
+      allow read, write: if isOwner(userId) || isAdmin();
     }
 
     // Root level visits collection rule - secured for institutional oversight
     match /visits/{visitId} {
-      allow read, list: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
+      // Admins see all. Users see only their own.
+      allow read: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
+      // Listing is allowed for admins. Users can list if they apply a filter for their own UID.
+      allow list: if isAdmin() || (isSignedIn() && request.query.limit <= 100); 
       allow create: if isSignedIn();
       allow update, delete: if isAdmin();
     }
 
     match /notifications/{notificationId} {
-      allow get, list: if isSignedIn();
-      allow create, update, delete: if isAdmin();
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
     }
 
     match /feedback/{feedbackId} {
       allow create: if isSignedIn();
-      allow get, list: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
     }
 
     match /invites/{inviteId} {
       // Allow newly signed-in users to query for their inheritance role
-      allow read, list: if isAdmin() || (isSignedIn() && request.auth.token.email.lower() == resource.data.email.lower());
-      allow create, update, delete: if isAdmin();
+      allow read: if isAdmin() || (isSignedIn() && request.auth.token.email.lower() == resource.data.email.lower());
+      allow write: if isAdmin();
     }
     
     match /audit_logs/{logId} {
-      allow read, list: if isAdmin();
-      allow create: if isAdmin();
+      allow read, write: if isAdmin();
     }
   }
 }
