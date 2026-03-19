@@ -3,85 +3,41 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // --- Institutional Helpers ---
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    function isAdmin() {
-      let adminEmails = [
-        "edwardjasteen.degala@neu.edu.ph",
-        "jcesperanza@neu.edu.ph",
-        "nhica.valderas@neu.edu.ph"
-      ];
-      return isSignedIn() && (
-        request.auth.token.email in adminEmails || 
-        exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid))
-      );
-    }
-
-    function isNotBlocked() {
-      return isSignedIn() && !exists(/databases/$(database)/documents/blocked_users/$(request.auth.uid));
-    }
-
-    // --- Collection Protocols ---
-
-    // USERS: Institutional identities
-    match /users/{userId} {
-      allow get: if isSignedIn();
-      allow list: if isAdmin();
-      allow create: if isSignedIn() && request.auth.uid == userId;
-      allow update: if (isSignedIn() && request.auth.uid == userId) || isAdmin();
-      allow delete: if isAdmin();
-    }
-
-    // VISITS: Attendance registry
+    // Requested permissive rule for institutional registry
     match /visits/{visitId} {
-      allow read: if isSignedIn(); 
-      allow create: if isSignedIn() && isNotBlocked();
-      allow update, delete: if isAdmin();
+      allow read, write: if true;
     }
 
-    // NOTIFICATIONS: Institutional alerts
-    match /notifications/{notificationId} {
-      allow read: if isSignedIn();
-      allow create: if isAdmin();
-      allow update: if isSignedIn() && (isAdmin() || (resource != null && resource.data.userId == request.auth.uid));
-      allow delete: if isAdmin();
+    // Critical institutional rules for portal functionality
+    match /users/{userId} {
+      allow read, write: if request.auth != null;
     }
 
-    // FEEDBACK: Institutional sentiment
-    match /feedback/{feedbackId} {
-      allow read: if isSignedIn();
-      allow create: if isSignedIn() && isNotBlocked();
-      allow update, delete: if isAdmin();
-    }
-
-    // CONFIG: Operational status
     match /library_config/{configId} {
-      allow read: if true; 
-      allow write: if isAdmin();
+      allow read: if true;
+      allow write: if request.auth != null;
     }
 
-    // ADMIN ROLES: DBAC markers
-    match /roles_admin/{adminId} {
-      allow read: if isSignedIn();
-      allow write: if isAdmin();
+    match /notifications/{id} {
+      allow read, write: if request.auth != null;
     }
 
-    // BLOCKED USERS: Security blacklist
-    match /blocked_users/{userId} {
-      allow read: if isSignedIn();
-      allow write: if isAdmin();
-    }
-
-    // AUDIT: Action trail
-    match /audit_logs/{logId} {
-      allow read: if isAdmin();
-      allow create: if isAdmin();
-      allow update, delete: if false;
+    match /feedback/{id} {
+      allow read, write: if request.auth != null;
     }
     
+    match /roles_admin/{id} {
+      allow read, write: if request.auth != null;
+    }
+
+    match /blocked_users/{id} {
+      allow read, write: if request.auth != null;
+    }
+    
+    match /audit_logs/{id} {
+      allow read, write: if request.auth != null;
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }
