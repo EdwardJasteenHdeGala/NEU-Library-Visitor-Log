@@ -15,7 +15,7 @@ service cloud.firestore {
     }
 
     // VISITS REGISTRY - Experimental Permissive Access
-    // This resolves the 'method: list' permission error for all authenticated members
+    // This resolves the 'method: list' permission error for all members
     match /visits/{visitId} {
       allow read, write: if true;
     }
