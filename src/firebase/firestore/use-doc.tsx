@@ -56,7 +56,13 @@ export function useDoc<T = any>(
       },
       (err: FirestoreError) => {
         // SILENT HANDSHAKE: Catch permission-denied errors during transient role verification
-        if (err.code === 'permission-denied' || err.code === 'unauthenticated') {
+        const isPermissionDenied = 
+          err.code === 'permission-denied' || 
+          err.code === 'unauthenticated' ||
+          err.message?.toLowerCase().includes('permissions') ||
+          err.message?.toLowerCase().includes('denied');
+
+        if (isPermissionDenied) {
           console.warn(`[Institutional Registry] Access deferred for doc: ${memoizedDocRef.path}.`);
           setError(err);
           setData(null);

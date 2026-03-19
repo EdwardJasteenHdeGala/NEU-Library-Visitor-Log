@@ -32,7 +32,8 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
   const status = useLibraryStatus();
   
   // Robust admin check - strictly prevent unauthorized telemetry access
-  const isAdmin = !authLoading && profile && (profile.role === 'admin' || profile.isAuthorizedAdmin);
+  // Guard against authLoading ensures we don't query before profile is ready
+  const isAdmin = !authLoading && !!profile && (profile.role === 'admin' || profile.isAuthorizedAdmin === true);
 
   // Real-time queries for telemetry - authorized admins see all registry logs
   const recentVisitsQuery = useMemoFirebase(() => {
@@ -60,7 +61,7 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
   const effectiveOccupancy = activeVisits?.length || 0;
 
   // Defensive rendering for non-admin users
-  if (!isAdmin && !authLoading) {
+  if (!authLoading && !isAdmin) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center space-y-6 animate-in fade-in duration-500">
         <div className="p-6 bg-destructive/10 rounded-full border-2 border-destructive/20 shadow-inner">
@@ -173,7 +174,7 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
               <TableBody>
                 {isLoadingRecent ? (
                   <TableRow><TableCell colSpan={4} className="text-center py-32 animate-pulse text-[14px] font-black uppercase tracking-[0.4em] text-muted-foreground italic">Decrypting Institutional Registry...</TableCell></TableRow>
-                ) : recentVisits?.length === 0 ? (
+                ) : (recentVisits?.length === 0 || !recentVisits) ? (
                   <TableRow><TableCell colSpan={4} className="text-center py-32 italic text-[14px] font-black uppercase text-muted-foreground tracking-widest">Registry Archive Empty</TableCell></TableRow>
                 ) : recentVisits?.map((visit) => (
                   <TableRow key={visit.id} className="hover:bg-primary/5 transition-all border-b last:border-0 group cursor-pointer">

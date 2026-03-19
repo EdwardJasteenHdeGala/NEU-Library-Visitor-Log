@@ -18,18 +18,22 @@ service cloud.firestore {
 
     function isAdmin() {
       return isSignedIn() && (
-        request.auth.token.email.lower() in [
-          'edwardjasteen.degala@neu.edu.ph', 
-          'jcesperanza@neu.edu.ph', 
-          'nhica.valderas@neu.edu.ph'
-        ] ||
+        // Explicit whitelist for immediate authorization via token email
+        request.auth.token.email.lower() == 'edwardjasteen.degala@neu.edu.ph' ||
+        request.auth.token.email.lower() == 'jcesperanza@neu.edu.ph' ||
+        request.auth.token.email.lower() == 'nhica.valderas@neu.edu.ph' ||
+        // Dynamic role check for other synchronized administrators
         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
          getUserData().role == 'admin')
       );
     }
 
     function isMember() {
-      return isSignedIn() && getUserData().role == 'user';
+      return isSignedIn() && (
+        request.auth.token.email.lower().endsWith('@neu.edu.ph') ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         getUserData().role == 'user')
+      );
     }
 
     // --- Collection Rules ---

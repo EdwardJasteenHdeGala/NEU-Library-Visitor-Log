@@ -72,7 +72,14 @@ export function useCollection<T = any>(
             : (memoizedTargetRefOrQuery as unknown as InternalQuery)._query.path.canonicalString();
 
         // SILENT HANDSHAKE: Catch permission-denied errors during transient role verification
-        if (err.code === 'permission-denied' || err.code === 'unauthenticated') {
+        // Enhanced check to be more robust across different environments/SDK versions
+        const isPermissionDenied = 
+          err.code === 'permission-denied' || 
+          err.code === 'unauthenticated' ||
+          err.message?.toLowerCase().includes('permissions') ||
+          err.message?.toLowerCase().includes('denied');
+
+        if (isPermissionDenied) {
           console.warn(`[Institutional Registry] Access deferred for: ${path}. Identity sync in progress.`);
           setError(err);
           setData([]); // Return empty list instead of crashing
