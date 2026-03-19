@@ -29,16 +29,16 @@ service cloud.firestore {
 
     // VISITS REGISTRY
     match /visits/{visitId} {
-      // Admins are authorized for full registry oversight (list, read, write)
+      // Admins are authorized for full registry oversight
       allow read, write: if isAdmin();
 
       // Standard members can log their presence and read their own records
-      // List operation for standard users MUST be filtered by userId in the query
+      // The list operation for standard users MUST be filtered by userId in the query
       allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
-      allow read: if isAuthenticated() && (isAdmin() || resource.data.userId == request.auth.uid);
+      allow list, get: if isAuthenticated() && (isAdmin() || resource.data.userId == request.auth.uid);
     }
 
-    // INSTITUTIONAL CONFIG
+    // INSTITUTIONAL CONFIG (ANNOUNCEMENTS/NOTICES)
     match /library_config/{configId} {
       allow read: if true;
       allow write: if isAdmin();

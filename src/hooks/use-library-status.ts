@@ -1,15 +1,14 @@
-
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 
-export type LibraryStatus = 
-  | 'Open (Automatic)' 
-  | 'Closed (Automatic)' 
-  | 'Open (Manual Override)' 
-  | 'Closed (Manual Override)';
+export type LibraryNoticeStatus = 
+  | 'Standard Hours' 
+  | 'After Hours' 
+  | 'Special Notice' 
+  | 'Emergency Announcement';
 
 export type AnnouncementCategory = 'general' | 'emergency' | 'institutional';
 
@@ -40,8 +39,8 @@ export function useLibraryStatus() {
   const status = useMemo(() => {
     if (!now || isConfigLoading) {
       return { 
-        isOpen: false, 
-        label: 'Closed (Automatic)' as LibraryStatus, 
+        isOpen: true, 
+        label: 'Registry Active' as any, 
         nextEvent: 'Syncing...',
         isManual: false,
         reason: '',
@@ -50,13 +49,12 @@ export function useLibraryStatus() {
       };
     }
 
-    // 1. Check for Manual Override
+    // 1. Check for Manual Notice/Override
     if (config && config.mode === 'manual') {
-      const isManualOpen = config.manualStatus === 'open';
       return {
-        isOpen: isManualOpen,
-        label: (isManualOpen ? 'Open (Manual Override)' : 'Closed (Manual Override)') as LibraryStatus,
-        nextEvent: 'Manual control active',
+        isOpen: config.manualStatus === 'open',
+        label: (config.manualLabel || 'Special Notice') as LibraryNoticeStatus,
+        nextEvent: config.manualReason || 'Operational update in effect',
         isManual: true,
         reason: config.manualReason || '',
         category: (config.manualCategory || 'general') as AnnouncementCategory,
@@ -64,15 +62,15 @@ export function useLibraryStatus() {
       };
     }
 
-    // 2. Fallback to Automatic Schedule
+    // 2. Fallback to Automatic Schedule Notices
     const day = now.getDay();
     const isWeekend = day === 0 || day === 6;
     
     if (isWeekend) {
       return { 
         isOpen: false, 
-        label: 'Closed (Automatic)' as LibraryStatus, 
-        nextEvent: 'Opens Monday at 08:00 AM',
+        label: 'After Hours' as LibraryNoticeStatus, 
+        nextEvent: 'Standard registry resumes Monday at 08:00 AM',
         isManual: false,
         reason: '',
         category: 'general' as AnnouncementCategory,
@@ -92,8 +90,8 @@ export function useLibraryStatus() {
     if (now < openTime) {
       return { 
         isOpen: false, 
-        label: 'Closed (Automatic)' as LibraryStatus, 
-        nextEvent: `Opens today at ${openTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
+        label: 'After Hours' as LibraryNoticeStatus, 
+        nextEvent: `Standard registry resumes at ${openTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
         isManual: false,
         reason: '',
         category: 'general' as AnnouncementCategory,
@@ -104,8 +102,8 @@ export function useLibraryStatus() {
     if (now >= closeTime) {
       return { 
         isOpen: false, 
-        label: 'Closed (Automatic)' as LibraryStatus, 
-        nextEvent: 'Opens tomorrow at 08:00 AM',
+        label: 'After Hours' as LibraryNoticeStatus, 
+        nextEvent: 'Standard registry resumes tomorrow at 08:00 AM',
         isManual: false,
         reason: '',
         category: 'general' as AnnouncementCategory,
@@ -115,8 +113,8 @@ export function useLibraryStatus() {
 
     return { 
       isOpen: true, 
-      label: 'Open (Automatic)' as LibraryStatus, 
-      nextEvent: `Closes at ${closeTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
+      label: 'Standard Hours' as LibraryNoticeStatus, 
+      nextEvent: `Registry active until ${closeTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
       isManual: false,
       reason: '',
       category: 'general' as AnnouncementCategory,

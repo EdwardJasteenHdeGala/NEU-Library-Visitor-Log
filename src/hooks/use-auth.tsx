@@ -144,12 +144,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       await signInWithPopup(auth, provider);
     } catch (error: any) {
-      // Gracefully handle "benign" popup closure
+      // Gracefully handle popup closure by user
       if (error.code === 'auth/popup-closed-by-user') {
-        console.log("Identity synchronization suspended: Popup closed by user.");
         toast({
-          title: "Identity Sync Suspended",
-          description: "Portal access requires institutional synchronization. Please try again when ready.",
+          title: "Identity Sync Deferred",
+          description: "Registry synchronization requires an active institutional session.",
         });
         return;
       }

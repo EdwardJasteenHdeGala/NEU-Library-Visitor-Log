@@ -47,7 +47,7 @@ export function WelcomeScreen({ onLogin, onGuest }: WelcomeScreenProps) {
 
         <div className="hidden md:flex items-center gap-8">
           <div className="flex items-center gap-3">
-            <div className={cn("h-2.5 w-2.5 rounded-full shadow-sm", status.isOpen ? "bg-green-500 animate-pulse" : "bg-red-500")} />
+            <div className={cn("h-2.5 w-2.5 rounded-full shadow-sm", status.isOpen ? "bg-green-500 animate-pulse" : "bg-amber-500")} />
             <span className="text-[10px] font-black uppercase tracking-widest text-primary/70">{status.label}</span>
           </div>
           <Dialog>
@@ -166,7 +166,7 @@ export function WelcomeScreen({ onLogin, onGuest }: WelcomeScreenProps) {
               <div className="absolute inset-0 bg-dot-pattern opacity-10" />
               <div className="space-y-3 relative z-10 text-center md:text-left">
                 <div className="flex items-center justify-center md:justify-start gap-3 text-secondary font-black uppercase text-[10px] tracking-[0.4em]">
-                  <Clock className="h-4 w-4" /> Real-time Operational Status
+                  <Clock className="h-4 w-4" /> Registry Announcement
                 </div>
                 <h3 className="text-3xl font-black italic uppercase tracking-tighter transition-all group-hover:translate-x-1">{status.label}</h3>
                 <p className="text-white/70 font-medium italic">{status.nextEvent}</p>
