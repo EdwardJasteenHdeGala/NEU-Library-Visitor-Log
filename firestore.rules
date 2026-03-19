@@ -25,6 +25,7 @@ service cloud.firestore {
       allow create: if isAuthenticated();
       
       // Allow users to read their own visits (for active session check)
+      // Note: Listing requires a query filter matching this condition
       allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
     }
 
