@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
 import { 
   Settings, 
   Palette, 
@@ -35,12 +36,13 @@ export function SettingsView({ onBack }: SettingsViewProps) {
     theme: profile?.theme || 'light',
     pushNotifications: true,
     emailAlerts: true,
-    biometricAccess: false
+    biometricAccess: false,
+    rfidTag: profile?.rfidTag || ''
   });
 
   const handleSave = async () => {
     setIsSaving(true);
-    const success = await updateProfileData({ theme: settings.theme as any });
+    const success = await updateProfileData({ theme: settings.theme as any, rfidTag: settings.rfidTag });
     setIsSaving(false);
     if (success) {
       toast({ title: "Settings Updated", description: "Institutional preferences saved." });
@@ -115,6 +117,35 @@ export function SettingsView({ onBack }: SettingsViewProps) {
                 <div className="flex flex-col"><span className="font-bold text-xs uppercase tracking-tight">Email Summaries</span><span className="text-[9px] text-muted-foreground">Weekly activity digest</span></div>
               </div>
               <Switch checked={settings.emailAlerts} onCheckedChange={(v) => setSettings({...settings, emailAlerts: v})} />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="neu-card-shadow border-none rounded-[2rem] bg-indigo-50/40 shadow-xl overflow-hidden md:col-span-2 ring-1 ring-indigo-100">
+          <CardHeader className="p-8 bg-indigo-100/50 border-b border-indigo-200/50">
+            <CardTitle className="text-lg font-black text-indigo-900 flex items-center gap-3 uppercase italic">
+              <ShieldCheck className="h-5 w-5 text-indigo-600" /> Identity Hardware
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-8 space-y-6">
+            <div className="flex flex-col sm:flex-row items-center justify-between p-6 bg-white rounded-2xl border border-indigo-100 shadow-sm gap-6 hover:shadow-md transition-all">
+              <div className="space-y-1 text-center sm:text-left">
+                <h4 className="font-black text-indigo-950 uppercase tracking-tight">RFID / Smart Card Link</h4>
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Bind physical hardware to your digital identity.</p>
+              </div>
+              <div className="flex items-center gap-4 w-full sm:w-auto">
+                <div className="flex-1 sm:w-64">
+                   <Input 
+                      placeholder="Awaiting terminal scan..." 
+                      className="h-14 border-2 border-indigo-100 focus:ring-indigo-500 font-mono text-center sm:text-left font-bold rounded-xl bg-indigo-50/30"
+                      value={settings.rfidTag}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSettings({...settings, rfidTag: e.target.value})}
+                   />
+                </div>
+                <Button variant="outline" className="h-14 border-2 border-indigo-200 text-indigo-600 hover:bg-indigo-50 font-black uppercase tracking-widest rounded-xl px-8 shadow-sm">
+                   Pair
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>

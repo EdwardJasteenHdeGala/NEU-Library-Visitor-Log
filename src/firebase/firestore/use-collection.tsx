@@ -73,11 +73,14 @@ export function useCollection<T = any>(
 
         // SILENT HANDSHAKE: Catch permission-denied errors during transient role verification
         // Enhanced check to be more robust across different environments/SDK versions
+        const errMsg = String(err.message || err).toLowerCase();
+        const errCode = String(err.code || '').toLowerCase();
+
         const isPermissionDenied = 
-          err.code === 'permission-denied' || 
-          err.code === 'unauthenticated' ||
-          err.message?.toLowerCase().includes('permissions') ||
-          err.message?.toLowerCase().includes('denied');
+          errCode.includes('permission-denied') || 
+          errCode.includes('unauthenticated') ||
+          errMsg.includes('permissions') ||
+          errMsg.includes('denied');
 
         if (isPermissionDenied) {
           console.warn(`[Institutional Registry] Access deferred for: ${path}. Identity sync in progress.`);

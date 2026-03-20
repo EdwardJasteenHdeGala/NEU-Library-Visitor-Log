@@ -70,26 +70,26 @@ export function AdminPlaceholder() {
               No recent activity to display.
             </CardContent>
           </Card>
-          
+
           <Card className="min-h-[400px]">
             <CardHeader>
               <CardTitle>Settings & Maintenance</CardTitle>
               <CardDescription>System configuration</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-               <Button variant="outline" className="w-full justify-start gap-3">
-                 <Settings className="h-4 w-4" /> Export Today's Log
-               </Button>
-               <Button variant="outline" className="w-full justify-start gap-3">
-                 <Users className="h-4 w-4" /> Manage Access Roles
-               </Button>
-               <div className="pt-4 border-t">
-                  <p className="text-sm font-medium mb-2">System Status</p>
-                  <div className="flex gap-2 items-center text-xs text-green-600 bg-green-50 p-2 rounded">
-                    <div className="h-2 w-2 rounded-full bg-green-600 animate-pulse" />
-                    All services online and syncing with Firestore
-                  </div>
-               </div>
+              <Button variant="outline" className="w-full justify-start gap-3">
+                <Settings className="h-4 w-4" /> Export Today's Log
+              </Button>
+              <Button variant="outline" className="w-full justify-start gap-3">
+                <Users className="h-4 w-4" /> Manage Access Roles
+              </Button>
+              <div className="pt-4 border-t">
+                <p className="text-sm font-medium mb-2">System Status</p>
+                <div className="flex gap-2 items-center text-xs text-green-600 bg-green-50 p-2 rounded">
+                  <div className="h-2 w-2 rounded-full bg-green-600 animate-pulse" />
+                  All services online and syncing with Firestore
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>

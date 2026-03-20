@@ -55,6 +55,8 @@ import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
+import { useDebounce } from "@/hooks/use-debounce";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const BLOCK_REASONS = [
   "Spam",
@@ -77,6 +79,7 @@ interface UserManagementProps {
 
 export function UserManagement({ onBack }: UserManagementProps) {
   const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
   const [newEmail, setNewEmail] = useState("");
   const [inviteRole, setInviteRole] = useState<"user" | "admin">("user");
@@ -119,7 +122,7 @@ export function UserManagement({ onBack }: UserManagementProps) {
 
   const filteredUsers = useMemo(() => {
     if (!users) return [];
-    const term = searchTerm.toLowerCase().trim();
+    const term = debouncedSearchTerm.toLowerCase().trim();
     if (!term) return users;
 
     return users.filter(u => {
@@ -288,7 +291,14 @@ export function UserManagement({ onBack }: UserManagementProps) {
                 </TableHeader>
                 <TableBody>
                   {isLoadingUsers ? (
-                    <TableRow><TableCell colSpan={4} className="text-center py-20 font-bold text-muted-foreground uppercase animate-pulse">Syncing Directory...</TableCell></TableRow>
+                    Array.from({ length: 5 }).map((_, i) => (
+                      <TableRow key={i} className="animate-pulse border-b">
+                        <TableCell className="py-5 px-6 md:px-8"><div className="flex items-center gap-4"><Skeleton className="h-10 w-10 rounded-full shrink-0 bg-muted/60" /><div className="space-y-2"><Skeleton className="h-4 w-32 bg-muted/50" /><Skeleton className="h-3 w-24 bg-muted/40" /></div></div></TableCell>
+                        <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-20 bg-muted/50" /></TableCell>
+                        <TableCell><Skeleton className="h-5 w-16 rounded-full bg-muted/60" /></TableCell>
+                        <TableCell className="text-right px-6 md:px-8"><Skeleton className="h-8 w-8 rounded-full ml-auto bg-muted/60" /></TableCell>
+                      </TableRow>
+                    ))
                   ) : filteredUsers.length === 0 ? (
                     <TableRow><TableCell colSpan={4} className="text-center py-20 italic text-muted-foreground">No records found.</TableCell></TableRow>
                   ) : filteredUsers.map((u) => {
@@ -365,7 +375,14 @@ export function UserManagement({ onBack }: UserManagementProps) {
                 </TableHeader>
                 <TableBody>
                   {isLoadingInvites ? (
-                    <TableRow><TableCell colSpan={4} className="text-center py-20 font-bold text-muted-foreground uppercase animate-pulse">Syncing Invitations...</TableCell></TableRow>
+                    Array.from({ length: 3 }).map((_, i) => (
+                      <TableRow key={i} className="animate-pulse border-b">
+                        <TableCell className="py-5 px-6 md:px-8"><div className="flex items-center gap-3"><Skeleton className="h-8 w-8 rounded-lg bg-muted/60" /><Skeleton className="h-4 w-40 bg-muted/50" /></div></TableCell>
+                        <TableCell><Skeleton className="h-4 w-24 bg-muted/50" /></TableCell>
+                        <TableCell><Skeleton className="h-5 w-16 rounded-full bg-muted/60" /></TableCell>
+                        <TableCell className="text-right px-6 md:px-8"><Skeleton className="h-8 w-8 rounded-full ml-auto bg-muted/60" /></TableCell>
+                      </TableRow>
+                    ))
                   ) : invites?.length === 0 ? (
                     <TableRow><TableCell colSpan={4} className="text-center py-20 italic text-muted-foreground">No pending invitations recorded.</TableCell></TableRow>
                   ) : invites?.map((inv) => (

@@ -7,7 +7,7 @@ import {
   signInWithPopup, 
   signOut, 
   setPersistence, 
-  browserSessionPersistence 
+  browserLocalPersistence 
 } from 'firebase/auth';
 import { 
   doc, 
@@ -16,7 +16,8 @@ import {
   collection,
   query,
   where,
-  getDocs
+  getDocs,
+  onSnapshot
 } from 'firebase/firestore';
 import { 
   useFirebase, 
@@ -44,6 +45,7 @@ export interface UserProfile {
   createdAt: any;
   updatedAt: any;
   theme?: 'light' | 'dark';
+  rfidTag?: string;
 }
 
 interface AuthContextType {
@@ -84,9 +86,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (isUserLoading) return;
 
+    let unsubscribe = () => {};
+
     const checkProfile = async () => {
       if (user) {
-        await fetchOrCreateProfile(user.uid);
+        const unsub = await fetchOrCreateProfile(user.uid);
+        if (unsub) unsubscribe = unsub;
       } else {
         setProfile(null);
         setLoading(false);
@@ -94,10 +99,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     checkProfile();
+
+    return () => unsubscribe();
   }, [user, isUserLoading]);
 
   const fetchOrCreateProfile = async (uid: string) => {
-    if (!user || !firestore) return;
+    if (!user || !firestore) return undefined;
     try {
       const docRef = doc(firestore, 'users', uid);
       const docSnap = await getDoc(docRef);
@@ -118,15 +125,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.warn("Invite registry scan deferred.");
       }
 
-      if (docSnap.exists()) {
-        const data = docSnap.data() as UserProfile;
+      const processProfileData = (data: Partial<UserProfile>) => {
         const updatedProfile = { 
           ...data, 
           isAuthorizedAdmin: isWhitelisted || data.isAuthorizedAdmin || inheritedRole === 'admin',
           isSuperAdmin: userEmail === BOOTSTRAP_SUPER_ADMIN_EMAIL
-        };
+        } as UserProfile;
         setProfile(updatedProfile);
-      } else {
+      };
+
+      if (!docSnap.exists()) {
         const defaultRole = isWhitelisted ? 'admin' : (inheritedRole || (isInstitutional ? 'user' : 'guest'));
         const defaultDesignation = isInstitutional ? 'student' : 'guest';
         const defaultUnit = isInstitutional ? 'Pending Assignment' : 'External';
@@ -151,10 +159,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         };
         
         setDocumentNonBlocking(docRef, profileData, { merge: true });
-        setProfile(profileData as any);
+        processProfileData(profileData);
       }
+
+      const unsubscribe = onSnapshot(docRef, (snap) => {
+        if (snap.exists()) {
+          processProfileData(snap.data() as UserProfile);
+        }
+      });
+
+      return unsubscribe;
     } catch (error) {
       console.error("Identity Sync Error:", error);
+      return undefined;
     } finally {
       setLoading(false);
     }
@@ -163,7 +180,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (roleHint?: 'user' | 'guest') => {
     try {
       // Institutional Protocol: Disable auto-login by enforcing session persistence
-      await setPersistence(auth, browserSessionPersistence);
+      await setPersistence(auth, browserLocalPersistence);
 
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({ 

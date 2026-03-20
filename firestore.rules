@@ -19,20 +19,22 @@ service cloud.firestore {
     function isAdmin() {
       return isSignedIn() && (
         // Explicit whitelist for immediate authorization via token email
-        request.auth.token.email.lower() == 'edwardjasteen.degala@neu.edu.ph' ||
-        request.auth.token.email.lower() == 'jcesperanza@neu.edu.ph' ||
-        request.auth.token.email.lower() == 'nhica.valderas@neu.edu.ph' ||
+        request.auth.token.get('email', '').lower() == 'edwardjasteen.degala@neu.edu.ph' ||
+        request.auth.token.get('email', '').lower() == 'jcesperanza@neu.edu.ph' ||
+        request.auth.token.get('email', '').lower() == 'nhica.valderas@neu.edu.ph' ||
         // Dynamic role check for other synchronized administrators
         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
-         getUserData().role == 'admin')
+         getUserData().role == 'admin' && 
+         getUserData().get('isBlocked', false) == false)
       );
     }
 
     function isMember() {
       return isSignedIn() && (
-        request.auth.token.email.lower().endsWith('@neu.edu.ph') ||
+        request.auth.token.get('email', '').lower().endsWith('@neu.edu.ph') ||
         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
-         getUserData().role == 'user')
+         getUserData().role == 'user' && 
+         getUserData().get('isBlocked', false) == false)
       );
     }
 
@@ -58,7 +60,7 @@ service cloud.firestore {
     }
 
     match /feedback/{feedbackId} {
-      allow create: if isSignedIn();
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
     }
 

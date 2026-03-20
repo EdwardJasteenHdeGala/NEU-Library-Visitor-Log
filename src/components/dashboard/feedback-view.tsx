@@ -6,12 +6,13 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Star, MessageSquare, Loader2, Send, History, User, LayoutList, PenLine, ArrowLeft } from "lucide-react";
+import { Star, MessageSquare, Loader2, Send, History, User, LayoutList, PenLine, ArrowLeft, CheckCircle2 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
-import { useFirebase, useCollection, useMemoFirebase, addDocumentNonBlocking } from "@/firebase";
-import { collection, query, orderBy, where } from "firebase/firestore";
+import { useFirebase, useCollection, useMemoFirebase, addDocumentNonBlocking, updateDocumentNonBlocking } from "@/firebase";
+import { collection, query, orderBy, where, doc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -60,7 +61,8 @@ export function FeedbackView({ onBack }: FeedbackViewProps) {
       rating: parseInt(rating),
       visitType,
       message: message.trim(),
-      timestamp: new Date()
+      timestamp: new Date(),
+      isResolved: false
     });
     
     setTimeout(() => {
@@ -70,6 +72,28 @@ export function FeedbackView({ onBack }: FeedbackViewProps) {
       setVisitType("study");
       setIsSubmitting(false);
     }, 600);
+  };
+
+  const handleResolve = async (item: any) => {
+    if (!firestore) return;
+    updateDocumentNonBlocking(doc(firestore, 'feedback', item.id), { isResolved: true });
+    
+    addDocumentNonBlocking(collection(firestore, 'notifications'), {
+      userId: item.userId,
+      title: "Feedback Addressed",
+      message: `Your institutional feedback regarding '${item.visitType}' has been reviewed and marked as resolved by administration.`,
+      timestamp: new Date(),
+      read: false,
+      type: 'resolution'
+    });
+    
+    toast({ title: "Resolution Logged", description: "The member has been notified of the resolution." });
+  };
+
+  const getSentiment = (ratingValue: number) => {
+    if (ratingValue >= 4) return { label: 'POSITIVE', color: 'text-green-600 bg-green-50 border-green-200' };
+    if (ratingValue === 3) return { label: 'NEUTRAL', color: 'text-amber-600 bg-amber-50 border-amber-200' };
+    return { label: 'CRITICAL', color: 'text-red-600 bg-red-50 border-red-200 animate-pulse' };
   };
 
   const renderFeedbackList = () => (
@@ -112,10 +136,23 @@ export function FeedbackView({ onBack }: FeedbackViewProps) {
                     <span className="text-[9px] font-black uppercase tracking-[0.3em] bg-secondary/10 text-primary px-5 py-1.5 rounded-full border border-secondary/20 shadow-sm">
                       {item.visitType}
                     </span>
+                    <span className={cn("text-[9px] font-black uppercase tracking-[0.3em] px-5 py-1.5 rounded-full border shadow-sm", getSentiment(item.rating).color)}>
+                      {getSentiment(item.rating).label}
+                    </span>
+                    {item.isResolved && (
+                      <span className="text-[9px] font-black uppercase tracking-widest text-primary/60 flex items-center gap-2">
+                        <CheckCircle2 className="h-3.5 w-3.5 text-green-500" /> RESOLVED
+                      </span>
+                    )}
                   </div>
                   <p className="text-xl font-medium text-primary/80 leading-relaxed italic border-l-4 border-secondary/30 pl-6 py-2">
                     "{item.message}"
                   </p>
+                  {isAdmin && !item.isResolved && (
+                    <Button onClick={() => handleResolve(item)} variant="outline" size="sm" className="h-10 rounded-xl gap-2 font-black uppercase text-[10px] tracking-widest mt-4">
+                      <CheckCircle2 className="h-4 w-4 text-green-600" /> Mark as Resolved & Notify
+                    </Button>
+                  )}
                 </div>
               </div>
             </CardContent>

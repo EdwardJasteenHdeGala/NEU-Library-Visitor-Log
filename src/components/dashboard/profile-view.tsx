@@ -16,8 +16,13 @@ import {
   ShieldOff,
   IdCard,
   ArrowLeft,
-  ShieldAlert
+  ShieldAlert,
+  Activity
 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { format } from "date-fns";
+import { collection, query, where, orderBy, limit } from "firebase/firestore";
+import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
 import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
@@ -41,6 +46,19 @@ interface ProfileViewProps {
 export function ProfileView({ onBack }: ProfileViewProps) {
   const { profile, switchRole, logout, updateProfileData, resignAdmin } = useAuth();
   const { toast } = useToast();
+  const firestore = useFirestore();
+
+  const visitsQuery = useMemoFirebase(() => {
+    if (!profile?.id || !firestore) return null;
+    return query(
+      collection(firestore, 'visits'),
+      where('userId', '==', profile.id),
+      orderBy('timestamp', 'desc'),
+      limit(5)
+    );
+  }, [firestore, profile?.id]);
+
+  const { data: recentVisits, isLoading: isLoadingVisits } = useCollection(visitsQuery);
   
   const [isUpdating, setIsUpdating] = useState(false);
   const [formData, setFormData] = useState({
@@ -73,9 +91,14 @@ export function ProfileView({ onBack }: ProfileViewProps) {
           </Avatar>
           <div className="absolute bottom-2 right-2 bg-primary text-white p-3 rounded-[1.25rem] shadow-2xl border-4 border-white cursor-pointer hover:scale-110 transition-transform"><Camera className="h-5 w-5" /></div>
         </div>
-        <div className="space-y-1">
+        <div className="space-y-2">
           <h2 className="text-4xl font-black text-primary italic uppercase tracking-tighter leading-none">{profile?.displayName}</h2>
           <p className="text-muted-foreground font-black text-[10px] uppercase tracking-[0.4em] opacity-60">Identity Management Console</p>
+          <div className="pt-2 flex justify-center">
+            <Badge variant={profile?.isBlocked ? "destructive" : "default"} className={cn("text-[10px] px-4 py-1.5 uppercase font-black tracking-widest text-center", profile?.isBlocked && "animate-pulse")}>
+              {profile?.isBlocked ? "INSTITUTIONAL SUSPENSION" : "GOOD STANDING"}
+            </Badge>
+          </div>
         </div>
       </div>
 
@@ -99,6 +122,39 @@ export function ProfileView({ onBack }: ProfileViewProps) {
       )}
 
       <Card className="neu-card-shadow border-none rounded-[2.5rem] bg-white shadow-2xl overflow-hidden">
+        <CardHeader className="p-8 bg-muted/20 border-b">
+          <CardTitle className="text-xl font-black text-primary flex items-center gap-4 uppercase italic tracking-tighter">
+            <Activity className="h-6 w-6 text-secondary" /> Recent Physical Telemetry
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-6 md:p-10 space-y-4">
+          {isLoadingVisits ? (
+            <div className="flex justify-center p-8"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
+          ) : recentVisits && recentVisits.length > 0 ? (
+            <div className="space-y-4">
+              {recentVisits.map((visit) => (
+                <div key={visit.id} className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 border hover:shadow-md transition-all">
+                  <div className="space-y-1">
+                    <p className="font-black text-primary text-sm italic uppercase tracking-tight">{visit.purpose}</p>
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{visit.college} • {visit.designation}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs font-black text-slate-700 italic">
+                      {visit.timestamp?.seconds ? format(visit.timestamp.seconds * 1000, 'MMM dd') : 'Recently'}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center p-12 border-dashed border-2 rounded-2xl bg-white/50">
+               <p className="text-muted-foreground font-bold italic">No physical telemetry recorded for this identity.</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card className="neu-card-shadow border-none rounded-[2.5rem] bg-white shadow-2xl overflow-hidden">
         <CardHeader className="bg-muted/30 border-b p-10">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
             <div className="space-y-3">
@@ -116,7 +172,7 @@ export function ProfileView({ onBack }: ProfileViewProps) {
                 </div>
                 <div className="space-y-3">
                     <Label className="font-black text-primary uppercase text-[10px] tracking-[0.4em] ml-3">Academic Unit</Label>
-                    <Input placeholder="e.g. CICS, CEA, or External" value={formData.college} onChange={(e) => setFormData({ ...formData, college: e.target.value })} className="h-16 border-2 focus:ring-primary font-black text-lg rounded-2xl px-8" />
+                    <Input placeholder="e.g. CAS, CEA, or External" value={formData.college} onChange={(e) => setFormData({ ...formData, college: e.target.value })} className="h-16 border-2 focus:ring-primary font-black text-lg rounded-2xl px-8" />
                 </div>
             </div>
             <Button onClick={handleSave} className="w-full h-20 bg-primary hover:bg-primary/95 text-white font-black text-2xl rounded-[1.5rem] shadow-3xl gap-4 transition-all" disabled={isUpdating}>

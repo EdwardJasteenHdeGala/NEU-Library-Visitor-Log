@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Bell, CheckCircle2, ShieldAlert, Clock, ArrowLeft } from "lucide-react";
-import { collection, query, orderBy, doc, writeBatch } from "firebase/firestore";
+import { collection, query, orderBy, doc, writeBatch, where } from "firebase/firestore";
 import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
 import { useAuth } from "@/hooks/use-auth";
 import { format } from "date-fns";
@@ -21,13 +21,18 @@ export function NotificationsView({ onBack }: NotificationsViewProps) {
   const { toast } = useToast();
 
   const notificationsQuery = useMemoFirebase(() => {
-    if (!firestore) return null;
-    // Reverted to global announcements query to ensure visibility for all members
+    if (!profile?.id || !firestore) return null;
+    
+    if (profile.role === 'admin') {
+      return query(collection(firestore, 'notifications'), orderBy('timestamp', 'desc'));
+    }
+    
     return query(
       collection(firestore, 'notifications'),
+      where('userId', 'in', [profile.id, 'global']),
       orderBy('timestamp', 'desc')
     );
-  }, [firestore]);
+  }, [firestore, profile]);
 
   const { data: notifications, isLoading } = useCollection(notificationsQuery);
 

@@ -38,6 +38,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LiveClock } from "@/components/ui/live-clock";
 import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarTrigger } from "@/components/ui/sidebar";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 
@@ -89,12 +90,12 @@ export function DashboardLayout() {
         <Sidebar className="border-r border-border bg-card shadow-lg w-[clamp(14rem,20vw,18rem)]">
           <SidebarHeader className="p-[clamp(1rem,3vh,1.5rem)] border-b">
             <div className="flex items-center gap-[clamp(0.5rem,2vw,0.75rem)]">
-              <div className="bg-primary/5 p-[0.25rem] rounded-lg w-[2.5rem] h-[2.25rem] relative overflow-hidden flex items-center justify-center">
+              <div className="bg-primary/5 p-[0.25rem] rounded-lg aspect-square w-[2.5rem] relative overflow-hidden flex items-center justify-center">
                 <Image src={logoImage?.imageUrl || ""} alt="NEU" fill className="object-contain p-[0.25rem]" />
               </div>
               <div className="flex flex-col leading-none">
                 <h1 className="text-[0.75rem] font-black tracking-tighter text-primary uppercase italic">NEU Hub</h1>
-                <span className="text-[0.4375rem] font-bold text-muted-foreground uppercase tracking-widest">CICS Console</span>
+                <span className="text-[0.4375rem] font-bold text-muted-foreground uppercase tracking-widest">NEU Console</span>
               </div>
             </div>
           </SidebarHeader>
@@ -106,7 +107,7 @@ export function DashboardLayout() {
                     onClick={() => handleNavClick(item.id as View)}
                     isActive={currentView === item.id}
                     className={cn(
-                      "w-full h-[2.75rem] justify-start gap-[1rem] px-[1rem] rounded-[0.75rem] font-bold text-[0.75rem] uppercase tracking-tight transition-all",
+                      "w-full min-h-[2.75rem] h-auto py-2 justify-start gap-[1rem] px-[1rem] rounded-[0.75rem] font-bold text-[0.75rem] uppercase tracking-tight transition-all flex items-center",
                       currentView === item.id 
                         ? "bg-primary text-white shadow-xl scale-105" 
                         : "text-muted-foreground hover:bg-muted hover:text-primary"
@@ -122,7 +123,7 @@ export function DashboardLayout() {
               <Button 
                 variant="ghost" 
                 onClick={logout} 
-                className="w-full h-[2.75rem] justify-start gap-[1rem] px-[1rem] rounded-[0.75rem] font-bold text-[0.75rem] uppercase text-destructive hover:bg-destructive/5"
+                className="w-full min-h-[2.75rem] h-auto py-2 justify-start gap-[1rem] px-[1rem] rounded-[0.75rem] font-bold text-[0.75rem] uppercase text-destructive hover:bg-destructive/5 flex items-center"
               >
                 <LogOut className="h-[1rem] w-[1rem]" />
                 Sign Out
@@ -143,19 +144,28 @@ export function DashboardLayout() {
               </div>
 
               <div className="hidden lg:flex items-center gap-[1.5rem]">
-                <LiveClock className="bg-white/5 border-white/10 text-white h-[2.25rem] !py-0 !px-[1rem] rounded-lg scale-90" showSelector={false} />
+                <LiveClock className="bg-white/5 border-white/10 text-white min-h-[2.25rem] h-auto flex items-center !py-0 !px-[1rem] rounded-lg scale-90" showSelector={false} />
               </div>
 
               <div className="flex items-center gap-[clamp(0.5rem,2vw,1rem)] ml-auto">
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="text-white hover:bg-white/10 relative"
-                  onClick={() => handleNavClick('notifications')}
-                >
-                  <Bell className="h-[1.25rem] w-[1.25rem]" />
-                  <span className="absolute top-[0.5rem] right-[0.5rem] h-[0.5rem] w-[0.5rem] bg-secondary rounded-full animate-pulse" />
-                </Button>
+                <TooltipProvider delayDuration={300}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="text-white hover:bg-white/10 relative"
+                        onClick={() => handleNavClick('notifications')}
+                      >
+                        <Bell className="h-[1.25rem] w-[1.25rem]" />
+                        <span className="absolute top-[0.5rem] right-[0.5rem] h-[0.5rem] w-[0.5rem] bg-secondary rounded-full animate-pulse" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" sideOffset={8} className="font-black text-[10px] uppercase tracking-widest bg-white text-primary rounded-xl px-4 py-2 border-none shadow-2xl">
+                      Inbox Threads
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -173,16 +183,16 @@ export function DashboardLayout() {
                   <DropdownMenuContent align="end" className="w-[14rem] mt-[0.5rem] rounded-[1rem] shadow-2xl bg-card border-none">
                     <DropdownMenuLabel className="text-[0.625rem] font-black uppercase tracking-widest text-muted-foreground p-[0.75rem]">Admin Menu</DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => handleNavClick('profile')} className="gap-[0.5rem] cursor-pointer font-bold text-[0.75rem] h-[2.5rem]">
+                    <DropdownMenuItem onClick={() => handleNavClick('profile')} className="gap-[0.5rem] cursor-pointer font-bold text-[0.75rem] min-h-[2.5rem] h-auto py-2 flex items-center">
                       <Settings className="h-[1rem] w-[1rem]" />
                       Settings
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => switchRole('user')} className="gap-[0.5rem] cursor-pointer font-bold text-[0.75rem] h-[2.5rem]">
+                    <DropdownMenuItem onClick={() => switchRole('user')} className="gap-[0.5rem] cursor-pointer font-bold text-[0.75rem] min-h-[2.5rem] h-auto py-2 flex items-center">
                       <ShieldCheck className="h-[1rem] w-[1rem] text-green-600" />
                       Switch to Member View
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={logout} className="gap-[0.5rem] text-destructive cursor-pointer font-bold text-[0.75rem] h-[2.5rem]">
+                    <DropdownMenuItem onClick={logout} className="gap-[0.5rem] text-destructive cursor-pointer font-bold text-[0.75rem] min-h-[2.5rem] h-auto py-2 flex items-center">
                       <LogOut className="h-[1rem] w-[1rem]" />
                       Logout
                     </DropdownMenuItem>
@@ -199,7 +209,7 @@ export function DashboardLayout() {
           <footer className="p-[2rem] bg-card border-t border-border flex flex-col items-center gap-[1rem]">
             <div className="flex items-center gap-[0.75rem] opacity-30 grayscale">
               <Image src={logoImage?.imageUrl || ""} alt="NEU" width={24} height={24} />
-              <span className="text-[0.5rem] font-black uppercase tracking-[0.4em] text-primary">© 2026 New Era University Institutional Hub • CICS</span>
+              <span className="text-[0.5rem] font-black uppercase tracking-[0.4em] text-primary">© 2026 New Era University Institutional Hub</span>
             </div>
           </footer>
         </div>

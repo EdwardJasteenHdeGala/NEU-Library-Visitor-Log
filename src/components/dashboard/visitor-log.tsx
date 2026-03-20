@@ -45,6 +45,19 @@ import {
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { DateRange } from "react-day-picker";
+import { DatePickerWithRange } from "@/components/ui/date-picker-with-range";
+import { useDebounce } from "@/hooks/use-debounce";
+import { Check } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuLabel, 
+  DropdownMenuSeparator, 
+  DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu";
 
 const NEU_COLLEGES = [
   { id: "CICS", name: "Computer & Info Sciences" },
@@ -85,10 +98,11 @@ interface VisitorLogProps {
 
 export function VisitorLog({ onBack }: VisitorLogProps) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [collegeFilter, setCollegeFilter] = useState("all");
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
+  const [collegeFilters, setCollegeFilters] = useState<string[]>([]);
   const [purposeFilter, setPurposeFilter] = useState("all");
   const [designationFilter, setDesignationFilter] = useState("all");
-  const [temporalFilter, setTemporalFilter] = useState("all");
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   
   const firestore = useFirestore();
   const { toast } = useToast();
@@ -108,26 +122,35 @@ export function VisitorLog({ onBack }: VisitorLogProps) {
 
   const filteredVisits = useMemo(() => {
     if (!visits) return [];
+    const term = debouncedSearchTerm.toLowerCase().trim();
+
     return visits.filter(visit => {
-      const matchesSearch = 
-        visit.userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        visit.college.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        visit.purpose.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchName = visit.userName?.toLowerCase().includes(term);
+      const matchCollegeId = visit.college?.toLowerCase().includes(term);
+      const matchesSearch = !term || matchName || matchCollegeId;
       
-      const matchesCollege = collegeFilter === "all" || visit.college === collegeFilter;
+      const matchesCollege = collegeFilters.length === 0 || collegeFilters.includes(visit.college);
       const matchesPurpose = purposeFilter === "all" || visit.purpose === purposeFilter;
       const matchesDesignation = designationFilter === "all" || visit.designation === designationFilter;
 
-      // Basic temporal logic for the filter
+      // Date Range Logic
       let matchesTime = true;
-      if (temporalFilter === 'today' && visit.timestamp) {
-        const today = new Date().toDateString();
-        matchesTime = visit.timestamp.toDate().toDateString() === today;
+      if (dateRange?.from && visit.timestamp) {
+        const visitDate = visit.timestamp.toDate();
+        const vDate = new Date(visitDate.getFullYear(), visitDate.getMonth(), visitDate.getDate());
+        const fromDate = new Date(dateRange.from.getFullYear(), dateRange.from.getMonth(), dateRange.from.getDate());
+        
+        if (dateRange.to) {
+          const toDate = new Date(dateRange.to.getFullYear(), dateRange.to.getMonth(), dateRange.to.getDate());
+          matchesTime = vDate >= fromDate && vDate <= toDate;
+        } else {
+          matchesTime = vDate.getTime() === fromDate.getTime();
+        }
       }
 
       return matchesSearch && matchesCollege && matchesPurpose && matchesDesignation && matchesTime;
     });
-  }, [visits, searchTerm, collegeFilter, purposeFilter, designationFilter, temporalFilter]);
+  }, [visits, debouncedSearchTerm, collegeFilters, purposeFilter, designationFilter, dateRange]);
 
   const handlePurgeLogs = () => {
     if (!visits || visits.length === 0) return;
@@ -138,6 +161,44 @@ export function VisitorLog({ onBack }: VisitorLogProps) {
       title: "Log Purge Complete",
       description: `Successfully removed ${visits.length} records.`,
     });
+  };
+
+  const handleExportCSV = () => {
+    if (!filteredVisits || filteredVisits.length === 0) {
+      toast({ title: "Export Failed", description: "No records to export.", variant: "destructive" });
+      return;
+    }
+
+    const headers = ["Name", "College", "Designation", "Purpose", "Status", "Entry Time", "Exit Time", "Duration (Mins)"];
+    
+    const csvContent = [
+      headers.join(","),
+      ...filteredVisits.map(v => {
+        const entry = v.timestamp?.seconds ? format(v.timestamp.seconds * 1000, 'yyyy-MM-dd HH:mm:ss') : '';
+        const exit = v.exitTimestamp?.seconds ? format(v.exitTimestamp.seconds * 1000, 'yyyy-MM-dd HH:mm:ss') : '';
+        return [
+          `"${v.userName || 'Visitor'}"`,
+          `"${v.college || 'EXTERNAL'}"`,
+          `"${v.designation || 'Guest'}"`,
+          `"${v.purpose || ''}"`,
+          `"${v.exitTimestamp ? 'Archived' : 'Active'}"`,
+          `"${entry}"`,
+          `"${exit}"`,
+          v.durationMinutes || 0
+        ].join(",");
+      })
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `visitor_archive_${format(new Date(), 'yyyyMMdd_HHmmss')}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast({ title: "Export Complete", description: "Registry data downloaded successfully." });
   };
 
   return (
@@ -180,7 +241,7 @@ export function VisitorLog({ onBack }: VisitorLogProps) {
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
-            <Button variant="default" size="sm" className="h-[2.5rem] md:h-[2.75rem] flex-1 sm:flex-none gap-[0.5rem] font-bold text-[0.625rem] uppercase rounded-[0.75rem] shadow-lg">
+            <Button onClick={handleExportCSV} variant="default" size="sm" className="h-[2.5rem] md:h-[2.75rem] flex-1 sm:flex-none gap-[0.5rem] font-bold text-[0.625rem] uppercase rounded-[0.75rem] shadow-lg">
               <Download className="h-[1rem] w-[1rem]" />
               Export Archive
             </Button>
@@ -200,15 +261,51 @@ export function VisitorLog({ onBack }: VisitorLogProps) {
             </div>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[0.5rem] md:gap-[1rem]">
-              <Select value={collegeFilter} onValueChange={setCollegeFilter}>
-                <SelectTrigger className="h-[3rem] text-[0.625rem] font-black uppercase tracking-widest rounded-[0.75rem] border-2 bg-white">
-                  <div className="flex items-center gap-[0.5rem]"><Building2 className="h-[1rem] w-[1rem] opacity-50" /><SelectValue placeholder="All Units" /></div>
-                </SelectTrigger>
-                <SelectContent className="rounded-[0.75rem] border-none shadow-2xl">
-                  <SelectItem value="all" className="text-[0.625rem] font-bold uppercase">ALL DEPARTMENTS</SelectItem>
-                  {NEU_COLLEGES.map(c => <SelectItem key={c.id} value={c.id} className="text-[0.625rem] font-medium">{c.id}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="h-[3rem] text-[0.625rem] font-black uppercase tracking-widest rounded-[0.75rem] border-2 bg-white justify-between px-3 w-full">
+                    <div className="flex items-center gap-[0.5rem]">
+                      <Building2 className="h-[1rem] w-[1rem] opacity-50" />
+                      {collegeFilters.length > 0 ? `${collegeFilters.length} UNITS SELECTED` : "ALL ACADEMIC UNITS"}
+                    </div>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56 rounded-[1rem] shadow-2xl border-none p-2 max-h-[300px] overflow-y-auto">
+                  <DropdownMenuLabel className="text-[10px] uppercase font-black tracking-widest text-muted-foreground p-2">Filter Academic Units</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem 
+                    className="cursor-pointer gap-2 rounded-lg font-bold text-xs p-3"
+                    onClick={(e) => { e.preventDefault(); setCollegeFilters([]); }}
+                  >
+                    <div className="w-4 h-4 rounded border flex items-center justify-center mr-2">
+                      {collegeFilters.length === 0 && <Check className="h-3 w-3 text-primary" />}
+                    </div>
+                    All Units
+                  </DropdownMenuItem>
+                  {NEU_COLLEGES.map(c => {
+                    const isSelected = collegeFilters.includes(c.id);
+                    return (
+                      <DropdownMenuItem 
+                        key={c.id}
+                        className="cursor-pointer gap-2 rounded-lg font-bold text-xs p-3"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          if (isSelected) {
+                            setCollegeFilters(prev => prev.filter(id => id !== c.id));
+                          } else {
+                            setCollegeFilters(prev => [...prev, c.id]);
+                          }
+                        }}
+                      >
+                        <div className={cn("w-4 h-4 rounded border flex items-center justify-center mr-2", isSelected ? "bg-primary border-primary text-primary-foreground" : "")}>
+                          {isSelected && <Check className="h-3 w-3" />}
+                        </div>
+                        {c.name} ({c.id})
+                      </DropdownMenuItem>
+                    );
+                  })}
+                </DropdownMenuContent>
+              </DropdownMenu>
 
               <Select value={designationFilter} onValueChange={setDesignationFilter}>
                 <SelectTrigger className="h-[3rem] text-[0.625rem] font-black uppercase tracking-widest rounded-[0.75rem] border-2 bg-white">
@@ -220,16 +317,10 @@ export function VisitorLog({ onBack }: VisitorLogProps) {
                 </SelectContent>
               </Select>
 
-              <Select value={temporalFilter} onValueChange={setTemporalFilter}>
-                <SelectTrigger className="h-[3rem] text-[0.625rem] font-black uppercase tracking-widest rounded-[0.75rem] border-2 bg-white">
-                  <div className="flex items-center gap-[0.5rem]"><Clock className="h-[1rem] w-[1rem] opacity-50" /><SelectValue placeholder="All Time" /></div>
-                </SelectTrigger>
-                <SelectContent className="rounded-[0.75rem] border-none shadow-2xl">
-                  <SelectItem value="all" className="text-[0.625rem] font-bold uppercase">ALL RECORDS</SelectItem>
-                  <SelectItem value="today" className="text-[0.625rem] font-medium">TODAY'S REGISTRY</SelectItem>
-                  <SelectItem value="week" className="text-[0.625rem] font-medium">CURRENT WEEK</SelectItem>
-                </SelectContent>
-              </Select>
+              <DatePickerWithRange 
+                date={dateRange} 
+                setDate={setDateRange} 
+              />
 
               <Select value={purposeFilter} onValueChange={setPurposeFilter}>
                 <SelectTrigger className="h-[3rem] text-[0.625rem] font-black uppercase tracking-widest rounded-[0.75rem] border-2 bg-white">

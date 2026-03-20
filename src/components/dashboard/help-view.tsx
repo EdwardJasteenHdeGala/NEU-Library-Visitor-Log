@@ -2,11 +2,11 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { 
-  Accordion, 
-  AccordionContent, 
-  AccordionItem, 
-  AccordionTrigger 
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger
 } from "@/components/ui/accordion";
 import { HelpCircle, Mail, Phone, Book, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -18,29 +18,33 @@ interface HelpViewProps {
 export function HelpView({ onBack }: HelpViewProps) {
   const faqs = [
     {
-      q: "How do I log a visit?",
-      a: "Select your purpose from the dropdown on the home screen and click 'Confirm Attendance'."
+      q: "How does the Access Hub track institutional attendance?",
+      a: "The Hub records all physical telemetry—including time, department, and stated purpose—for full audit capability. This data is securely processed in real-time."
     },
     {
-      q: "Can I use my personal Google account?",
-      a: "Yes, but institutional synchronization works best with @neu.edu.ph accounts."
+      q: "Can I link my physical Smart Card or RFID?",
+      a: "Yes. Navigate to your Profile Settings under the 'Identity Hardware' section. A quick scan from your local RFID terminal binds your card to your Google Workspace identity for swift physical tapping."
     },
     {
-      q: "I lost my ID, what should I do?",
-      a: "Report it to the Registrar. You can still log in via Google to maintain your audit trail."
+      q: "What constitutes an 'Institutional Suspension'?",
+      a: "Supervisors may flag accounts for policy violations (e.g. academic cheating, behavioral misconduct, hardware damage). Suspended accounts are barred from building access until cleared through the Resolution Thread."
     },
     {
-      q: "How do I provide feedback?",
-      a: "Navigate to the 'Sentiments' or 'Feedback' tab in your respective portal menu."
+      q: "How do Resolution Threads work?",
+      a: "Whenever you rate your experience critically via the Sentiments array, Administrators review the telemetry and assign corrective actions. You receive direct Inbox Alerts when cases are resolved."
+    },
+    {
+      q: "Why use 'Multiple Choice' filters on the Visitor Archive?",
+      a: "Multiple College targeting allows supervisors to instantly correlate traffic loads between selected departments (e.g. CAS and CICS) during peak capacity periods."
     }
   ];
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-500 pb-12">
       {onBack && (
-        <Button 
-          variant="ghost" 
-          size="sm" 
+        <Button
+          variant="ghost"
+          size="sm"
           className="mb-2 -ml-2 text-primary/50 hover:text-primary hover:bg-primary/5 font-black text-[10px] uppercase tracking-[0.2em] gap-2 rounded-xl h-8 px-4"
           onClick={onBack}
         >

@@ -13,7 +13,19 @@ import {
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { collection, limit, orderBy, query, where } from "firebase/firestore";
-import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
+import { useState } from "react";
+import { useFirestore, useCollection, useMemoFirebase, addDocumentNonBlocking } from "@/firebase";
+import { useToast } from "@/hooks/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
 import { useAuth } from "@/hooks/use-auth";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -30,10 +42,30 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
   const firestore = useFirestore();
   const { profile, loading: authLoading } = useAuth();
   const status = useLibraryStatus();
+  const { toast } = useToast();
+  
+  const [isAdvisoryOpen, setIsAdvisoryOpen] = useState(false);
+  const [advisoryMessage, setAdvisoryMessage] = useState("");
+  const [isPublishing, setIsPublishing] = useState(false);
+
+  const handlePublishAdvisory = async () => {
+    if (!advisoryMessage || !firestore) return;
+    setIsPublishing(true);
+    addDocumentNonBlocking(collection(firestore, 'advisories'), {
+      message: advisoryMessage,
+      timestamp: new Date()
+    });
+    setTimeout(() => {
+      setIsPublishing(false);
+      setIsAdvisoryOpen(false);
+      setAdvisoryMessage("");
+      toast({ title: "Broadcast Successful", description: "Advisory has been pushed to all terminals." });
+    }, 800);
+  };
   
   // Robust admin check - strictly prevent unauthorized telemetry access
   // Guard against authLoading ensures we don't query before profile is ready
-  const isAdmin = !authLoading && !!profile && (profile.role === 'admin' || profile.isAuthorizedAdmin === true);
+  const isAdmin = !authLoading && !!profile && profile.role === 'admin';
 
   // Real-time queries for telemetry - authorized admins see all registry logs
   const recentVisitsQuery = useMemoFirebase(() => {
@@ -128,16 +160,42 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
           </CardContent>
         </Card>
 
-        <Card className="shadow-2xl border-none rounded-[2rem] bg-white overflow-hidden group hover:scale-[1.02] transition-all duration-500 cursor-default ring-1 ring-slate-100">
-          <CardHeader className="flex flex-row items-center justify-between pb-3 bg-muted/20 border-b">
-            <span className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.3em] italic">Temporal Marker</span>
-            <Clock className="h-5 w-5 text-primary" />
-          </CardHeader>
-          <CardContent className="pt-8">
-            <div className="text-sm font-black text-primary truncate italic uppercase tracking-tighter leading-none">Institutional Advisory</div>
-            <p className="text-[9px] font-bold text-muted-foreground mt-2 uppercase tracking-tight">Real-time Scheduler</p>
-          </CardContent>
-        </Card>
+        <Dialog open={isAdvisoryOpen} onOpenChange={setIsAdvisoryOpen}>
+          <DialogTrigger asChild>
+            <Card className="shadow-2xl border-none rounded-[2rem] bg-white overflow-hidden group hover:scale-[1.02] transition-all duration-500 cursor-pointer ring-1 ring-slate-100">
+              <CardHeader className="flex flex-row items-center justify-between pb-3 bg-muted/20 border-b transition-colors group-hover:bg-primary/5">
+                <span className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.3em] italic">Network Broadcast</span>
+                <Clock className="h-5 w-5 text-primary group-hover:animate-pulse" />
+              </CardHeader>
+              <CardContent className="pt-8">
+                <div className="text-sm font-black text-primary truncate italic uppercase tracking-tighter leading-none">Publish Advisory</div>
+                <p className="text-[9px] font-bold text-muted-foreground mt-2 uppercase tracking-tight">Push to all dashboards</p>
+              </CardContent>
+            </Card>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px] rounded-[2rem] border-none shadow-3xl">
+            <DialogHeader>
+              <DialogTitle className="font-black italic text-primary uppercase tracking-tighter text-2xl">Broadcast Advisory</DialogTitle>
+              <DialogDescription className="font-bold text-[10px] uppercase tracking-widest text-muted-foreground">
+                Push a real-time alert to all portal members instantly.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <Input
+                id="message"
+                value={advisoryMessage}
+                onChange={(e) => setAdvisoryMessage(e.target.value)}
+                placeholder="e.g. South Wing closed for maintenance."
+                className="col-span-3 h-14 rounded-xl border-2 shadow-inner focus-visible:ring-primary font-bold px-4"
+              />
+            </div>
+            <DialogFooter>
+              <Button onClick={handlePublishAdvisory} disabled={isPublishing || !advisoryMessage} className="w-full h-12 rounded-xl font-black uppercase tracking-widest bg-primary hover:bg-primary/90 text-white shadow-xl transition-all active:scale-95">
+                {isPublishing ? "Broadcasting..." : "Confirm Broadcast"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         <Card className="shadow-2xl border-none rounded-[2rem] bg-white overflow-hidden group hover:scale-[1.02] transition-all duration-500 cursor-default ring-1 ring-slate-100">
           <CardHeader className="flex flex-row items-center justify-between pb-3 bg-muted/20 border-b">

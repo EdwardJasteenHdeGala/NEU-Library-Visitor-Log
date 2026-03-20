@@ -10,6 +10,7 @@ import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
 import { format } from "date-fns";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
+import { useDebounce } from "@/hooks/use-debounce";
 
 interface AuditLogViewProps {
   onBack?: () => void;
@@ -17,6 +18,7 @@ interface AuditLogViewProps {
 
 export function AuditLogView({ onBack }: AuditLogViewProps) {
   const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const firestore = useFirestore();
 
   const auditQuery = useMemoFirebase(() => {
@@ -26,11 +28,13 @@ export function AuditLogView({ onBack }: AuditLogViewProps) {
 
   const { data: logs, isLoading } = useCollection(auditQuery);
 
-  const filteredLogs = logs?.filter(l => 
-    l.adminName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    l.action.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    l.details.toLowerCase().includes(searchTerm.toLowerCase())
-  ) || [];
+  const filteredLogs = logs?.filter(l => {
+    const term = debouncedSearchTerm.toLowerCase().trim();
+    if (!term) return true;
+    return l.adminName.toLowerCase().includes(term) ||
+           l.action.toLowerCase().includes(term) ||
+           l.details.toLowerCase().includes(term);
+  }) || [];
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">

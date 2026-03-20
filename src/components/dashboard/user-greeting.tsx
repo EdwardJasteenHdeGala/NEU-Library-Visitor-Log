@@ -82,17 +82,24 @@ export function UserGreeting() {
   
   const [subView, setSubView] = useState<UserSubView>('log-entry');
   const [purpose, setPurpose] = useState<string>("");
-  const [currentCollege, setCurrentCollege] = useState<string>(profile?.college || "CICS");
+  const [currentCollege, setCurrentCollege] = useState<string>(profile?.college || "");
   const [isLogging, setIsLogging] = useState(false);
   const [academicYear, setAcademicYear] = useState("");
   const [announcementIndex, setAnnouncementIndex] = useState(0);
 
-  const announcements = [
-    "Library Registry synchronization is mandatory for all members.",
-    "CICS thesis repository access now available via digital terminal.",
-    "New academic resources added to the Research Archive.",
-    "Quiet study protocols active in the South Wing."
-  ];
+  const advisoriesQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, 'advisories'), orderBy('timestamp', 'desc'), limit(5));
+  }, [firestore]);
+  const { data: remoteAdvisories } = useCollection(advisoriesQuery);
+
+  const announcements = remoteAdvisories && remoteAdvisories.length > 0 
+    ? remoteAdvisories.map((adv: any) => adv.message)
+    : [
+        "Library Registry synchronization is mandatory for all members.",
+        "University thesis repository access now available via digital terminal.",
+        "New academic resources added to the Research Archive."
+      ];
 
   useEffect(() => {
     setAcademicYear(getAcademicYear());
@@ -132,10 +139,10 @@ export function UserGreeting() {
     setIsLogging(true);
     addDocumentNonBlocking(collection(firestore, 'visits'), {
       userId: profile.id,
-      userName: profile.displayName,
-      college: currentCollege,
-      roleAtTime: profile.role,
-      designation: profile.designation,
+      userName: profile.displayName || 'Visitor',
+      college: currentCollege || 'EXTERNAL',
+      roleAtTime: profile.role || 'user',
+      designation: profile.designation || 'student',
       purpose: purpose,
       timestamp: new Date(),
       exitTimestamp: null,
@@ -414,7 +421,7 @@ export function UserGreeting() {
       </main>
 
       <footer className="p-[clamp(1.5rem,5vw,2.5rem)] text-center text-muted-foreground text-[0.625rem] font-black uppercase tracking-[0.4em] opacity-40 mt-auto">
-        © 2026 NEW ERA UNIVERSITY • THE HUB • COLLEGE OF INFORMATICS & COMPUTING SCIENCES
+        © 2026 NEW ERA UNIVERSITY • INSTITUTIONAL ACCESS HUB
       </footer>
     </div>
   );
