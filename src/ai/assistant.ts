@@ -1,6 +1,10 @@
 import { z } from 'zod';
 import { ai } from './genkit';
 
+/**
+ * Standard AI Assistant for the NEU Institutional Hub.
+ * Capable of multimodal analysis (images/files) and domain-specific logic.
+ */
 export const institutionalAssistant = ai.defineFlow(
   {
     name: 'institutionalAssistant',
@@ -15,7 +19,7 @@ export const institutionalAssistant = ai.defineFlow(
         page: z.string().optional(),
       }).optional(),
       media: z.array(z.object({
-        data: z.string(), // base64
+        data: z.string(), // base64 payload
         mimeType: z.string(),
       })).optional(),
     }),
@@ -24,6 +28,7 @@ export const institutionalAssistant = ai.defineFlow(
   async (input) => {
     const { message, history, context, media } = input;
     
+    // Process media parts into Genkit multimodal format
     const mediaParts = media?.map(m => ({
       media: {
         url: `data:${m.mimeType};base64,${m.data}`,
@@ -31,25 +36,35 @@ export const institutionalAssistant = ai.defineFlow(
       }
     })) || [];
 
+    // Filter out greeting turn from model to satisfy first-turn user requirements in Gemini API
+    const sanitizedHistory = history?.filter((msg, idx) => {
+      if (idx === 0 && msg.role === 'model') return false;
+      return true;
+    });
+
     try {
       const response = await ai.generate({
-        system: `You are the NEU Institutional AI Assistant, a professional and helpful guide for the New Era University Access Hub. 
-        Your goal is to assist members and administrators with navigating the portal, understanding library policies, and analyzing data.
-
-        CONTEXT:
-        - Current User: ${context?.userName || 'Institutional Member'}
-        - Current View: ${context?.page || 'Dashboard'}
+        model: 'googleai/gemini-1.5-flash', // Direct model ID string to avoid unexported member issues
+        system: `You are the NEU Institutional AI Assistant, a professional and high-fidelity intelligence hub for New Era University.
         
-        CAPABILITIES:
-        - Navigate users to different dashboard views (Library, Visitor Log, Reports, etc.).
-        - Explain book borrowing policies (14 days standard, 1 cycle renewal limit).
-        - Provide general institutional information with a professional, "premium" tone.
-        - Use markdown for formatting. Keep responses concise but comprehensive.
-        - ANALYZE ATTACHED IMAGES/FILES: If the user provides images (screenshots, documents), analyze them to give better context-aware support.
-
-        TONE: Professional, italicized occasionally for emphasis, "Institutional Excellence".`,
+        GOAL: Assist campus members with the NEU Access Hub portal, library operations, and faculty analytics.
+        
+        KNOWLEDGE BASE:
+        - LIBRARY OPS: Standard borrowing cycle is 14 days. 1 renewal allowed per item. Fines accrue daily for overdue materials.
+        - PORTAL NAVIGATION: Guide users to views like 'Reports', 'User Management', 'Attendance Registry', or 'Diagnostic Logs'.
+        - IDENTITY HUB: All identities are synchronized via @neu.edu.ph accounts.
+        - ANALYTICS: If a user asks about trends, offer a structured summary based on common academic occupancy patterns.
+        
+        INSTITUTIONAL TONE: 
+        - Maintain a professional, academic, yet modern and "premium" voice.
+        - Use italicization for emphasis on institutional values.
+        - Respond using clean Markdown formatting.
+        
+        USER CONTEXT:
+        - Active Member: ${context?.userName || 'Institutional Scholar'}
+        - Current Viewport: ${context?.page || 'Unknown Hub Node'}`,
         messages: [
-          ...(history || []),
+          ...(sanitizedHistory || []),
           { 
             role: 'user', 
             content: [
@@ -62,16 +77,18 @@ export const institutionalAssistant = ai.defineFlow(
 
       return response.text;
     } catch (err: any) {
-      console.error("GENKIT_ERROR_LOG:", {
+      console.error("GENKIT_INSTITUTIONAL_CORE_ERROR:", {
         message: err.message,
-        stack: err.stack,
-        details: err.details || err.response?.data
+        details: err.details || "Check API Key and Cloud Project activation."
       });
       throw err;
     }
   }
 );
 
+/**
+ * Technical Diagnostic Flow for system administrators.
+ */
 export const diagnosticAnalyzer = ai.defineFlow(
   {
     name: 'diagnosticAnalyzer',
@@ -84,17 +101,13 @@ export const diagnosticAnalyzer = ai.defineFlow(
     const { errorLog } = input;
 
     const response = await ai.generate({
+      model: 'googleai/gemini-1.5-flash', // Direct model ID string to avoid unexported member issues
       system: `You are the NEU Institutional System Architect. 
-      Your task is to analyze technical error logs from the NEU Access Hub and provide a concise, high-fidelity remediation suggestion for an administrator.
+      Analyze the provided error logs and provide a concise, high-fidelity remediation suggestion for the administrator.
       
-      ANALYSIS GUIDELINES:
-      0. IDENTIFY whether the error is PERMISSION-related (Firestore/Auth), NETWORK-related, or LOGIC-related.
-      1. Explain the "Root Cause" in non-technical terms for the administrator.
-      2. Provide a "Technical Solution" with specific institutional resolution steps (e.g., "Check Firestore Rules", "Verify Identity Whitelist").
-      3. Use markdown for a premium, structured presentation.
-      4. TONE: Authoritative, Professional, Institutional.`,
+      TONE: Clinical, efficient, and technically precise.`,
       messages: [
-        { role: 'user', content: [{ text: `ANALYZE LOG: ${JSON.stringify(errorLog)}` }] }
+        { role: 'user', content: [{ text: `ANALYZE TELEMETRY ERROR: ${JSON.stringify(errorLog)}` }] }
       ],
     });
 

@@ -30,6 +30,12 @@ The portal optimizes academic operations through automated registry synchronizat
 - **High-Fidelity UI:** A premium design system utilizing ShadCN and Tailwind CSS for a professional, institutional aesthetic.
 - **Mobile-First Synchronization:** Custom hooks specifically tuned for responsive behavior on all device types.
 
+### 🤖 Hub AI Assistant
+
+- **Intelligent Navigation:** Ask the assistant to guide you to specific views or explain library analytics.
+- **Policy Expert:** Get instant answers on book borrowing and institutional registry protocols.
+- **Diagnostic Insights:** AI-powered analysis of system telemetry to help administrators resolve issues faster.
+
 ---
 
 ## 🛠 Technical Stack

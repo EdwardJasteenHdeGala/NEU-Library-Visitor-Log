@@ -125,11 +125,11 @@ export function AIAssistant(): React.JSX.Element {
       });
 
       setMessages(prev => [...prev, { role: 'model', content: response }]);
-    } catch (error) {
+    } catch (error: any) {
       console.error("AI Error:", error);
       toast({
         title: "Telemetry Sync Failed",
-        description: "The AI subsystem is currently undergoing maintenance. Please try again shortly.",
+        description: error.message || "The AI subsystem is currently undergoing maintenance. Please try again shortly.",
         variant: "destructive"
       });
     } finally {
