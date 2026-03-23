@@ -1,8 +1,12 @@
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
+  outputFileTracingRoot: process.cwd(),
   experimental: {
     // Optimized for Next.js 15 stability
+    serverActions: {
+       bodySizeLimit: '10mb',
+    },
   },
   images: {
     remotePatterns: [

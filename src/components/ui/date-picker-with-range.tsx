@@ -30,27 +30,29 @@ export function DatePickerWithRange({
             id="date"
             variant={"outline"}
             className={cn(
-              "w-full justify-start text-left font-normal h-[3rem] text-[0.75rem] rounded-[0.75rem] border-2 bg-white shadow-inner gap-2",
+              "w-full justify-between text-left h-[3rem] text-[0.625rem] font-black uppercase tracking-tight rounded-[0.75rem] border-2 bg-muted/30 border-border px-3 transition-all active:scale-[0.98] min-w-0 overflow-hidden hover:bg-background focus:bg-background",
               !date && "text-muted-foreground"
             )}
           >
-            <CalendarIcon className="h-4 w-4 text-primary opacity-50" />
-            {date?.from ? (
-              date.to ? (
-                <span className="font-bold text-slate-800 text-[0.625rem] md:text-[0.75rem]">
-                  {format(date.from, "LLL dd, y")} - {format(date.to, "LLL dd, y")}
-                </span>
+            <div className="flex items-center gap-[0.5rem]">
+              <CalendarIcon className="h-4 w-4 text-primary opacity-50" />
+              {date?.from ? (
+                date.to ? (
+                  <span className="truncate max-w-[12rem]">
+                    {format(date.from, "LLL dd, y")} - {format(date.to, "LLL dd, y")}
+                  </span>
+                ) : (
+                  <span className="truncate">
+                    {format(date.from, "LLL dd, y")}
+                  </span>
+                )
               ) : (
-                <span className="font-bold text-slate-800 text-[0.625rem] md:text-[0.75rem]">
-                  {format(date.from, "LLL dd, y")}
-                </span>
-              )
-            ) : (
-              <span className="font-black uppercase tracking-widest text-[0.625rem]">Filter Archive by Date Range</span>
-            )}
+                <span className="truncate">Filter Archive by Date Range</span>
+              )}
+            </div>
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0 rounded-[1.25rem] shadow-2xl border border-slate-100 overflow-hidden" align="start">
+        <PopoverContent className="w-[320px] p-0 rounded-[1.25rem] shadow-3xl border-none overflow-hidden bg-card ring-1 ring-border" align="start">
           <Calendar
             initialFocus
             mode="range"
@@ -58,7 +60,7 @@ export function DatePickerWithRange({
             selected={date}
             onSelect={setDate}
             numberOfMonths={1}
-            className="bg-white p-3"
+            className="w-full"
           />
         </PopoverContent>
       </Popover>

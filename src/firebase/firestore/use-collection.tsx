@@ -36,6 +36,10 @@ export interface InternalQuery extends Query<DocumentData> {
 export function useCollection<T = any>(
     memoizedTargetRefOrQuery: ((CollectionReference<DocumentData> | Query<DocumentData>) & {__memo?: boolean})  | null | undefined,
 ): UseCollectionResult<T> {
+  if (memoizedTargetRefOrQuery && !memoizedTargetRefOrQuery.__memo) {
+    console.error(memoizedTargetRefOrQuery + ' was not properly memoized using useMemoFirebase');
+  }
+
   type ResultItemType = WithId<T>;
   type StateDataType = ResultItemType[] | null;
 
@@ -51,12 +55,14 @@ export function useCollection<T = any>(
       return;
     }
 
+    let isMounted = true;
     setIsLoading(true);
     setError(null);
 
     const unsubscribe = onSnapshot(
       memoizedTargetRefOrQuery,
       (snapshot: QuerySnapshot<DocumentData>) => {
+        if (!isMounted) return;
         const results: ResultItemType[] = [];
         for (const doc of snapshot.docs) {
           results.push({ ...(doc.data() as T), id: doc.id });
@@ -83,12 +89,15 @@ export function useCollection<T = any>(
           errMsg.includes('denied');
 
         if (isPermissionDenied) {
-          console.warn(`[Institutional Registry] Access deferred for: ${path}. Identity sync in progress.`);
+          console.warn(`[Institutional Registry] Access deferred for: ${path}. Identity sync in progress or whitelist mismatch.`);
+          console.debug(`[Institutional SDK] Full Error:`, err);
           setError(err);
           setData([]); // Return empty list instead of crashing
           setIsLoading(false);
           return;
         }
+
+        if (!isMounted) return;
 
         const contextualError = new FirestorePermissionError({
           operation: 'list',
@@ -102,11 +111,21 @@ export function useCollection<T = any>(
       }
     );
 
-    return () => unsubscribe();
+    let unsubscribed = false;
+    return () => {
+      isMounted = false;
+      if (unsubscribed) return;
+      unsubscribed = true;
+      
+      try {
+        if (typeof unsubscribe === 'function') {
+          unsubscribe();
+        }
+      } catch (e) {
+        console.warn("[Institutional SDK] Suppressed internal target assertion during cleanup:", e);
+      }
+    };
   }, [memoizedTargetRefOrQuery]);
 
-  if(memoizedTargetRefOrQuery && !memoizedTargetRefOrQuery.__memo) {
-    throw new Error(memoizedTargetRefOrQuery + ' was not properly memoized using useMemoFirebase');
-  }
   return { data, isLoading, error };
 }

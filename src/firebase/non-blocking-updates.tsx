@@ -10,7 +10,14 @@ import {
   SetOptions,
 } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
-import {FirestorePermissionError} from '@/firebase/errors';
+import { FirestorePermissionError } from '@/firebase/errors';
+import { diagnosticsLogger } from '@/lib/diagnostics';
+
+const isAuthError = (err: any) => {
+  const code = (err?.code || '').toLowerCase();
+  const msg = (err?.message || '').toLowerCase();
+  return code.includes('permission') || msg.includes('permission') || msg.includes('denied');
+};
 
 /**
  * Initiates a setDoc operation for a document reference.
@@ -18,39 +25,43 @@ import {FirestorePermissionError} from '@/firebase/errors';
  */
 export function setDocumentNonBlocking(docRef: DocumentReference, data: any, options: SetOptions) {
   setDoc(docRef, data, options).catch(error => {
-    errorEmitter.emit(
-      'permission-error',
-      new FirestorePermissionError({
-        path: docRef.path,
-        operation: 'write', // or 'create'/'update' based on options
-        requestResourceData: data,
-      })
-    )
-  })
-  // Execution continues immediately
+    if (isAuthError(error)) {
+      errorEmitter.emit(
+        'permission-error',
+        new FirestorePermissionError({
+          path: docRef.path,
+          operation: 'write',
+          requestResourceData: data,
+        })
+      );
+    } else {
+      diagnosticsLogger.error(`Firestore Set Error: ${docRef.path}`, error);
+    }
+  });
 }
-
 
 /**
  * Initiates an addDoc operation for a collection reference.
  * Does NOT await the write operation internally.
- * Returns the Promise for the new doc ref, but typically not awaited by caller.
  */
 export function addDocumentNonBlocking(colRef: CollectionReference, data: any) {
   const promise = addDoc(colRef, data)
     .catch(error => {
-      errorEmitter.emit(
-        'permission-error',
-        new FirestorePermissionError({
-          path: colRef.path,
-          operation: 'create',
-          requestResourceData: data,
-        })
-      )
+      if (isAuthError(error)) {
+        errorEmitter.emit(
+          'permission-error',
+          new FirestorePermissionError({
+            path: colRef.path,
+            operation: 'create',
+            requestResourceData: data,
+          })
+        );
+      } else {
+        diagnosticsLogger.error(`Firestore Create Error: ${colRef.path}`, error);
+      }
     });
   return promise;
 }
-
 
 /**
  * Initiates an updateDoc operation for a document reference.
@@ -59,17 +70,20 @@ export function addDocumentNonBlocking(colRef: CollectionReference, data: any) {
 export function updateDocumentNonBlocking(docRef: DocumentReference, data: any) {
   updateDoc(docRef, data)
     .catch(error => {
-      errorEmitter.emit(
-        'permission-error',
-        new FirestorePermissionError({
-          path: docRef.path,
-          operation: 'update',
-          requestResourceData: data,
-        })
-      )
+      if (isAuthError(error)) {
+        errorEmitter.emit(
+          'permission-error',
+          new FirestorePermissionError({
+            path: docRef.path,
+            operation: 'update',
+            requestResourceData: data,
+          })
+        );
+      } else {
+        diagnosticsLogger.error(`Firestore Update Error: ${docRef.path}`, error);
+      }
     });
 }
-
 
 /**
  * Initiates a deleteDoc operation for a document reference.
@@ -78,12 +92,16 @@ export function updateDocumentNonBlocking(docRef: DocumentReference, data: any) 
 export function deleteDocumentNonBlocking(docRef: DocumentReference) {
   deleteDoc(docRef)
     .catch(error => {
-      errorEmitter.emit(
-        'permission-error',
-        new FirestorePermissionError({
-          path: docRef.path,
-          operation: 'delete',
-        })
-      )
+      if (isAuthError(error)) {
+        errorEmitter.emit(
+          'permission-error',
+          new FirestorePermissionError({
+            path: docRef.path,
+            operation: 'delete',
+          })
+        );
+      } else {
+        diagnosticsLogger.error(`Firestore Delete Error: ${docRef.path}`, error);
+      }
     });
 }

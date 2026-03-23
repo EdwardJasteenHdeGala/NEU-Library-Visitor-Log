@@ -1,57 +1,96 @@
 # NEU Access Hub | Library Visitor Management
 
-Institutional access control and real-time library visitor logging system for New Era University. This portal advances academic scholarship through automated registry synchronization and precision resource tracking.
+![Header Banner](./public/banner.png)
 
-## 🚀 Project Overview
+## 🌐 Project Overview
 
-The NEU Access Hub is a modern, high-fidelity web application designed to manage and audit facility access for the **College of Informatics & Computing Sciences (CICS)**. It leverages real-time cloud synchronization to provide administrators with immediate occupancy telemetry while offering students a seamless check-in experience.
+**NEU Access Hub** is a next-generation institutional access control and real-time visitor logging ecosystem developed for **New Era University**, specifically the **College of Informatics & Computing Sciences (CICS)**.
 
-- **App Name:** NEU Library Visitor Log / Dashboard
-- **Purpose:** Track institutional visits, manage academic announcements, and synchronize user profiles.
-- **Tech Stack:** Next.js 15 (App Router), Firebase (Authentication & Firestore), Genkit (AI), Tailwind CSS, ShadCN UI.
-- **Academic Unit:** College of Informatics & Computing Sciences (CICS)
-- **Chronology:** Synchronized for the 2026 Academic Year.
-
-## 📂 Folder Structure
-
-The codebase is organized into modular directories to ensure scalability and maintainability:
-
-- `src/app` → Next.js App Router (Routes, Layouts, and Global CSS)
-- `src/components` → Reusable UI elements and high-level views (Dashboard, Auth, Guest)
-- `src/components/ui` → Shared Design System (ShadCN UI components)
-- `src/firebase` → Configuration, Client Providers, and real-time Firestore hooks (`useCollection`, `useDoc`)
-- `src/hooks` → Custom React hooks for Auth, Library Status, and Mobile responsiveness
-- `src/lib` → Helper functions, constants, and utility logic (Academic Year calculation, etc.)
-- `src/ai` → Genkit AI integration for intelligent portal features
-- `public` → Static assets (logos, icons)
-- `docs` → Backend schemas and project documentation
-
-## ✨ Key Features
-
-- **Google Sign-In Synchronization:** Mandatory institutional identity handshake via @neu.edu.ph accounts.
-- **Ultra-Responsive Grid (500% Zoom Compatible):** A fluid design system using relative units (rem, clamp) ensuring stability across all browser zoom levels.
-- **Role-Based Access Control (RBAC):** Three-tier hierarchy:
-  - **Admin:** Full oversight of the visitor registry, user management, and announcement broadcasting.
-  - **User (Member):** Authenticated students/staff who can log attendance and view their own telemetry.
-  - **Guest:** Limited access view for visitors requesting institutional information.
-- **Real-Time Telemetry:** Powered by Firestore `onSnapshot` listeners for instant updates across all dashboards.
-- **Silent Identity Handshake:** UI hooks are configured to handle permission-denied states silently during transient identity syncs to prevent "Red Screen" crashes.
-- **Session-Only Persistence:** Enhanced security protocol that disables auto-login, requiring identity verification for every browser session.
-- **Secure Registry Protocols:** AES-256 cloud encryption and prioritized administrative security rules.
-
-## 📖 Definitions
-
-- **Member:** An authenticated student or faculty member with a synchronized profile.
-- **Administrator:** Authorized personnel with oversight and "Super Admin" privileges.
-- **Announcement:** A real-time notice or alert displayed within the portal advisory banner.
-- **Visit:** A cloud-synchronized record of a member's entry and exit within a library facility.
-
-## 🛠 Best Practices
-
-- **Fluid Units:** Avoid using `px` for layouts; prefer `rem`, `%`, and `clamp()` for zoom compatibility.
-- **Centralized Telemetry:** All Firestore queries must use the hooks in `src/firebase` to ensure real-time consistency.
-- **Atomic Design:** Maintain separation between UI logic, authentication, and data fetching.
-- **Accessibility:** Adhere to WCAG standards for contrast ratios and keyboard navigation support.
+The portal optimizes academic operations through automated registry synchronization and high-precision resource tracking. It serves as a centralized hub for tracking facility visits, managing important academic announcements, and harmonizing student identity across the campus digital workspace.
 
 ---
-© 2026 NEW ERA UNIVERSITY • THE HUB • COLLEGE OF INFORMATICS & COMPUTING SCIENCES
+
+## 🚀 Key Features
+
+### 👤 Identity & Access
+
+- **Institutional Single Sign-On:** Seamless and mandatory integration with `@neu.edu.ph` accounts.
+- **Role-Based Command Center:** Granular control for Administrators, Members (Students/Staff), and Guests.
+- **Silent Identity Handshake:** Advanced UI state management that ensures a smooth experience during transient authentication states.
+
+### 📊 Real-Time Telemetry
+
+- **Live Occupancy Tracking:** Instant visitor logging powered by Firestore `onSnapshot` technology.
+- **Diagnostic Dashboard:** Real-time visibility into system health and database performance.
+- **Academic Alerts:** Integrated advisory banners for real-time campus-wide announcements.
+
+### 📐 Design & UX
+
+- **Fluid Architecture:** An "Ultra-Responsive" grid system built with relative units (`rem`, `clamp()`) ensuring stability at any zoom level.
+- **High-Fidelity UI:** A premium design system utilizing ShadCN and Tailwind CSS for a professional, institutional aesthetic.
+- **Mobile-First Synchronization:** Custom hooks specifically tuned for responsive behavior on all device types.
+
+---
+
+## 🛠 Technical Stack
+
+Built with a modern, high-velocity stack designed for scalability and reliability:
+
+- **Framework:** [Next.js 15 (App Router)](https://nextjs.org/)
+- **Database / Auth:** [Firebase (Firestore & Authentication)](https://firebase.google.com/)
+- **Intelligence:** [Genkit AI](https://github.com/firebase/genkit)
+- **Styling:** [Tailwind CSS](https://tailwindcss.com/) & [ShadCN UI](https://ui.shadcn.com/)
+- **Logic:** TypeScript, React Hook Form, Zod
+
+---
+
+## 📂 Project Structure
+
+```bash
+├── src/app             # Next.js App Router (Routes & Global Styles)
+├── src/components      # Reusable UI & Feature Views (Dashboard, Auth, Guest)
+├── src/firebase        # Real-time Client Providers & Hooks
+├── src/hooks           # Custom React Logic & Responsive Hooks
+├── src/lib             # Utility Functions & Academic Logic
+├── src/ai              # Genkit AI Integrations
+└── public              # Static Assets & Branding
+```
+
+---
+
+## 💻 Getting Started
+
+### Local Development
+
+1. **Clone & Install:**
+   ```bash
+   npm install
+   ```
+
+2. **Configure Environment:**
+   Create a `.env.local` file with your Firebase configuration (refer to `.env.example`).
+
+3. **Launch Server:**
+   ```bash
+   npm run dev
+   ```
+   *Visit `http://localhost:9002` to view the portal.*
+
+---
+
+## 🛡 Security & Best Practices
+
+- **Registry Protocols:** AES-256 cloud encryption with prioritized administrative security rules.
+- **Session Persistence:** High-security protocol requiring identity verification for each browser session.
+- **WCAG Compliance:** Adhering to accessibility standards for contrast and keyboard navigation.
+
+---
+
+© 2026 **NEW ERA UNIVERSITY** • **COLLEGE OF INFORMATICS & COMPUTING SCIENCES**
+
+---
+
+> [!NOTE]
+> **IDE Maintenance:** This project has been successfully migrated to **Antigravity**.
+> - **Local Server:** `npm run dev` (Port 9002)
+> - **Deployments:** Use standard Firebase CLI via the integrated terminal.

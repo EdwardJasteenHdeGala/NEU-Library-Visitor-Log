@@ -40,12 +40,14 @@ export function useDoc<T = any>(
       return;
     }
 
+    let isMounted = true;
     setIsLoading(true);
     setError(null);
 
     const unsubscribe = onSnapshot(
       memoizedDocRef,
       (snapshot: DocumentSnapshot<DocumentData>) => {
+        if (!isMounted) return;
         if (snapshot.exists()) {
           setData({ ...(snapshot.data() as T), id: snapshot.id });
         } else {
@@ -55,6 +57,7 @@ export function useDoc<T = any>(
         setIsLoading(false);
       },
       (err: FirestoreError) => {
+        if (!isMounted) return;
         // SILENT HANDSHAKE: Catch permission-denied errors during transient role verification
         const isPermissionDenied = 
           err.code === 'permission-denied' || 
@@ -82,7 +85,24 @@ export function useDoc<T = any>(
       }
     );
 
-    return () => unsubscribe();
+    let unsubscribed = false;
+    return () => {
+      isMounted = false;
+      if (unsubscribed) return;
+      unsubscribed = true;
+      
+      // DEFERRED UNSUBSCRIPTION: Prevents "INTERNAL ASSERTION FAILED: Unexpected state (ID: ca9)"
+      // by allowing the current Firestore change aggregator loop to finish before teardown.
+      setTimeout(() => {
+        try {
+          if (typeof unsubscribe === 'function') {
+            unsubscribe();
+          }
+        } catch (e) {
+          console.warn("[Institutional Registry] Suppressed unmount assertion:", e);
+        }
+      }, 0);
+    };
   }, [memoizedDocRef]);
 
   return { data, isLoading, error };

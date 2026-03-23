@@ -1,0 +1,58 @@
+
+> nextn@0.1.0 build
+> NODE_ENV=production next build
+
+   ▲ Next.js 15.5.9
+   - Environments: .env.local
+   - Experiments (use with caution):
+     · serverActions
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 11.5s
+   Linting and checking validity of types ...
+
+./src/app/layout.tsx
+28:9  Warning: Custom fonts not added in `pages/_document.js` will only load for a single page. This is discouraged. See: https://nextjs.org/docs/messages/no-page-custom-font  @next/next/no-page-custom-font
+
+./src/components/features/dashboard/attendance-registry-card.tsx
+285:19  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/components/features/dashboard/reports-view.tsx
+138:6  Warning: React Hook useMemo has missing dependencies: 'collegeFilter', 'designationFilter', and 'purposeFilter'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/components/features/dashboard/user-management.tsx
+145:6  Warning: React Hook useMemo has a missing dependency: 'debouncedSearchTerm'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/components/shared/ai-assistant.tsx
+224:32  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+251:27  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/firebase/provider.tsx
+160:20  Warning: React Hook useMemo received a function whose dependencies are unknown. Pass an inline function instead.  react-hooks/exhaustive-deps
+
+./src/hooks/use-auth.tsx
+229:6  Warning: React Hook useCallback has a missing dependency: 'viewMode'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/app/api-reference/config/eslint#disabling-rules
+   Collecting page data ...
+   Generating static pages (0/6) ...
+   Generating static pages (1/6) 
+   Generating static pages (2/6) 
+   Generating static pages (4/6) 
+ ✓ Generating static pages (6/6)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                 Size  First Load JS
+┌ ○ /                                    91.7 kB         329 kB
+├ ○ /_not-found                            128 B         102 kB
+└ ƒ /api/issues                            128 B         102 kB
++ First Load JS shared by all             102 kB
+  ├ chunks/255-fa5918c8960e9009.js       45.2 kB
+  ├ chunks/4bd1b696-1c88c00269cf164c.js  54.2 kB
+  └ other shared chunks (total)          2.33 kB
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

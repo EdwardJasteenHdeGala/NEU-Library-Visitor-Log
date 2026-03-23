@@ -4,99 +4,153 @@
 
 @layer base {
   :root {
-    --background: 210 20% 98%;
+    --background: 210 40% 98.5%;
     --foreground: 222 47% 11%;
     --card: 0 0% 100%;
     --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
-    --primary: 201 96% 15%; /* Deep Navy */
+    --primary: 201 96% 12%; /* Deeper, more formal Navy */
     --primary-foreground: 210 40% 98%;
-    --secondary: 174 100% 29%; /* Teal Accent */
+    --secondary: 174 100% 25%; /* Refined Institutional Teal */
     --secondary-foreground: 210 40% 98%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 45 100% 48%; /* Gold */
+    --muted: 210 40% 94%;
+    --muted-foreground: 215.4 16.3% 40%;
+    --accent: 45 92% 45%; /* Sophisticated Gold */
     --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 0 84% 50%;
     --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
+    --border: 214 32% 88%;
+    --input: 214 32% 88%;
     --ring: 201 96% 15%;
-    --radius: 1rem;
+    --radius: 1.25rem;
+    --warning: 38 92% 45%;
+    --header-bg: 201 96% 12%;
+    --header-foreground: 210 40% 98%;
+    
+    /* Brand Constants */
+    --brand-navy: 201 96% 12%;
+    --brand-teal: 174 100% 25%;
+    --brand-gold: 45 92% 45%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
+    --background: 222 47% 3%; /* Ultra-deep navy */
     --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
+    --card: 222 47% 6%;
     --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
+    --popover: 222 47% 7%;
     --popover-foreground: 210 40% 98%;
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
+    --primary: 174 100% 40%; /* Teal as primary accent in dark mode */
+    --primary-foreground: 222 47% 3%;
+    --secondary: 201 96% 20%;
     --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
+    --muted: 222 47% 12%;
+    --muted-foreground: 215 20% 60%;
+    --accent: 45 100% 50%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 63% 40%;
     --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --border: 222 47% 14%;
+    --input: 222 47% 14%;
+    --warning: 45 100% 45%;
+    --ring: 174 100% 40%;
+    --header-bg: 222 47% 2%;
+    --header-foreground: 210 40% 98%;
   }
 }
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border outline-ring/30;
   }
   html {
-    font-size: 16px; /* Base for rem calculations */
+    font-size: 16px;
+    scroll-behavior: smooth;
   }
   body {
     @apply bg-background text-foreground font-body antialiased;
-    font-size: 1rem; /* 16px base */
-    line-height: 1.5;
+    font-size: 1rem;
+    line-height: 1.6;
+    letter-spacing: -0.011em;
   }
   h1, h2, h3, h4, h5, h6 {
-    @apply font-headline tracking-tight;
+    @apply font-headline tracking-tighter text-balance;
+    font-weight: 700;
   }
 }
 
 @layer components {
   .portal-grid {
-    @apply grid grid-cols-1 md:grid-cols-12 gap-[clamp(1rem,3vw,2.5rem)];
+    @apply grid grid-cols-1 md:grid-cols-12 gap-[clamp(1.5rem,4vw,3rem)];
   }
   
   .portal-card {
-    @apply bg-card border border-border shadow-sm rounded-[1.5rem] overflow-hidden transition-all duration-300;
+    @apply bg-card border border-border shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] rounded-[var(--radius)] overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)];
+  }
+  
+  .portal-card:hover {
+    @apply shadow-[0_20px_40px_-12px_rgba(0,0,0,0.1)] -translate-y-1;
   }
 
   .portal-button-primary {
-    @apply bg-primary text-white hover:bg-primary/90 rounded-[0.75rem] px-[1.5rem] py-[0.75rem] font-bold transition-all active:scale-95;
+    @apply bg-primary text-primary-foreground hover:brightness-110 rounded-[0.875rem] px-8 py-3.5 font-semibold transition-all active:scale-[0.98] shadow-lg shadow-primary/20 flex items-center justify-center gap-2;
   }
 
   .portal-status-badge {
-    @apply inline-flex items-center gap-[0.5rem] px-[1rem] py-[0.25rem] rounded-full text-[0.75rem] font-black uppercase tracking-widest;
+    @apply inline-flex items-center gap-2 px-3.3 py-1.5 rounded-full text-[0.7rem] font-bold uppercase tracking-[0.1em] border;
   }
 
   .responsive-container {
-    @apply w-full max-w-[80rem] mx-auto px-[clamp(1rem,5vw,2.5rem)];
+    @apply w-full max-w-[85rem] mx-auto px-[clamp(1.25rem,6vw,3rem)];
+  }
+
+  .glass-panel {
+    @apply bg-white/70 backdrop-blur-xl border border-white/20 shadow-xl;
+  }
+
+  .dark .glass-panel {
+    @apply bg-black/40 backdrop-blur-2xl border border-white/5 shadow-2xl;
   }
 }
 
 .bg-dot-pattern {
-  background-image: radial-gradient(hsl(var(--primary) / 0.1) 1px, transparent 0);
-  background-size: 24px 24px;
-}
-
-.neu-background {
-  @apply bg-slate-50 relative overflow-hidden;
+  background-image: radial-gradient(hsl(var(--primary) / 0.1) 1.5px, transparent 0);
+  background-size: 32px 32px;
 }
 
 .neu-header {
-  @apply h-[clamp(4rem,10vh,5rem)] bg-primary flex items-center sticky top-0 z-[100] shadow-lg border-b border-white/10;
+  @apply h-[clamp(4.5rem,12vh,5.5rem)] bg-[hsl(var(--header-bg))] flex items-center sticky top-0 z-[100] shadow-xl border-b border-white/5 backdrop-blur-md transition-all duration-500;
+}
+
+.institutional-gradient {
+  background: linear-gradient(135deg, hsl(var(--brand-navy)), hsl(var(--brand-teal)));
+}
+
+.premium-shadow {
+  box-shadow: 0 10px 50px -12px rgba(0, 0, 0, 0.12);
+}
+
+.dark .premium-shadow {
+  box-shadow: 0 20px 60px -15px rgba(0, 0, 0, 0.6);
+}
+
+/* Animations */
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 4s ease-in-out infinite;
 }

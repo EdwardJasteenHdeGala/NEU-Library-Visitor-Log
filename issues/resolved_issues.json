@@ -1,0 +1,29 @@
+[
+  {
+    "id": "9fa8d7f3-9df3-4e7d-a9f8-c5619b8b576d",
+    "timestamp": "2026-03-23T07:58:34.041Z",
+    "userId": "test-user",
+    "message": "Test issue",
+    "stack": "Error: Test issue at index.js",
+    "status": "resolved",
+    "occurrences": 2
+  },
+  {
+    "id": "11bd28db-8624-4a3a-8666-59fac459e6d8",
+    "timestamp": "2026-03-23T08:31:00.485Z",
+    "userId": "verifier",
+    "message": "Test verification error",
+    "stack": "Error: Test at verificationtest.js:1",
+    "status": "resolved",
+    "occurrences": 1
+  },
+  {
+    "id": "7b688e42-660d-4432-8db6-77f7479953e6",
+    "timestamp": "2026-03-23T11:10:06.597Z",
+    "userId": "sess_1774263757379_zppgt0r6i",
+    "message": "[ERROR] Missing or Insufficient Permissions",
+    "stack": "FirebaseError: Missing or insufficient permissions: The following request was denied by Firestore Security Rules...",
+    "status": "resolved",
+    "occurrences": 1
+  }
+]

@@ -1,0 +1,35 @@
+
+> nextn@0.1.0 build
+> NODE_ENV=production next build
+
+   ▲ Next.js 15.5.9
+   - Environments: .env.local
+   - Experiments (use with caution):
+     · serverActions
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 24.8s
+   Linting and checking validity of types ...
+ ⨯ ESLint: Converting circular structure to JSON     --> starting at object with constructor 'Object'     |     property 'configs' -> object with constructor 'Object'     |     property 'flat' -> object with constructor 'Object'     |     ...     |     property 'plugins' -> object with constructor 'Object'     --- property 'react' closes the circle Referenced from: /Users/edwardjasteenh.degala/Desktop/NEU Access Hub/.eslintrc.json
+   Collecting page data ...
+   Generating static pages (0/6) ...
+   Generating static pages (1/6) 
+   Generating static pages (2/6) 
+   Generating static pages (4/6) 
+ ✓ Generating static pages (6/6)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                 Size  First Load JS
+┌ ○ /                                    91.6 kB         329 kB
+├ ○ /_not-found                            128 B         102 kB
+└ ƒ /api/issues                            128 B         102 kB
++ First Load JS shared by all             102 kB
+  ├ chunks/255-fa5918c8960e9009.js       45.2 kB
+  ├ chunks/4bd1b696-1c88c00269cf164c.js  54.2 kB
+  └ other shared chunks (total)          2.33 kB
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

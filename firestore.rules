@@ -16,42 +16,62 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
     }
 
-    function isAdmin() {
+    function isSuperAdmin() {
       return isSignedIn() && (
-        // Explicit whitelist for immediate authorization via token email
-        request.auth.token.get('email', '').lower() == 'edwardjasteen.degala@neu.edu.ph' ||
-        request.auth.token.get('email', '').lower() == 'jcesperanza@neu.edu.ph' ||
-        request.auth.token.get('email', '').lower() == 'nhica.valderas@neu.edu.ph' ||
-        // Dynamic role check for other synchronized administrators
+        // WHU-WHU BOOTSTRAP: Hardcoded institutional owner (case-insensitive)
+        ('email' in request.auth.token && request.auth.token.email.lower() == 'edwardjasteen.degala@neu.edu.ph') ||
+        // DYNAMIC AUTHORITY: Check for explicit role assignment in identity registry
         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
-         getUserData().role == 'admin' && 
-         getUserData().get('isBlocked', false) == false)
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', 'member') == 'superadmin')
+      );
+    }
+
+    function isAdmin() {
+      return isSuperAdmin() || (
+        isSignedIn() && (
+          // Whitelisted administrative emails
+          ('email' in request.auth.token && (
+            request.auth.token.email.lower() == 'jcesperanza@neu.edu.ph' ||
+            request.auth.token.email.lower() == 'nhica.valderas@neu.edu.ph'
+          )) ||
+          // Registry-based administrative authority check
+          (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+           get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', 'member') == 'admin' && 
+           get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('isBlocked', false) == false)
+        )
       );
     }
 
     function isMember() {
       return isSignedIn() && (
-        request.auth.token.get('email', '').lower().endsWith('@neu.edu.ph') ||
+        // Institutional email requirement
+        ('email' in request.auth.token && request.auth.token.email.lower().matches('.*@neu\\.edu\\.ph')) ||
+        // Identity verified in registry and not restricted
         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
-         getUserData().role == 'user' && 
-         getUserData().get('isBlocked', false) == false)
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('isBlocked', false) == false)
       );
     }
 
     // --- Collection Rules ---
 
     match /users/{userId} {
-      allow read, write: if isOwner(userId) || isAdmin();
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId) || isAdmin();
     }
 
     match /visits/{visitId} {
-      // Admins see all. Users see only their own.
-      allow read: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
-      // Listing is allowed for admins only for aggregated statistics.
-      allow list: if isAdmin(); 
-      // Only members (non-guests) can log visits.
+      // INSTITUTIONAL OVERRIDE: Admins see all logs. Members see only their own.
+      allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      // Only authorized members or admins can register presence.
       allow create: if isMember() || isAdmin();
-      allow update, delete: if isAdmin();
+      allow update: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow delete: if isAdmin();
+    }
+
+    match /advisories/{advisoryId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
     }
 
     match /notifications/{notificationId} {
@@ -65,12 +85,35 @@ service cloud.firestore {
     }
 
     match /invites/{inviteId} {
-      allow read: if isAdmin() || (isSignedIn() && request.auth.token.email.lower() == resource.data.email.lower());
+      allow read: if isAdmin() || (isSignedIn() && 'email' in request.auth.token && request.auth.token.email.lower() == resource.data.email.lower());
       allow write: if isAdmin();
     }
     
     match /audit_logs/{logId} {
       allow read, write: if isAdmin();
+    }
+
+    match /role_audit_logs/{logId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /system_diagnostics/{logId} {
+      allow create: if isSignedIn();
+      allow read, update, delete: if isAdmin();
+    }
+
+    match /borrowings/{borrowingId} {
+      // Members can see their own borrowings. Admins see all.
+      allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      // Anyone signed in can initiate a borrowing (the transaction handles inventory).
+      allow create: if isSignedIn();
+      // Only admins can update status (return/renew) or delete.
+      allow update, delete: if isAdmin();
+    }
+
+    match /books_inventory/{bookId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
     }
   }
 }

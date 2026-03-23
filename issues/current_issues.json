@@ -1,0 +1,20 @@
+[
+  {
+    "id": "42474e0e-7086-4005-b721-e83c2d54f560",
+    "timestamp": "2026-03-23T15:10:42.862Z",
+    "userId": "sess_1774278408736_940dlan8i",
+    "message": "[ERROR] Failed to construct 'Image': Please use the 'new' operator, this DOM object constructor cannot be called as a function.",
+    "stack": "TypeError: Please use the 'new' operator, this DOM object constructor cannot be called as a function.\n    at Object.react_stack_bottom_frame (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:23584:20)\n    at renderWithHooks (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:6793:22)\n    at updateFunctionComponent (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:9247:19)\n    at beginWork (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:10858:18)\n    at runWithFiberInDEV (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:872:30)\n    at performUnitOfWork (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:15727:22)\n    at workLoopSync (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:15547:41)\n    at renderRootSync (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:15527:11)\n    at performWorkOnRoot (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:15034:44)\n    at performWorkOnRootViaSchedulerTask (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:16816:7)\n    at MessagePort.performWorkUntilDeadline (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/scheduler/cjs/scheduler.development.js:45:48)",
+    "status": "recurring",
+    "occurrences": 7
+  },
+  {
+    "id": "6c8dd124-50b3-496f-a56d-e8fa73f89007",
+    "timestamp": "2026-03-23T17:41:25.699Z",
+    "userId": "sess_1774281279588_1l07guuni",
+    "message": "[ERROR] Missing or Insufficient Permissions",
+    "stack": "FirebaseError: Missing or insufficient permissions: The following request was denied by Firestore Security Rules:\n{\n  \"auth\": {\n    \"uid\": \"9GriUQyMerTvOmiDYs1WNQY2cPj2\",\n    \"token\": {\n      \"name\": \"Edward Jasteen de Gala\",\n      \"email\": \"jasteen.de.gala@gmail.com\",\n      \"email_verified\": true,\n      \"phone_number\": null,\n      \"sub\": \"9GriUQyMerTvOmiDYs1WNQY2cPj2\",\n      \"firebase\": {\n        \"identities\": {\n          \"google.com\": [\n            \"112541605189303230683\"\n          ]\n        },\n        \"sign_in_provider\": \"google.com\",\n        \"tenant\": null\n      }\n    }\n  },\n  \"method\": \"list\",\n  \"path\": \"/databases/(default)/documents/visits\"\n}\n    at useCollection.useEffect.unsubscribe (webpack-internal:///(app-pages-browser)/./src/firebase/firestore/use-collection.tsx:68:45)\n    at eval (webpack-internal:///(app-pages-browser)/./node_modules/@firebase/firestore/dist/index.esm2017.js:17726:27)",
+    "status": "recurring",
+    "occurrences": 42
+  }
+]
