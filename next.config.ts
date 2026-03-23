@@ -1,6 +1,7 @@
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
+  outputFileTracingRoot: process.cwd(),
   experimental: {
 
     // Next.js 15 specific optimizations if needed
