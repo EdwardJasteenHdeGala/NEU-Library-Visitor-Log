@@ -28,7 +28,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { askInstitutionalAI } from '../../app/actions';
+// import { askInstitutionalAI } from '../../app/actions';
 import Image from 'next/image';
 
 interface Message {
@@ -100,7 +100,7 @@ export function AIAssistant(): React.JSX.Element {
   const handleSend = async () => {
     if ((!input.trim() && attachments.length === 0) || isLoading) return;
 
-    const userMessage = input.trim() || (attachments.length > 0 ? "Analyzng attached files..." : "");
+    const userMessage = input.trim() || (attachments.length > 0 ? "Analyzing attached files..." : "");
     const currentMedia = attachments.map(a => ({ data: a.base64, mimeType: a.file.type }));
     
     setInput('');
@@ -108,33 +108,14 @@ export function AIAssistant(): React.JSX.Element {
     setMessages(prev => [...prev, { role: 'user', content: userMessage, media: currentMedia }]);
     setIsLoading(true);
 
-    try {
-      const history = messages.map(m => ({
-        role: m.role,
-        content: [{ text: m.content }]
-      }));
-
-      const response = await askInstitutionalAI({
-        message: userMessage,
-        history: history as any,
-        context: {
-          userName: profile?.displayName || 'Member',
-          page: window.location.pathname
-        },
-        media: currentMedia
-      });
-
-      setMessages(prev => [...prev, { role: 'model', content: response }]);
-    } catch (error: any) {
-      console.error("AI Error:", error);
-      toast({
-        title: "Telemetry Sync Failed",
-        description: error.message || "The AI subsystem is currently undergoing maintenance. Please try again shortly.",
-        variant: "destructive"
-      });
-    } finally {
+    // Static Simulation for GitHub Pages
+    setTimeout(() => {
+      setMessages(prev => [...prev, { 
+        role: 'model', 
+        content: "Institutional Node Offline: The AI Assistant requires a server environment to process requests. In this static deployment, advanced AI capabilities are currently suspended. Please refer to the documentation for manual assistance." 
+      }]);
       setIsLoading(false);
-    }
+    }, 1000);
   };
 
   if (!isOpen) {

@@ -58,10 +58,14 @@ export function SystemDiagnosticsView({ onBack }: SystemDiagnosticsViewProps) {
   const syncLocalIssues = async (type: 'active' | 'resolved' = 'active') => {
     setIsSyncingLocal(true);
     try {
-      const res = await fetch(`/api/issues?type=${type}`);
-      if (!res.ok) throw new Error("Sync failure");
-      const data = await res.json();
-      setLocalIssues(data);
+      // fetch('/api/issues') is not available on GitHub Pages (Static Site)
+      // setLocalIssues(data);
+      setLocalIssues([]); 
+      toast({ 
+        title: "Local Registry Offline", 
+        description: "Static deployment does not support local file system synchronization.",
+        variant: "default" 
+      });
     } catch (err) {
       toast({ title: "Local Sync Error", variant: "destructive" });
     } finally {
@@ -71,14 +75,12 @@ export function SystemDiagnosticsView({ onBack }: SystemDiagnosticsViewProps) {
 
   const resolveLocalIssue = async (issueId: string) => {
     try {
-      const res = await fetch('/api/issues', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ issueId })
+      // fetch('/api/issues') is not available on GitHub Pages (Static Site)
+      toast({ 
+        title: "Action Restricted", 
+        description: "Static deployment does not support modifications to the local filesystem registry.",
+        variant: "destructive" 
       });
-      if (!res.ok) throw new Error("Resolution failure");
-      toast({ title: "Issue Resolved", description: "Archived to registry." });
-      syncLocalIssues();
     } catch (err) {
       toast({ title: "Action Failed", variant: "destructive" });
     }
@@ -89,15 +91,11 @@ export function SystemDiagnosticsView({ onBack }: SystemDiagnosticsViewProps) {
     setAiSuggestion(null);
     setIsAnalyzing(true);
     
-    try {
-      const { analyzeDiagnostic } = await import("@/app/actions");
-      const suggestion = await analyzeDiagnostic(log);
-      setAiSuggestion(suggestion);
-    } catch (error) {
-      setAiSuggestion("AI Hub currently unreachable for deep forensic analysis.");
-    } finally {
+    // Static Simulation for GitHub Pages
+    setTimeout(() => {
+      setAiSuggestion("Institutional Node Offline: Deep forensic analysis requires a server environment. In this static deployment, AI diagnostics are currently suspended.");
       setIsAnalyzing(false);
-    }
+    }, 800);
   };
 
   const diagnosticsQuery = useMemoFirebase(() => {

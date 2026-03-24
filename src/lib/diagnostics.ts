@@ -34,23 +34,6 @@ class DiagnosticsLogger {
         console.warn("[DiagnosticsLogger] Recovery failure:", err);
       });
 
-      // Mirror to local file-based error logging system via API
-      if (log.level === 'error' || log.level === 'warn') {
-        const errorPayload = {
-          message: `[${log.level.toUpperCase()}] ${log.message}`,
-          stack: log.stack || (log.details ? (typeof log.details === 'string' ? log.details : JSON.stringify(log.details)) : null),
-          userId: diagnosticSession.getSessionId(),
-        };
-
-        fetch('/api/issues', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(errorPayload)
-        }).catch(err => {
-          console.warn("[DiagnosticsLogger] Failed to write to local issues API:", err);
-        });
-      }
-
       // Mirror to console for local development awareness
       if (process.env.NODE_ENV === 'development') {
         const style = log.level === 'error' ? 'color: #ff4d4d; font-weight: bold;' : 'color: #ffa500;';

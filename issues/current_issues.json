@@ -10,11 +10,11 @@
   },
   {
     "id": "6c8dd124-50b3-496f-a56d-e8fa73f89007",
-    "timestamp": "2026-03-23T17:41:25.699Z",
+    "timestamp": "2026-03-24T05:22:17.353Z",
     "userId": "sess_1774281279588_1l07guuni",
     "message": "[ERROR] Missing or Insufficient Permissions",
     "stack": "FirebaseError: Missing or insufficient permissions: The following request was denied by Firestore Security Rules:\n{\n  \"auth\": {\n    \"uid\": \"9GriUQyMerTvOmiDYs1WNQY2cPj2\",\n    \"token\": {\n      \"name\": \"Edward Jasteen de Gala\",\n      \"email\": \"jasteen.de.gala@gmail.com\",\n      \"email_verified\": true,\n      \"phone_number\": null,\n      \"sub\": \"9GriUQyMerTvOmiDYs1WNQY2cPj2\",\n      \"firebase\": {\n        \"identities\": {\n          \"google.com\": [\n            \"112541605189303230683\"\n          ]\n        },\n        \"sign_in_provider\": \"google.com\",\n        \"tenant\": null\n      }\n    }\n  },\n  \"method\": \"list\",\n  \"path\": \"/databases/(default)/documents/visits\"\n}\n    at useCollection.useEffect.unsubscribe (webpack-internal:///(app-pages-browser)/./src/firebase/firestore/use-collection.tsx:68:45)\n    at eval (webpack-internal:///(app-pages-browser)/./node_modules/@firebase/firestore/dist/index.esm2017.js:17726:27)",
     "status": "recurring",
-    "occurrences": 42
+    "occurrences": 55
   }
 ]
