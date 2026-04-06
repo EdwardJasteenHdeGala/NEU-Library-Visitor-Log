@@ -99,8 +99,8 @@ After the `studio:export` command finishes, you MUST perform a multiple-point va
         *   In `.idx/dev.nix` file, inspect its `command` property (e.g., if `command = ["foo" "bar" "baz"];` is specified).
         *   Inspect `README.md` file for any additional information.
         *   Check the value of `<FBS_PROJECT_TYPE>` for more information:
-            *   **If `<FBS_PROJECT_TYPE>` is "NextJS"**, check CLI used in [nextjs.md](reference/nextjs.md).
-            *   **If `<FBS_PROJECT_TYPE>` is "Flutter"**, check CLI used in [flutter.md](reference/flutter.md).
+            *   **If `<FBS_PROJECT_TYPE>` is "NextJS"**, check CLI used in [nextjs.md](references/nextjs.md).
+            *   **If `<FBS_PROJECT_TYPE>` is "Flutter"**, check CLI used in [flutter.md](references/flutter.md).
             *   **If `<FBS_PROJECT_TYPE>` is anything else**, use your best knowledge base on `<FBS_PROJECT_TYPE>` to determine the CLI used to build and run the project.
     *   Check if that specific CLI command is currently installed and available in the system PATH (e.g., by executing `which <command>` on Mac/Linux or `where <command>` on Windows).
     *   If the required CLI is **not** available:
@@ -110,9 +110,9 @@ After the `studio:export` command finishes, you MUST perform a multiple-point va
     *   For macOS / Linux, source the configuration file for the active shell (e.g., `source ~/.bash_profile`, `source ~/.bashrc`, `source ~/.zprofile`, `source ~/.zshrc`, or `source ~/.profile`).
 2.  **Verify Project Health** by trying to compile and build the project.
     *   Check the value of `<FBS_PROJECT_TYPE>` for more information:
-        *   **If `<FBS_PROJECT_TYPE>` is "NextJS"**, follow instructions in [nextjs.md](reference/nextjs.md).
-        *   **If `<FBS_PROJECT_TYPE>` is "Flutter"**, follow instructions in [flutter.md](reference/flutter.md).
-        *   **If `<FBS_PROJECT_TYPE>` is anything else**, follow instructions in [other.md](reference/other.md).
+        *   **If `<FBS_PROJECT_TYPE>` is "NextJS"**, follow instructions in [nextjs.md](references/nextjs.md).
+        *   **If `<FBS_PROJECT_TYPE>` is "Flutter"**, follow instructions in [flutter.md](references/flutter.md).
+        *   **If `<FBS_PROJECT_TYPE>` is anything else**, follow instructions in [other.md](references/other.md).
 
 
 ### Step 4: Preview

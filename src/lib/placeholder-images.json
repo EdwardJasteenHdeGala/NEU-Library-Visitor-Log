@@ -1,28 +1,22 @@
 {
   "placeholderImages": [
     {
-      "id": "neu-campus",
-      "description": "New Era University Main Campus Entrance",
-      "imageUrl": "https://neu.edu.ph/main/img/mains.jfif",
-      "imageHint": "university campus"
-    },
-    {
-      "id": "library-interior",
-      "description": "Modern Library Study Area",
-      "imageUrl": "https://picsum.photos/seed/neu-library-main/1920/1080",
-      "imageHint": "modern library"
+      "id": "library-bg",
+      "description": "New Era University Building",
+      "imageUrl": "https://www.manilatimes.net/manilatimes/uploads/images/2021/10/07/19096.jpg",
+      "imageHint": "university building"
     },
     {
       "id": "neu-logo",
       "description": "New Era University Logo",
       "imageUrl": "https://upload.wikimedia.org/wikipedia/en/c/c6/New_Era_University.svg",
-      "imageHint": "institutional logo"
+      "imageHint": "university logo"
     },
     {
-      "id": "student-study",
-      "description": "Students collaborating in a university setting",
-      "imageUrl": "https://picsum.photos/seed/neu-students/800/600",
-      "imageHint": "students studying"
+      "id": "neu-campus",
+      "description": "NEU Campus Building",
+      "imageUrl": "https://www.manilatimes.net/manilatimes/uploads/images/2021/10/07/19096.jpg",
+      "imageHint": "university campus"
     }
   ]
 }

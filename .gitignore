@@ -43,3 +43,13 @@ next-env.d.ts
 # firebase
 firebase-debug.log
 firestore-debug.log
+
+# assistant and tools
+.agents/
+skills-lock.json
+qa-*.log
+qa-scan.sh
+*.txt
+*.json.bak
+*.mjs.bak
+eslint_full_output.json

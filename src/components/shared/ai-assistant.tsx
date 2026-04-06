@@ -28,8 +28,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-// import { askInstitutionalAI } from '../../app/actions';
-import Image from 'next/image';
 
 interface Message {
   role: 'user' | 'model';
@@ -203,7 +201,7 @@ export function AIAssistant(): React.JSX.Element {
                          {m.media.map((med, idx) => (
                            <div key={idx} className="relative h-16 w-16 rounded-lg overflow-hidden border shadow-sm">
                              {med.mimeType.startsWith('image/') ? (
-                               <img src={`data:${med.mimeType};base64,${med.data}`} alt="Attached" className="object-cover h-full w-full" />
+                              <img src={`data:${med.mimeType};base64,${med.data}`} alt="Attached" className="object-cover h-full w-full" />
                              ) : (
                                <div className="h-full w-full bg-muted flex items-center justify-center">
                                  <Paperclip className="h-5 w-5 text-muted-foreground" />

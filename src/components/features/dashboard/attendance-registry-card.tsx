@@ -286,7 +286,13 @@ export function AttendanceRegistryCard({
               <div className="h-14 w-14 rounded-[1.25rem] bg-gradient-to-br from-primary/20 to-primary/5 overflow-hidden flex items-center justify-center border border-primary/30 shadow-inner relative">
                 {profile?.photoURL ? (
                   <div className="relative h-full w-full">
-                    <Image src={profile.photoURL} alt="Profile" fill className="object-cover" />
+                    <Image 
+                      src={profile.photoURL} 
+                      alt="Profile" 
+                      fill 
+                      className="object-cover"
+                      unoptimized={profile.photoURL.startsWith('http')} 
+                    />
                   </div>
                 ) : (
                   <UserCheck className="h-6 w-6 text-primary drop-shadow-md" />

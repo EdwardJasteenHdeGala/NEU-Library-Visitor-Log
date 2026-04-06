@@ -22,4 +22,6 @@ export interface UserProfile {
   resignationStatus?: 'pending' | 'approved' | 'rejected' | null;
   resignationReason?: string;
   resignationRequestedAt?: any;
+  isDeleted?: boolean;
+  warnings?: { message: string; timestamp: any; adminId: string }[];
 }

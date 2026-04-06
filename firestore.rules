@@ -1,119 +1,86 @@
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
+    // -------------------------------------------------------------------------
+    // SYSTEM FUNCTIONS & FAILSAFE WHITELIST
+    // -------------------------------------------------------------------------
+    
+    // Failsafe, high-priority whitelist bypass for the Institutional Owner
+    // Uses UID as the ultimate source of truth, with email as a fallback.
+    function isSuperAdmin() {
+      return request.auth != null && 
+             (request.auth.uid == 'ix6skGzgoCM0v8BpiT4dtsbEkys2' || 
+              (request.auth.token.email != null && 
+               request.auth.token.email.toLowerCase() == 'edwardjasteen.degala@neu.edu.ph'));
+    }
 
-    // --- Helper Functions ---
-
-    function isSignedIn() {
+    function isAuthenticated() {
       return request.auth != null;
     }
 
-    function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
-    }
-
-    function getUserData() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
-    }
-
-    function isSuperAdmin() {
-      return isSignedIn() && (
-        // WHU-WHU BOOTSTRAP: Hardcoded institutional owner (case-insensitive)
-        ('email' in request.auth.token && request.auth.token.email.lower() == 'edwardjasteen.degala@neu.edu.ph') ||
-        // DYNAMIC AUTHORITY: Check for explicit role assignment in identity registry
-        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
-         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', 'member') == 'superadmin')
-      );
-    }
-
-    function isAdmin() {
-      return isSuperAdmin() || (
-        isSignedIn() && (
-          // Whitelisted administrative emails
-          ('email' in request.auth.token && (
-            request.auth.token.email.lower() == 'jcesperanza@neu.edu.ph' ||
-            request.auth.token.email.lower() == 'nhica.valderas@neu.edu.ph'
-          )) ||
-          // Registry-based administrative authority check
-          (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
-           get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', 'member') == 'admin' && 
-           get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('isBlocked', false) == false)
-        )
-      );
-    }
-
-    function isMember() {
-      return isSignedIn() && (
-        // Institutional email requirement
-        ('email' in request.auth.token && request.auth.token.email.lower().matches('.*@neu\\.edu\\.ph')) ||
-        // Identity verified in registry and not restricted
-        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
-         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('isBlocked', false) == false)
-      );
-    }
-
-    // --- Collection Rules ---
-
-    match /users/{userId} {
-      allow read: if isOwner(userId) || isAdmin();
-      allow create: if isOwner(userId);
-      allow update: if isOwner(userId) || isAdmin();
-    }
-
-    match /visits/{visitId} {
-      // INSTITUTIONAL OVERRIDE: Admins see all logs. Members see only their own.
-      allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
-      // Only authorized members or admins can register presence.
-      allow create: if isMember() || isAdmin();
-      allow update: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
-      allow delete: if isAdmin();
-    }
-
-    match /advisories/{advisoryId} {
-      allow read: if isSignedIn();
-      allow write: if isAdmin();
-    }
-
-    match /notifications/{notificationId} {
-      allow read: if isSignedIn();
-      allow write: if isAdmin();
-    }
-
-    match /feedback/{feedbackId} {
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
-    }
-
-    match /invites/{inviteId} {
-      allow read: if isAdmin() || (isSignedIn() && 'email' in request.auth.token && request.auth.token.email.lower() == resource.data.email.lower());
-      allow write: if isAdmin();
+    function isAuthorizedAdmin() {
+      return isSuperAdmin() || 
+             (isAuthenticated() && 
+              exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+              (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' || 
+               get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'superadmin' ||
+               get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAuthorizedAdmin == true));
     }
     
-    match /audit_logs/{logId} {
-      allow read, write: if isAdmin();
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
     }
 
+    // -------------------------------------------------------------------------
+    // COLLECTIONS
+    // -------------------------------------------------------------------------
+
+    // 1. Visits Collection
+    match /visits/{visitId} {
+      // Super Admins and Admins can list/read all. Users can only read their own.
+      allow read, list: if isSuperAdmin() || isAuthorizedAdmin() || (isAuthenticated() && resource.data.userId == request.auth.uid);
+      allow create: if isAuthenticated();
+      allow update, delete: if isSuperAdmin() || isAuthorizedAdmin();
+    }
+
+    // 2. Users Collection
+    match /users/{userId} {
+      // Admin/SuperAdmin bypass for management. Users can read/write their own basic info.
+      allow read: if isSuperAdmin() || isAuthorizedAdmin() || isOwner(userId);
+      allow write: if isSuperAdmin() || isAuthorizedAdmin() || isOwner(userId);
+    }
+
+    // 3. Configurations (Public for Kernel crashes fix)
+    match /configurations/{docId} {
+      // Must be public for initial system startup / Kernel Panic prevention
+      allow read: if isAuthenticated() || true; 
+      allow write: if isSuperAdmin();
+    }
+
+    // 4. Role Audit Logs
     match /role_audit_logs/{logId} {
-      allow read, write: if isAdmin();
+      allow read: if isSuperAdmin() || isAuthorizedAdmin();
+      allow create: if isSuperAdmin() || isAuthorizedAdmin();
+      allow update, delete: if false; // Immutable
+    }
+    
+    // 5. Notifications
+    match /notifications/{notificationId} {
+      allow read: if isSuperAdmin() || isAuthorizedAdmin() || (isAuthenticated() && resource.data.userId == request.auth.uid);
+      allow write: if isSuperAdmin() || isAuthorizedAdmin() || (isAuthenticated() && resource.data.userId == request.auth.uid);
+    }
+    
+    // 6. Invites
+    match /invites/{inviteId} {
+      allow read: if isSuperAdmin() || isAuthorizedAdmin() || (isAuthenticated() && resource.data.email.toLowerCase() == request.auth.token.email.toLowerCase());
+      allow write: if isSuperAdmin() || isAuthorizedAdmin();
     }
 
-    match /system_diagnostics/{logId} {
-      allow create: if isSignedIn();
-      allow read, update, delete: if isAdmin();
-    }
-
-    match /borrowings/{borrowingId} {
-      // Members can see their own borrowings. Admins see all.
-      allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
-      // Anyone signed in can initiate a borrowing (the transaction handles inventory).
-      allow create: if isSignedIn();
-      // Only admins can update status (return/renew) or delete.
-      allow update, delete: if isAdmin();
-    }
-
-    match /books_inventory/{bookId} {
-      allow read: if isSignedIn();
-      allow write: if isAdmin();
+    // Default catch-all
+    match /{document=**} {
+      // Final failsafe: If nothing else matches, Super Admin still has access
+      allow read, write: if isSuperAdmin();
     }
   }
 }

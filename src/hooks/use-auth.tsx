@@ -8,7 +8,8 @@ import {
   signInWithPopup,
   signOut,
   setPersistence,
-  browserSessionPersistence
+  browserSessionPersistence,
+  signInAnonymously
 } from 'firebase/auth';
 import {
   doc,
@@ -18,7 +19,8 @@ import {
   query,
   where,
   getDocs,
-  onSnapshot
+  onSnapshot,
+  limit
 } from 'firebase/firestore';
 import {
   useFirebase,
@@ -36,6 +38,7 @@ interface AuthContextType {
   profile: UserProfile | null;
   loading: boolean;
   login: (roleHint?: 'member' | 'guest') => Promise<void>;
+  loginWithId: (id: string) => Promise<void>;
   logout: () => Promise<void>;
   updateProfileData: (data: Partial<UserProfile>) => Promise<boolean>;
   viewMode: 'guest' | 'member' | 'admin';
@@ -52,7 +55,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const BOOTSTRAP_SUPER_ADMIN_EMAIL = 'edwardjasteen.degala@neu.edu.ph';
+export const BOOTSTRAP_SUPER_ADMIN_EMAIL = "edwardjasteen.degala@neu.edu.ph";
 const AUTHORIZED_ADMIN_EMAILS = [
   BOOTSTRAP_SUPER_ADMIN_EMAIL,
   'jcesperanza@neu.edu.ph',
@@ -88,6 +91,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       const docRef = doc(firestore, 'users', uid);
+      
+      // Check for pending manual ID sync from RFID simulation
+      const pendingId = typeof window !== 'undefined' ? sessionStorage.getItem('pendingManualId') : null;
+      
       const inviteQuery = query(collection(firestore, 'invites'), where('email', '==', user.email?.toLowerCase() || ''));
 
       // 1. Parallelize core identity and authorization fetches
@@ -150,25 +157,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setProfile(processed);
         setViewMode('member');
       } else {
-        // NEW ACCOUNT CREATION LOCKDOWN
         const isAuthorized = isWhitelisted || inheritedRole === 'admin' || isSuperAdminAuto;
         
-        const defaultDesignation = isInstitutional ? 'student' : 'guest';
-        const defaultUnit = isInstitutional ? 'Pending Assignment' : 'External';
+        let manualProfileMatch: UserProfile | null = null;
+        if (pendingId && firestore) {
+          const q = query(collection(firestore, 'users'), where('studentId', '==', pendingId), limit(1));
+          const snap = await getDocs(q);
+          if (!snap.empty) {
+            manualProfileMatch = snap.docs[0].data() as UserProfile;
+          }
+        }
+
+        const defaultDesignation = manualProfileMatch?.designation || (isInstitutional ? 'student' : 'guest');
+        const defaultUnit = manualProfileMatch?.college || (isInstitutional ? 'Pending Assignment' : 'External');
+        const defaultName = manualProfileMatch?.displayName || (user.displayName || 'Institutional Member');
 
         const profileData: UserProfile = {
           id: uid,
-          email: userEmail,
-          studentId: isInstitutional ? '' : 'GUEST-ID',
+          email: userEmail || `guest-${uid}@neu.edu.ph`,
+          studentId: pendingId || (isInstitutional ? '' : 'GUEST-ID'),
           role: isAuthorized ? (isSuperAdminAuto ? 'superadmin' : 'admin') : (isInstitutional ? 'member' : 'guest'),
           isAuthorizedAdmin: isAuthorized,
           isSuperAdmin: isSuperAdminAuto,
-          displayName: user.displayName || 'Institutional Member',
-          photoURL: user.photoURL || '',
-          department: defaultUnit,
-          college: '',
+          displayName: defaultName,
+          photoURL: user.photoURL || manualProfileMatch?.photoURL || '',
+          department: manualProfileMatch?.department || defaultUnit,
+          college: manualProfileMatch?.college || '',
           designation: defaultDesignation as any,
-          profileCompleted: !isInstitutional,
+          profileCompleted: !!(pendingId || !isInstitutional),
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
           theme: 'light',
@@ -176,6 +192,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           tutorialCompleted: false
         };
 
+        if (typeof window !== 'undefined') sessionStorage.removeItem('pendingManualId');
         setDocumentNonBlocking(docRef, profileData, { merge: true });
         setProfile(profileData);
         setViewMode('member');
@@ -273,6 +290,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error.code === 'auth/popup-closed-by-user') return;
       diagnosticsLogger.error("Institutional Gateway Auth Error", { code: error.code, message: error.message }, 'auth');
       toast({ title: "Synchronization Error", description: error.message || "Identity hub unreachable.", variant: "destructive" });
+    }
+  };
+
+  const loginWithId = async (id: string) => {
+    try {
+      // RFID Simulation: Verify if the ID is blocked before allowing entry
+      if (firestore) {
+         const q = query(collection(firestore, 'users'), where('studentId', '==', id), limit(1));
+         const snap = await getDocs(q);
+         if (!snap.empty) {
+           const userData = snap.docs[0].data();
+           if (userData.isBlocked) {
+             toast({ 
+               title: "Access Restricted", 
+               description: `ID ${id} is blocked: ${userData.blockedReason || 'Institutional policy breach.'}`, 
+               variant: "destructive" 
+             });
+             return;
+           }
+         }
+      }
+
+      await setPersistence(auth, browserSessionPersistence);
+      if (typeof window !== 'undefined') sessionStorage.setItem('pendingManualId', id);
+      await signInAnonymously(auth);
+      
+      toast({ 
+        title: "ID Synchronization Active", 
+        description: `Manual gateway accessed for ID: ${id}. Initializing registry...`,
+      });
+    } catch (error: any) {
+      diagnosticsLogger.error("Manual ID Gateway Error", { code: error.code, message: error.message }, 'auth');
+      toast({ title: "Gateway Error", description: "Failed to initialize manual ID session.", variant: "destructive" });
     }
   };
 
@@ -547,7 +597,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider value={{
-      user, profile, loading, login, logout, updateProfileData,
+      user, profile, loading, login, loginWithId, logout, updateProfileData,
       viewMode, switchViewMode, setUserRole, requestResignation, handleResignationRequest, transferSuperAdmin,
       blockUser, unblockUser, sendWarning, completeTutorial
     }}>

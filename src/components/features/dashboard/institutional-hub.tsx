@@ -179,7 +179,7 @@ export function InstitutionalHub() {
               <div className="flex items-center gap-4">
                 <SidebarMenuTrigger />
                 <h1 className="text-5xl font-black tracking-tighter uppercase italic text-primary leading-none">
-                  NEU <br /> <span className="text-secondary text-glow-secondary">Access Hub</span>
+                  Welcome to <br /> <span className="text-secondary text-glow-secondary">NEU Library!</span>
                 </h1>
               </div>
             </div>

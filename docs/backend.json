@@ -1,143 +1,140 @@
+
 {
   "entities": {
-    "User": {
+    "Visitor": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "User",
+      "title": "Visitor",
       "type": "object",
-      "description": "Represents a user profile within the NEU Access Hub, including authentication details and assigned roles.",
+      "description": "Represents a person who visits the NEU Library, storing their identification details and status.",
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the User entity."
+          "description": "Unique identifier for the Visitor entity. This can be the student/employee ID or a unique identifier from an external authentication system."
         },
-        "email": {
+        "name": {
           "type": "string",
-          "description": "The institutional email address of the user, used for Google Sign-In and domain restriction.",
-          "format": "email"
+          "description": "The full name of the visitor."
         },
-        "studentId": {
+        "college": {
           "type": "string",
-          "description": "The student ID associated with the user's account, used for an alternative login method."
+          "description": "The college or office the visitor is affiliated with."
+        },
+        "classification": {
+          "type": "string",
+          "description": "The category of the visitor: Student, Staff, or Administrator.",
+          "enum": ["Student", "Staff", "Administrator"]
         },
         "role": {
           "type": "string",
-          "description": "The assigned role of the user (e.g., 'user', 'admin'), determining access privileges."
+          "description": "The authorization level of the user: 'user' or 'admin'.",
+          "enum": ["user", "admin"]
+        },
+        "isBlocked": {
+          "type": "boolean",
+          "description": "A flag indicating whether the visitor is currently blocked from accessing the library."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "The timestamp when this visitor record was first created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "The timestamp when this visitor record was last updated.",
+          "format": "date-time"
         }
       },
       "required": [
         "id",
-        "email",
-        "studentId",
-        "role"
+        "name",
+        "college",
+        "isBlocked",
+        "createdAt",
+        "updatedAt"
       ]
     },
-    "Visit": {
+    "VisitLog": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Visit",
+      "title": "VisitLog",
       "type": "object",
-      "description": "Records a single visit entry by a user to the NEU Library.",
+      "description": "Records details of a single visit made by a person to the NEU Library.",
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the Visit entity."
+          "description": "Unique identifier for the VisitLog entity."
         },
-        "userId": {
+        "visitorId": {
           "type": "string",
-          "description": "Reference to the User who made this visit. (Relationship: User 1:N Visit)"
+          "description": "Reference to the Visitor who made this log entry. (Relationship: Visitor 1:N VisitLog)"
         },
-        "checkInTime": {
+        "timestamp": {
           "type": "string",
-          "description": "Timestamp when the user checked into the library.",
-          "format": "date-time"
-        },
-        "checkOutTime": {
-          "type": "string",
-          "description": "Optional timestamp when the user checked out of the library.",
+          "description": "The date and time when the visit was logged.",
           "format": "date-time"
         },
         "purpose": {
           "type": "string",
-          "description": "The stated purpose or reason for the user's visit to the library."
+          "description": "The stated purpose of the visitor's visit to the library. E.g., Reading Books, Thesis Research, Computer Usage, Doing Assignments."
+        },
+        "classification": {
+          "type": "string",
+          "description": "The classification of the visitor at the time of entry."
         }
       },
       "required": [
         "id",
-        "userId",
-        "checkInTime",
+        "visitorId",
+        "timestamp",
         "purpose"
-      ]
-    },
-    "Notification": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Notification",
-      "type": "object",
-      "description": "Represents an announcement or message displayed to authenticated users within the NEU Access Hub.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the Notification entity."
-        },
-        "title": {
-          "type": "string",
-          "description": "The title or subject of the notification."
-        },
-        "message": {
-          "type": "string",
-          "description": "The main content or body of the notification message."
-        },
-        "createdAt": {
-          "type": "string",
-          "description": "Timestamp indicating when the notification was created.",
-          "format": "date-time"
-        }
-      },
-      "required": [
-        "id",
-        "title",
-        "message",
-        "createdAt"
       ]
     }
   },
   "auth": {
     "providers": [
       "password",
-      "anonymous"
+      "anonymous",
+      "google.com"
     ]
   },
   "firestore": {
     "structure": [
       {
-        "path": "/users/{userId}",
+        "path": "/visitors/{visitorId}",
         "definition": {
-          "entityName": "User",
+          "entityName": "Visitor",
           "schema": {
-            "$ref": "#/backend/entities/User"
+            "$ref": "#/backend/entities/Visitor"
           },
-          "description": "Stores user profiles, including email, student ID, and assigned role. The document ID (`userId`) must match `request.auth.uid`. This collection is central for role-based access control (DBAC)."
+          "description": "Stores individual visitor profiles. The `visitorId` can be a Firebase UID (for Google sign-in) or an external ID (for 'Tap ID'). This document is the source of truth for `isBlocked` and contains all necessary visitor identification details. Includes `isBlocked` for direct authorization checks by rules/application logic.",
+          "params": [
+            {
+              "name": "visitorId",
+              "description": "Unique identifier for the Visitor, corresponding to either a Firebase Authentication UID or an external ID from the 'Tap ID' system."
+            }
+          ]
         }
       },
       {
-        "path": "/visits/{visitId}",
+        "path": "/visitors/{visitorId}/visitLogs/{visitLogId}",
         "definition": {
-          "entityName": "Visit",
+          "entityName": "VisitLog",
           "schema": {
-            "$ref": "#/backend/entities/Visit"
+            "$ref": "#/backend/entities/VisitLog"
           },
-          "description": "A top-level collection storing institutional visit records. Authorized administrators can audit all entries, while users can access their own logs via the `userId` field."
-        }
-      },
-      {
-        "path": "/notifications",
-        "definition": {
-          "entityName": "Notification",
-          "schema": {
-            "$ref": "#/backend/entities/Notification"
-          },
-          "description": "A top-level collection for global announcements or messages. All authenticated users are allowed to read and list documents from this collection."
+          "description": "Records individual visit entries for a specific visitor. The `visitorId` is denormalized into the document path for clear ownership and efficient rule evaluation. The document also contains the `visitorId` field as per the schema, ensuring authorization independence and simplifying queries for a specific visitor's logs.",
+          "params": [
+            {
+              "name": "visitorId",
+              "description": "The unique identifier of the parent Visitor."
+            },
+            {
+              "name": "visitLogId",
+              "description": "Unique identifier for this specific visit log entry."
+            }
+          ]
         }
       }
     ],
-    "reasoning": "The Firestore structure has been synchronized with the application's flat data model for visits. This ensures that root-level queries used in the administrative overview and visitor logs are properly authorized without requiring hierarchical complexity. Security rules have been updated to permit administrative oversight while protecting user privacy."
+    "reasoning": "The recommended Firestore structure is designed to support both authenticated (Google Sign-in) and unauthenticated ('Tap ID') visitor flows while adhering strictly to the core design principles, especially Authorization Independence and QAPs.The primary collection, `/visitors/{visitorId}`, stores individual visitor profiles. The `visitorId` document ID here is critical: for Google-authenticated users, it will be their `request.auth.uid`; for 'Tap ID' users, it will be the unique external ID provided. This collection serves as the source of truth for visitor details, including the `isBlocked` status.\n\nTo ensure Authorization Independence for `VisitLog` entries, a subcollection `/visitors/{visitorId}/visitLogs/{visitLogId}` is used. This structure leverages hierarchical paths to naturally link visit logs to their respective visitors. Importantly, the `VisitLog` document *itself* will denormalize the `visitorId` field (as per the entity schema). This denormalization means that security rules for `VisitLog` can directly verify `request.auth.uid == resource.data.visitorId` (for authenticated users) or rely on a trusted Cloud Function for 'Tap ID' scenarios, without needing to perform a `get()` operation on the parent `Visitor` document. This directly addresses the Authorization Independence principle.\n\nRegarding QAPs (Rules are not Filters):\n1.  **Visitor Profile Access:** Authenticated users can query their own `Visitor` document by path (`/visitors/$(request.auth.uid)`). Administrators would have broader access to the `/visitors` collection.\n2.  **Visit Log Access:** Authenticated users can list their own visit logs efficiently by querying their specific subcollection (`/visitors/$(request.auth.uid)/visitLogs`). This is a direct query with no filtering required by security rules, thus supporting QAPs. For administrative purposes, listing all visit logs across all visitors can be achieved using a performant Collection Group Query on `visitLogs`, which is also QAP-friendly. The 'Tap ID' flow, requiring a Cloud Function to write logs, bypasses client-side rules for unauthenticated users, further simplifying rule logic for QAPs.\n\nThe `isBlocked` flag is stored directly in the `Visitor` document. The application logic (both client-side for Google users and Cloud Function for 'Tap ID' users) will perform the `isBlocked` check *before* attempting to create a `VisitLog` or granting further access, rather than relying on complex `get()` calls within Firestore security rules for every `VisitLog` write operation. This delegates the critical, state-dependent authorization check to the application layer, simplifying rules to primarily enforce data ownership and structural integrity."
   }
 }

@@ -1,8 +1,7 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
-import { Toaster } from "@/components/ui/toaster";
-import { FirebaseClientProvider } from '@/firebase/client-provider';
+import { LazyFirebaseProvider } from '@/components/shared/lazy-firebase-provider';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -15,7 +14,7 @@ export const metadata: Metadata = {
   description: 'Institutional access control and library visitor logging for New Era University.',
 };
 
-export const viewport = {
+export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 5, // Allows 500% zoom
@@ -30,10 +29,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={inter.variable}>
       <body className="font-sans antialiased">
-        <FirebaseClientProvider>
+        <LazyFirebaseProvider>
           {children}
-          <Toaster />
-        </FirebaseClientProvider>
+        </LazyFirebaseProvider>
       </body>
     </html>
   );

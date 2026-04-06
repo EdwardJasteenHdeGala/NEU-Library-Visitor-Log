@@ -74,13 +74,15 @@ export function WelcomeScreen({ onLogin, onGuest }: WelcomeScreenProps) {
                 <CardContent className="p-12 space-y-12">
                    <div className="flex flex-col items-center text-center space-y-6">
                       <div className="bg-white p-3 rounded-2xl shadow-premium-sm w-16 h-16 relative overflow-hidden flex items-center justify-center border border-primary/10 transform transition-transform group-hover:scale-105">
-                         <Image 
-                            src={logoImage?.imageUrl || ""} 
-                            alt="NEU Logo" 
-                            fill
-                            sizes="64px"
-                            className="object-contain p-2"
-                          />
+                         {logoImage?.imageUrl && (
+                           <Image 
+                              src={logoImage.imageUrl} 
+                              alt="NEU Logo" 
+                              fill
+                              sizes="64px"
+                              className="object-contain p-2"
+                            />
+                         )}
                       </div>
                       <div className="max-w-md mx-auto">
                          <h2 className="text-2xl font-black italic uppercase tracking-tighter text-primary">Identity Verification Required</h2>

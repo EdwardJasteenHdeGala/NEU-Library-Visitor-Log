@@ -1,18 +1,31 @@
 import { collection, addDoc, serverTimestamp, getFirestore } from "firebase/firestore";
 import { SystemLog } from "@/types/diagnostics";
 import { diagnosticSession } from "./diagnostics/session";
+import { RateLimiter } from "@/lib/safeguards";
 
 /**
  * Institutional System Diagnostics Logger
  * 
  * Provides a robust, non-blocking mechanism to persist runtime anomalies
  * and system health metrics to the institutional registry.
+ * 
+ * SAFEGUARD: Rate-limited to 20 logs per 60-second window to prevent
+ * a feedback loop where logging errors to Firestore triggers more errors.
  */
 class DiagnosticsLogger {
   private collectionName = 'system_diagnostics';
+  private rateLimiter = new RateLimiter(20, 60_000);
 
   async log(log: Omit<SystemLog, 'timestamp' | 'resolved' | 'id'>) {
     try {
+      // Rate limit check — prevents infinite logging feedback loops
+      if (!this.rateLimiter.shouldProceed()) {
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('[DiagnosticsLogger] Rate limit reached — log suppressed. Remaining:', this.rateLimiter.remaining());
+        }
+        return;
+      }
+
       const db = getFirestore();
       const colRef = collection(db, this.collectionName);
       
@@ -31,6 +44,7 @@ class DiagnosticsLogger {
 
       // Non-blocking fire-and-forget to Firestore
       addDoc(colRef, logEntry).catch(err => {
+        // Log to console only — NEVER re-trigger the logger to avoid recursion
         console.warn("[DiagnosticsLogger] Recovery failure:", err);
       });
 

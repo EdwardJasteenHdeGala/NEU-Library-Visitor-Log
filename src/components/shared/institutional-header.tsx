@@ -72,7 +72,9 @@ export function InstitutionalHeader({
             onClick={() => onNavigate?.(mode === 'admin' ? 'dashboard' : 'log-entry')}
           >
             <div className="bg-white p-1 rounded-2xl w-10 h-10 md:w-12 md:h-12 relative overflow-hidden flex items-center justify-center transition-all duration-700 group-hover:scale-110 group-hover:rotate-3 shadow-premium-sm ring-2 ring-white/10">
-              <Image src={logoImage?.imageUrl || ""} alt="NEU" fill className="object-contain p-2 transition-transform duration-700 group-hover:scale-105" sizes="48px" />
+              {logoImage?.imageUrl && (
+                <Image src={logoImage.imageUrl} alt="NEU" fill className="object-contain p-2 transition-transform duration-700 group-hover:scale-105" sizes="48px" />
+              )}
             </div>
             <div className="flex flex-col leading-none">
               <h1 className="text-[0.9rem] md:text-[1.1rem] font-black tracking-tighter text-white uppercase italic drop-shadow-premium">

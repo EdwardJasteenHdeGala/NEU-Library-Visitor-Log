@@ -10,4 +10,5 @@ export interface Visit {
   timestamp: Timestamp;
   exitTimestamp?: Timestamp;
   durationMinutes?: number;
+  isDeleted?: boolean;
 }

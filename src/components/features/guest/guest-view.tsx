@@ -67,14 +67,20 @@ export function GuestView({ onBack, onLogin }: GuestViewProps) {
 
           <Card className="shadow-2xl border-none overflow-hidden rounded-[2rem] bg-white ring-1 ring-slate-200/50">
             <div className="aspect-[21/10] min-h-[15rem] relative group overflow-hidden">
-              <Image 
-                src={campusImage?.imageUrl || ""} 
-                alt="NEU Campus" 
-                fill 
-                priority
-                className="object-cover transition-transform duration-1000 group-hover:scale-105"
-                data-ai-hint="university campus"
-              />
+              {campusImage?.imageUrl ? (
+                <Image 
+                  src={campusImage.imageUrl} 
+                  alt="NEU Campus" 
+                  fill 
+                  priority
+                  className="object-cover transition-transform duration-1000 group-hover:scale-105"
+                  data-ai-hint="university campus"
+                />
+              ) : (
+                <div className="w-full h-full bg-slate-100 flex items-center justify-center">
+                  <span className="text-slate-400 text-sm italic">Image Unavailable</span>
+                </div>
+              )}
               <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent" />
               <div className="absolute bottom-[clamp(1rem,5vw,2rem)] left-[clamp(1rem,5vw,2rem)] right-[clamp(1rem,5vw,2rem)] flex flex-col md:flex-row md:items-end justify-between gap-[1rem]">
                 <div className="text-white space-y-[0.5rem]">

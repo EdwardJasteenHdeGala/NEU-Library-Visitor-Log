@@ -5,9 +5,11 @@ import {
   limit,
   doc, 
   serverTimestamp,
-  Firestore
+  Firestore,
+  where,
+  arrayUnion
 } from "firebase/firestore";
-import { addDocumentNonBlocking, deleteDocumentNonBlocking } from "@/firebase";
+import { addDocumentNonBlocking, updateDocumentNonBlocking } from "@/firebase";
 import { AuditService } from "./audit-service";
 
 export class UserService {
@@ -20,6 +22,16 @@ export class UserService {
   getUsersQuery(max: number = 100) {
     return query(
       collection(this.firestore, 'users'), 
+      where('isDeleted', '==', false),
+      orderBy('updatedAt', 'desc'),
+      limit(max)
+    );
+  }
+
+  getDeletedUsersQuery(max: number = 100) {
+    return query(
+      collection(this.firestore, 'users'), 
+      where('isDeleted', '==', true),
       orderBy('updatedAt', 'desc'),
       limit(max)
     );
@@ -28,8 +40,105 @@ export class UserService {
   getInvitesQuery(max: number = 50) {
     return query(
       collection(this.firestore, 'invites'), 
+      where('isDeleted', '==', false),
       orderBy('timestamp', 'desc'),
       limit(max)
+    );
+  }
+
+  async blockUser(userId: string, reason: string, adminId: string, adminName: string) {
+    const userRef = doc(this.firestore, 'users', userId);
+    await updateDocumentNonBlocking(userRef, {
+      isBlocked: true,
+      blockedReason: reason,
+      blockedAt: serverTimestamp(),
+      blockedBy: adminId,
+      updatedAt: serverTimestamp()
+    });
+
+    await this.auditService.logResourceAction(
+      adminId,
+      adminName,
+      'BLOCK_USER',
+      `Blocked user ${userId}. Reason: ${reason}`,
+      userId,
+      'user'
+    );
+  }
+
+  async unblockUser(userId: string, adminId: string, adminName: string) {
+    const userRef = doc(this.firestore, 'users', userId);
+    await updateDocumentNonBlocking(userRef, {
+      isBlocked: false,
+      blockedReason: null,
+      updatedAt: serverTimestamp()
+    });
+
+    await this.auditService.logResourceAction(
+      adminId,
+      adminName,
+      'UNBLOCK_USER',
+      `Unblocked user ${userId}`,
+      userId,
+      'user'
+    );
+  }
+
+  async warnUser(userId: string, message: string, adminId: string, adminName: string) {
+    const userRef = doc(this.firestore, 'users', userId);
+    await updateDocumentNonBlocking(userRef, {
+      warnings: arrayUnion({
+        message,
+        timestamp: new Date().toISOString(),
+        adminId,
+        adminName
+      }),
+      updatedAt: serverTimestamp()
+    });
+
+    await this.auditService.logResourceAction(
+      adminId,
+      adminName,
+      'WARN_USER',
+      `Issued warning to user ${userId}: ${message}`,
+      userId,
+      'user'
+    );
+  }
+
+  async softDeleteUser(userId: string, adminId: string, adminName: string) {
+    const userRef = doc(this.firestore, 'users', userId);
+    await updateDocumentNonBlocking(userRef, {
+      isDeleted: true,
+      deletedAt: serverTimestamp(),
+      deletedBy: adminId,
+      updatedAt: serverTimestamp()
+    });
+
+    await this.auditService.logResourceAction(
+      adminId,
+      adminName,
+      'SOFT_DELETE_USER',
+      `Soft deleted user ${userId}`,
+      userId,
+      'user'
+    );
+  }
+
+  async restoreUser(userId: string, adminId: string, adminName: string) {
+    const userRef = doc(this.firestore, 'users', userId);
+    await updateDocumentNonBlocking(userRef, {
+      isDeleted: false,
+      updatedAt: serverTimestamp()
+    });
+
+    await this.auditService.logResourceAction(
+      adminId,
+      adminName,
+      'RESTORE_USER',
+      `Restored user ${userId}`,
+      userId,
+      'user'
     );
   }
 
@@ -40,7 +149,8 @@ export class UserService {
       invitedBy,
       invitedByName,
       timestamp: serverTimestamp(),
-      status: 'pending'
+      status: 'pending',
+      isDeleted: false
     });
 
     await this.auditService.logResourceAction(
@@ -64,6 +174,10 @@ export class UserService {
       inviteId,
       'invite'
     );
-    return deleteDocumentNonBlocking(doc(this.firestore, 'invites', inviteId));
+    return updateDocumentNonBlocking(doc(this.firestore, 'invites', inviteId), {
+      isDeleted: true,
+      revokedBy: adminId,
+      revokedAt: serverTimestamp()
+    });
   }
 }
