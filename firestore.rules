@@ -12,7 +12,7 @@ service cloud.firestore {
       return request.auth != null && 
              (request.auth.uid == 'ix6skGzgoCM0v8BpiT4dtsbEkys2' || 
               (request.auth.token.email != null && 
-               request.auth.token.email.toLowerCase() == 'edwardjasteen.degala@neu.edu.ph'));
+               request.auth.token.email.lower() == 'edwardjasteen.degala@neu.edu.ph'));
     }
 
     function isAuthenticated() {
@@ -73,7 +73,7 @@ service cloud.firestore {
     
     // 6. Invites
     match /invites/{inviteId} {
-      allow read: if isSuperAdmin() || isAuthorizedAdmin() || (isAuthenticated() && resource.data.email.toLowerCase() == request.auth.token.email.toLowerCase());
+      allow read: if isSuperAdmin() || isAuthorizedAdmin() || (isAuthenticated() && resource.data.email.lower() == request.auth.token.email.lower());
       allow write: if isSuperAdmin() || isAuthorizedAdmin();
     }
 

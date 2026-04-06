@@ -111,7 +111,8 @@ export default function AdminDashboard() {
         return;
       }
 
-      const isSuperAdmin = user.email && AUTHORIZED_EMAILS.includes(user.email);
+      const userEmail = (user.email || "").toLowerCase();
+      const isSuperAdmin = userEmail && AUTHORIZED_EMAILS.includes(userEmail);
       const hasAdminRole = currentUserDoc && (currentUserDoc.role === 'admin' || currentUserDoc.role === 'superadmin');
 
       if (!isSuperAdmin && !hasAdminRole) {

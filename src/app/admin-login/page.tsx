@@ -39,7 +39,8 @@ export default function AdminLoginPage() {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
       
-      if (!user.email?.endsWith("@neu.edu.ph")) {
+      const userEmail = user.email?.toLowerCase() || "";
+      if (!userEmail.endsWith("@neu.edu.ph")) {
         await signOut(auth);
         toast({
           variant: "destructive",
@@ -53,7 +54,7 @@ export default function AdminLoginPage() {
       const userRef = doc(db, "users", user.uid);
       const userSnap = await getDoc(userRef);
       
-      const isSuperAdmin = user.email && AUTHORIZED_EMAILS.includes(user.email);
+      const isSuperAdmin = userEmail && AUTHORIZED_EMAILS.includes(userEmail);
       const userData = userSnap.exists() ? userSnap.data() : null;
       const hasAdminRole = userData && (userData.role === 'admin' || userData.role === 'superadmin');
 
